@@ -119,3 +119,41 @@ describe('ResourceListView first load', () => {
         expect(datatableEl()).toBe(firstMount);
     });
 });
+
+describe('ResourceListView action column', () => {
+    it("merges the view's own action column with the ⋮ menu into one right-frozen column", async () => {
+        render(
+            <ResourceListView<Row>
+                title="Pod List"
+                clusterName="test-cluster"
+                fetcher={async () => [{ name: 'pod-a', namespace: 'default' }]}
+                createFrom={(raw: any) => ({ name: raw.name, namespace: raw.namespace })}
+                defaultFilters={{}}
+                emptyMessage="No pods found"
+                pollInterval={1_000_000}
+                describeResource="pods"
+                columns={() => (
+                    <>
+                        <Column field="name" header="Name" />
+                        <Column header="" style={{ width: '5rem' }} body={() => <button data-testid="logs">logs</button>} />
+                        <Column field="namespace" header="Namespace" />
+                    </>
+                )}
+            />,
+        );
+
+        await waitFor(() => expect(datatableEl()).not.toBeNull());
+
+        // jsdom has no layout, so the virtual scroller renders no body rows;
+        // the header row is enough to show the merge. Data columns keep their
+        // order, and the view's action column no longer sits between them: it
+        // and the ⋮ menu are a single trailing column, frozen to the right.
+        const headers = [...document.querySelectorAll('thead tr:first-child th')];
+        expect(headers.map((th) => th.textContent?.trim())).toEqual(['Name', 'Namespace', '']);
+        const actions = headers[2];
+        expect(actions.getAttribute('data-p-frozen-column')).toBe('true');
+        expect(actions.classList.contains('ktable-actions-col')).toBe(true);
+        // 5rem (view column) + 4rem (⋮) − one shared cell padding (1.5rem).
+        expect((actions as HTMLElement).style.width).toBe('7.5rem');
+    });
+});

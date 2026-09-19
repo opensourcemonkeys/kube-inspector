@@ -235,6 +235,18 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: 
 .p-datatable .p-column-resizer:hover { border-right-color: var(--teal); }
 /* Control-button (action) columns have a fixed width — disable their resize handle. */
 .p-datatable th.ktable-actions-col .p-column-resizer { display: none; pointer-events: none; }
+/* The action column is frozen to the right edge (shared/actionColumn.ts), so it
+   stays reachable however far a wide table is scrolled. A sticky cell is
+   transparent by default and rows would scroll visibly underneath it: give it
+   the row's own background, and separate it with a divider + soft shadow. */
+/* `inherit`, not a fixed colour: the row's background already covers striped,
+   hover and selected states, and the sticky cell must match whichever applies. */
+.p-datatable .p-datatable-tbody > tr > td.p-frozen-column { background: inherit; }
+.p-datatable .p-datatable-thead > tr > th.p-frozen-column { background: var(--panel); }
+.p-datatable td.ktable-actions-cell,
+.p-datatable th.ktable-actions-col.p-frozen-column { border-left: 1px solid var(--line2); box-shadow: -6px 0 8px -6px rgba(0,0,0,.45); }
+.p-datatable td.ktable-actions-cell { padding: 0 6px; }
+.ktable-actions { display: flex; gap: .15rem; align-items: center; justify-content: center; }
 
 /* Resource-list tables must track their Dockview panel's height.
    PrimeReact's VirtualScroller latches the height it measured at its first init

@@ -172,7 +172,10 @@
     "empty": "Pods не найдены",
     "containerInitPrefix": "[init] ",
     "containerUnknownState": "Неизвестно",
-    "containerRestarts": " — перезапусков: {{count}}"
+    "containerRestarts": " — перезапусков: {{count}}",
+    "containerReady": "готов",
+    "containerNotReady": "не готов",
+    "notScheduled": "Не запланирован"
   },
   "replicaset": {
     "title": "Список ReplicaSets",

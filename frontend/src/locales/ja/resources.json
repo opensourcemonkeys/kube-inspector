@@ -172,7 +172,10 @@
     "empty": "Pod が見つかりません",
     "containerInitPrefix": "[init] ",
     "containerUnknownState": "不明",
-    "containerRestarts": " — 再起動 {{count}} 回"
+    "containerRestarts": " — 再起動 {{count}} 回",
+    "containerReady": "準備完了",
+    "containerNotReady": "未準備",
+    "notScheduled": "未スケジュール"
   },
   "replicaset": {
     "title": "ReplicaSet 一覧",

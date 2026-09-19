@@ -172,7 +172,10 @@
     "empty": "Pod bulunamadı",
     "containerInitPrefix": "[init] ",
     "containerUnknownState": "Bilinmiyor",
-    "containerRestarts": " — {{count}} yeniden başlatma"
+    "containerRestarts": " — {{count}} yeniden başlatma",
+    "containerReady": "hazır",
+    "containerNotReady": "hazır değil",
+    "notScheduled": "Zamanlanmadı"
   },
   "replicaset": {
     "title": "ReplicaSet Listesi",

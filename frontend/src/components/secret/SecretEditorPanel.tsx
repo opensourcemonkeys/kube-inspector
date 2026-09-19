@@ -15,6 +15,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Toast } from 'primereact/toast';
 import { GetSecretData, UpdateSecretData } from '../../../wailsjs/go/controller_app/App';
 import { useT } from '../../i18n/useT';
+import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
 
 interface SecretEditorPanelParams {
     clusterName: string;
@@ -231,6 +232,7 @@ export default function SecretEditorPanel({ params }: IDockviewPanelProps<Secret
                 />
                 <Column
                     header=""
+                    {...ACTION_COLUMN_PROPS}
                     body={actionsBody}
                     style={{ width: '3.5rem', textAlign: 'center' }}
                 />

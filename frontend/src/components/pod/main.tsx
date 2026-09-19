@@ -16,13 +16,26 @@ import ResourceListView from '../shared/ResourceListView';
 import { humanAge, absTime } from '../../lib/time';
 import { useT } from '../../i18n/useT';
 
+// Waiting reasons that mean "on its way", not "broken". Anything else a
+// container waits on (CrashLoopBackOff, ImagePullBackOff, ...) is a fault.
+const BENIGN_WAITING = new Set(['', 'ContainerCreating', 'PodInitializing']);
+
+// The backend reports kubectl's STATUS (see services.getPodStatus), so the
+// status is a container reason as often as a pod phase.
 const getStatusSeverity = (status: string) => {
-    switch (status) {
-        case 'Running':     return 'success';
-        case 'Pending':     return 'warning';
-        case 'Terminating': return 'danger';
-        default:            return 'info';
-    }
+    if (status === 'Running') return 'success';
+    if (status === 'Completed' || status === 'Succeeded') return 'secondary';
+    if (status === 'Pending' || status === 'Terminating' || BENIGN_WAITING.has(status)) return 'warning';
+    // Init:1/3 is progress; Init:CrashLoopBackOff is not.
+    if (/^Init:\d+\/\d+$/.test(status)) return 'warning';
+    if (status === 'Unknown') return 'info';
+    return 'danger';
+};
+
+const getReadySeverity = (ready: number, total: number) => {
+    if (total === 0) return 'secondary';
+    if (ready === total) return 'success';
+    return ready === 0 ? 'danger' : 'warning';
 };
 
 const getOwnerSeverity = (kind: string) => {
@@ -37,14 +50,21 @@ const getOwnerSeverity = (kind: string) => {
     }
 };
 
-// Per-container status dot color: green=ready, orange=running-but-not-ready,
-// grey=completed/terminated cleanly, red=waiting/error.
+// Per-container status color:
+//   green  ready
+//   amber  running but not (yet) ready — probe failing or still warming up
+//   blue   waiting for a normal reason (ContainerCreating, PodInitializing)
+//   grey   finished cleanly (a completed init container or job)
+//   red    waiting on a fault (CrashLoopBackOff, ImagePullBackOff, ...) or exited with an error
 const containerDotColor = (c: models.ContainerStatusInfo) => {
     if (c.ready) return 'var(--green)';
-    if (c.state === 'Terminated' && c.reason === 'Completed') return 'var(--ink2)';
+    if (c.state === 'Terminated') return c.reason === 'Completed' ? 'var(--ink3)' : 'var(--red)';
     if (c.state === 'Running') return 'var(--amber)';
+    if (c.state === 'Waiting' && BENIGN_WAITING.has(c.reason)) return 'var(--blue)';
     return 'var(--red)';
 };
+
+const MONO = '"JetBrains Mono", "Cascadia Code", monospace';
 
 // Live usage formatting, mirroring the Monitoring dashboard.
 // usage < 0 means metrics-server is unavailable.
@@ -56,7 +76,8 @@ const defaultFilters: DataTableFilterMeta = {
     namespace:  { value: null, matchMode: FilterMatchMode.IN },
     status:     { value: null, matchMode: FilterMatchMode.IN },
     owner_kind: { value: null, matchMode: FilterMatchMode.IN },
-    pod_ip:    { value: null, matchMode: FilterMatchMode.IN },
+    pod_ip:     { value: null, matchMode: FilterMatchMode.IN },
+    node_name:  { value: null, matchMode: FilterMatchMode.IN },
 };
 
 // Menu item body for the exec container picker: a glowing status dot (matched from
@@ -70,8 +91,8 @@ const renderContainerItem = (row: models.PodInfo, name: string, options: MenuIte
     return (
         <a className={options.className} role="menuitem" onClick={options.onClick}
             style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%' }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: `0 0 0 3px ${color}22` }} />
-            <span style={{ fontFamily: '"JetBrains Mono", "Cascadia Code", monospace', fontSize: '12.5px', fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
+            <span style={{ width: 9, height: 9, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: `0 0 0 3px color-mix(in srgb, ${color} 22%, transparent)` }} />
+            <span style={{ fontFamily: MONO, fontSize: '12.5px', fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
             {stateText && (
                 <span style={{ marginLeft: 'auto', flexShrink: 0, fontSize: '10px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--ink3)' }}>{stateText}</span>
             )}
@@ -111,10 +132,14 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
-                    <Column field="status" header={t('resources:column.status')} sortable filter filterField="status" showFilterMenu={false} style={{ minWidth: '7.5rem' }}
+                    <Column field="status" header={t('resources:column.status')} sortable filter filterField="status" showFilterMenu={false} style={{ minWidth: '9rem' }}
                         body={(row: models.PodInfo) => <Tag value={row.status} severity={getStatusSeverity(row.status)} />}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('status')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
+                        )} />
+                    <Column field="ready_count" header={t('resources:column.ready')} sortable style={{ minWidth: '5rem' }}
+                        body={(row: models.PodInfo) => (
+                            <Tag value={`${row.ready_count}/${row.total_count}`} severity={getReadySeverity(row.ready_count, row.total_count)} />
                         )} />
                     <Column field="owner_kind" header={t('resources:column.owner')} sortable filter filterField="owner_kind" showFilterMenu={false} style={{ minWidth: '7.5rem' }}
                         body={(row: models.PodInfo) => <Tag value={row.owner_kind || 'Pod'} severity={getOwnerSeverity(row.owner_kind)} />}
@@ -131,25 +156,49 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                             <MultiSelect value={options.value} options={buildInOptions('pod_ip')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )}
                         />
+                    <Column field="node_name" header={t('resources:column.node')} sortable filter filterField="node_name" showFilterMenu={false} style={{ minWidth: '9rem', maxWidth: '12rem' }}
+                        body={(row: models.PodInfo) => row.node_name
+                            ? <span title={row.node_name} style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: MONO, fontSize: '0.8rem' }}>{row.node_name}</span>
+                            : <span style={{ opacity: 0.5 }} title={t('resources:pod.notScheduled')}>—</span>}
+                        filterElement={(options: ColumnFilterElementTemplateOptions) => (
+                            <MultiSelect value={options.value} options={buildInOptions('node_name')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
+                        )} />
                     <Column header={t('resources:column.containers')} style={{ minWidth: '7rem' }}
                         body={(row: models.PodInfo) => {
                             const cs = row.container_statuses || [];
                             if (cs.length === 0) return <span style={{ opacity: 0.5 }}>—</span>;
                             return (
-                                <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                                    {cs.map((c) => (
-                                        <span key={(c.init ? 'init:' : '') + c.name}
-                                            title={
-                                                // The container name, state and reason come
-                                                // straight from the cluster and stay verbatim;
-                                                // only the frame around them is translated.
-                                                `${c.init ? t('resources:pod.containerInitPrefix') : ''}` +
-                                                `${c.name}: ${c.state || t('resources:pod.containerUnknownState')}` +
-                                                `${c.reason ? ` (${c.reason})` : ''}` +
-                                                `${c.restart_count > 0 ? t('resources:pod.containerRestarts', { count: c.restart_count }) : ''}`
-                                            }
-                                            style={{ width: 10, height: 10, display: 'inline-block', borderRadius: c.init ? 2 : '50%', background: containerDotColor(c) }} />
-                                    ))}
+                                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                    {cs.map((c) => {
+                                        const color = containerDotColor(c);
+                                        return (
+                                            <span key={(c.init ? 'init:' : '') + c.name}
+                                                title={
+                                                    // The container name, state and reason come
+                                                    // straight from the cluster and stay verbatim;
+                                                    // only the frame around them is translated.
+                                                    `${c.init ? t('resources:pod.containerInitPrefix') : ''}${c.name}\n` +
+                                                    `${c.state || t('resources:pod.containerUnknownState')}` +
+                                                    `${c.reason ? ` (${c.reason})` : ''}` +
+                                                    ` · ${c.ready ? t('resources:pod.containerReady') : t('resources:pod.containerNotReady')}` +
+                                                    `${c.restart_count > 0 ? t('resources:pod.containerRestarts', { count: c.restart_count }) : ''}`
+                                                }
+                                                style={{
+                                                    position: 'relative', flexShrink: 0, display: 'inline-block', width: 12, height: 12,
+                                                    // Init containers are squares, regular ones circles.
+                                                    borderRadius: c.init ? 3 : '50%',
+                                                    background: color,
+                                                    boxShadow: `0 0 0 3px color-mix(in srgb, ${color} 22%, transparent)`,
+                                                }}>
+                                                {/* A container that has restarted gets an amber corner mark
+                                                    even while it is currently ready — the restart count is
+                                                    the first thing to check when a pod "works but flaps". */}
+                                                {c.restart_count > 0 && (
+                                                    <span style={{ position: 'absolute', top: -4, right: -4, width: 6, height: 6, borderRadius: '50%', background: 'var(--amber)', boxShadow: '0 0 0 1.5px var(--app)' }} />
+                                                )}
+                                            </span>
+                                        );
+                                    })}
                                 </div>
                             );
                         }} />

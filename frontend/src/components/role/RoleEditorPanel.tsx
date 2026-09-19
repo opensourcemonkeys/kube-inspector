@@ -13,6 +13,7 @@ import { Toast } from 'primereact/toast';
 import { GetRoles, UpdateRole } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
+import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
 
 interface RoleEditorPanelParams {
     clusterName: string;
@@ -192,7 +193,7 @@ export default function RoleEditorPanel({ params }: IDockviewPanelProps<RoleEdit
                 <Column field="resources" header={t('resources:column.resources')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '11rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
                 <Column field="verbs" header={t('resources:column.verbs')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '11rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
                 <Column field="resourceNames" header={t('resources:column.resourceNames')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '11rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
-                <Column header="" body={actionsBody} style={{ width: '3.5rem', textAlign: 'center' }} />
+                <Column header="" {...ACTION_COLUMN_PROPS} body={actionsBody} style={{ width: '3.5rem', textAlign: 'center' }} />
             </DataTable>
         </div>
     );

@@ -172,7 +172,10 @@
     "empty": "Keine Pods gefunden",
     "containerInitPrefix": "[init] ",
     "containerUnknownState": "Unbekannt",
-    "containerRestarts": " — {{count}} Neustarts"
+    "containerRestarts": " — {{count}} Neustarts",
+    "containerReady": "bereit",
+    "containerNotReady": "nicht bereit",
+    "notScheduled": "Nicht eingeplant"
   },
   "replicaset": {
     "title": "ReplicaSet-Liste",

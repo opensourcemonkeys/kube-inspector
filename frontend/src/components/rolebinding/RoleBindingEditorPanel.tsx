@@ -14,6 +14,7 @@ import { Toast } from 'primereact/toast';
 import { GetRoleBindings, UpdateRoleBinding } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
+import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
 
 interface RoleBindingEditorPanelParams {
     clusterName: string;
@@ -191,7 +192,7 @@ export default function RoleBindingEditorPanel({ params }: IDockviewPanelProps<R
                 <Column field="kind" header={t('resources:column.kind')} editor={kindEditor} onCellEditComplete={onCellEditComplete} style={{ width: '12rem', minWidth: '10rem' }} />
                 <Column field="name" header={t('resources:column.name')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '12rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
                 <Column field="namespace" header={t('resources:column.namespace')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '12rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
-                <Column header="" body={actionsBody} style={{ width: '3.5rem', textAlign: 'center' }} />
+                <Column header="" {...ACTION_COLUMN_PROPS} body={actionsBody} style={{ width: '3.5rem', textAlign: 'center' }} />
             </DataTable>
         </div>
     );

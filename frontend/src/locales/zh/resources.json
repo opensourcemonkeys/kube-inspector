@@ -172,7 +172,10 @@
     "empty": "未找到 Pod",
     "containerInitPrefix": "[init] ",
     "containerUnknownState": "未知",
-    "containerRestarts": " — 重启 {{count}} 次"
+    "containerRestarts": " — 重启 {{count}} 次",
+    "containerReady": "就绪",
+    "containerNotReady": "未就绪",
+    "notScheduled": "未调度"
   },
   "replicaset": {
     "title": "ReplicaSet 列表",

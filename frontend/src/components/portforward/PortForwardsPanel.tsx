@@ -20,6 +20,7 @@ import { usePanelActive } from '../../lib/usePanelActive';
 import { writeClipboard } from '../../lib/clipboard';
 import { errText } from '../../lib/errText';
 import { useT } from '../../i18n/useT';
+import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
 
 type TagSeverity = 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast';
 
@@ -212,6 +213,7 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
                     <Column header={t('resources:column.age')} style={{ minWidth: '5rem' }} body={(f: PortForward) => age(f.started_at)} />
                     <Column
                         header=""
+                        {...ACTION_COLUMN_PROPS}
                         headerStyle={{ width: '9rem' }}
                         style={{ minWidth: '9rem', maxWidth: '9rem' }}
                         body={(f: PortForward) => (

@@ -116,8 +116,13 @@ func podToInfo(pod corev1.Pod, rsToDeploy map[string]string, podUsage map[string
 		lastRestartAtStr = lastRestartAt.Format(time.RFC3339)
 	}
 
+	readyCount, totalCount := readyCounts(pod)
+
 	return models.PodInfo{
 		Name:              pod.Name,
+		ReadyCount:        readyCount,
+		TotalCount:        totalCount,
+		NodeName:          pod.Spec.NodeName,
 		Namespace:         pod.Namespace,
 		Status:            getPodStatus(pod),
 		Containers:        containers,
@@ -145,19 +150,87 @@ func latestRestart(max time.Time, candidate string) time.Time {
 	return t
 }
 
+// getPodStatus mirrors kubectl's STATUS column (printPod in
+// k8s.io/kubernetes/pkg/printers/internalversion): the phase alone says
+// "Running" for a pod whose only container is in CrashLoopBackOff, so the most
+// telling init/container reason wins over it.
 func getPodStatus(pod corev1.Pod) models.PodStatus {
 	if pod.DeletionTimestamp != nil {
+		if pod.Status.Reason == "NodeLost" {
+			return "Unknown"
+		}
 		return models.PodStatusTerminating
 	}
 
-	switch pod.Status.Phase {
-	case corev1.PodRunning:
-		return models.PodStatusRunning
-	case corev1.PodPending:
-		return models.PodStatusPending
-	default:
-		return models.PodStatus(pod.Status.Phase)
+	reason := string(pod.Status.Phase)
+	if pod.Status.Reason != "" {
+		reason = pod.Status.Reason // Evicted, NodeAffinity, ...
 	}
+
+	sidecars := map[string]bool{}
+	for _, c := range pod.Spec.InitContainers {
+		if c.RestartPolicy != nil && *c.RestartPolicy == corev1.ContainerRestartPolicyAlways {
+			sidecars[c.Name] = true
+		}
+	}
+
+	initializing := false
+	for i, cs := range pod.Status.InitContainerStatuses {
+		switch {
+		case cs.State.Terminated != nil && cs.State.Terminated.ExitCode == 0:
+			continue
+		case sidecars[cs.Name] && cs.Started != nil && *cs.Started:
+			// A native sidecar that has started is doing its job, not blocking init.
+			continue
+		case cs.State.Terminated != nil:
+			if cs.State.Terminated.Reason != "" {
+				reason = "Init:" + cs.State.Terminated.Reason
+			} else {
+				reason = fmt.Sprintf("Init:ExitCode:%d", cs.State.Terminated.ExitCode)
+			}
+		case cs.State.Waiting != nil && cs.State.Waiting.Reason != "" && cs.State.Waiting.Reason != "PodInitializing":
+			reason = "Init:" + cs.State.Waiting.Reason
+		default:
+			reason = fmt.Sprintf("Init:%d/%d", i, len(pod.Spec.InitContainers))
+		}
+		initializing = true
+		break
+	}
+
+	if !initializing {
+		hasRunning := false
+		// Reverse order, like kubectl, so the first container's reason wins.
+		for i := len(pod.Status.ContainerStatuses) - 1; i >= 0; i-- {
+			cs := pod.Status.ContainerStatuses[i]
+			switch {
+			case cs.State.Waiting != nil && cs.State.Waiting.Reason != "":
+				reason = cs.State.Waiting.Reason
+			case cs.State.Terminated != nil && cs.State.Terminated.Reason != "":
+				reason = cs.State.Terminated.Reason
+			case cs.State.Terminated != nil:
+				reason = fmt.Sprintf("ExitCode:%d", cs.State.Terminated.ExitCode)
+			case cs.Ready && cs.State.Running != nil:
+				hasRunning = true
+			}
+		}
+		// Some containers finished, others still serve: the pod is running.
+		if reason == "Completed" && hasRunning {
+			reason = string(corev1.PodRunning)
+		}
+	}
+
+	return models.PodStatus(reason)
+}
+
+// readyCounts is kubectl's READY column: ready / total regular containers.
+func readyCounts(pod corev1.Pod) (ready, total int32) {
+	total = int32(len(pod.Spec.Containers))
+	for _, cs := range pod.Status.ContainerStatuses {
+		if cs.Ready {
+			ready++
+		}
+	}
+	return ready, total
 }
 
 // mapContainerStatus flattens a k8s ContainerStatus into the frontend model,

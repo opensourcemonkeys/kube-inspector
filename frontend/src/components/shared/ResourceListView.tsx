@@ -16,43 +16,71 @@ import { useTabContext } from '../../contexts/TabContext';
 import ErrorBanner from './ErrorBanner';
 import PortForwardDialog, { type ForwardableKind } from './PortForwardDialog';
 import { useWorkloadActions, type WorkloadActionSpec } from './WorkloadActions';
+import { ACTION_COLUMN_PROPS } from './actionColumn';
+
+type CellRenderer = (row: any, options: any) => React.ReactNode;
+
+/** One view-declared action column, reduced to what the merged column needs. */
+interface ActionCell {
+    body: CellRenderer | React.ReactNode;
+    widthRem: number;
+}
+
+// PrimeReact cell padding is 12px per side (theme-monolith.css). Each view's
+// action-column width already includes it, so merging N columns into one cell
+// must count it once, not N times.
+const CELL_PADDING_REM = 1.5;
+const KEBAB_WIDTH_REM = 2.5;
+
+const remOf = (style: React.CSSProperties | undefined): number => {
+    const raw = style?.width ?? style?.minWidth;
+    const m = typeof raw === 'string' ? /^([\d.]+)rem$/.exec(raw) : null;
+    return m ? parseFloat(m[1]) : 3; // a one-button column, padding included
+};
+
+// Action columns (the control-button column) are declared with an empty
+// header and carry no `field`.
+const isActionColumn = (node: React.ReactNode) => {
+    if (!React.isValidElement(node)) return false;
+    const p = node.props as { header?: React.ReactNode; field?: string; selectionMode?: string };
+    return (p.header === '' || p.header == null) && !p.field && !p.selectionMode;
+};
 
 // PrimeReact's DataTable finds its columns via React.Children.toArray(children),
 // which flattens arrays but NOT Fragments. The `columns` render-prop returns a
 // single <>…</> Fragment, so we must unwrap it into a keyed array here — otherwise
 // the data columns are invisible and the table renders empty.
-// `extra` is appended after the view's own columns. It must be added *after*
-// the Fragment is unwrapped, never by wrapping both in another Fragment: the
-// outer wrapper's children would then be [innerFragment, extra], and
-// React.Children.toArray would leave the inner Fragment intact — losing every
-// data column, which is the exact failure this function exists to prevent.
-function toColumnArray(node: React.ReactNode, extra?: React.ReactNode): React.ReactNode {
+//
+// The view's own action columns (logs, exec, …) are pulled *out* of the data
+// columns so the caller can merge them with the built-in ⋮ menu into one
+// right-frozen column: a sticky column has to be a single column, or the two
+// halves of a row's actions would pin at different offsets and scroll apart.
+function splitColumns(node: React.ReactNode): { data: React.ReactNode[]; actions: ActionCell[] } {
     const unwrapped =
         React.isValidElement(node) && node.type === React.Fragment
             ? (node as React.ReactElement<{ children?: React.ReactNode }>).props.children
             : node;
-    const children = extra ? [unwrapped, extra] : unwrapped;
-    // Action columns (the control-button column) are declared with an empty
-    // header and carry no `field`. They have a fixed width and must not be
-    // user-resizable. In PrimeReact's default "fit" resize mode the action
-    // column is the last one (no resizer of its own), but dragging the column
-    // *before* it steals width from it — so we tag both the action column and
-    // its left neighbour and hide both resize handles via theme CSS.
-    const arr = React.Children.toArray(children);
-    const isActionColumn = (node: React.ReactNode) => {
-        if (!React.isValidElement(node)) return false;
-        const p = node.props as { header?: React.ReactNode; field?: string };
-        return (p.header === '' || p.header == null) && !p.field;
-    };
-    const tag = new Set<number>();
-    arr.forEach((child, i) => {
+    const data: React.ReactNode[] = [];
+    const actions: ActionCell[] = [];
+    React.Children.toArray(unwrapped).forEach((child) => {
         if (isActionColumn(child)) {
-            tag.add(i);
-            if (i > 0) tag.add(i - 1);
+            const p = (child as React.ReactElement<{ body?: CellRenderer; style?: React.CSSProperties }>).props;
+            if (p.body) actions.push({ body: p.body, widthRem: remOf(p.style) });
+        } else {
+            data.push(child);
         }
     });
-    return arr.map((child, i) => {
-        if (!tag.has(i) || !React.isValidElement(child)) return child;
+    return { data, actions };
+}
+
+// The action column has a fixed width and must not be user-resizable. In
+// PrimeReact's default "fit" resize mode it is the last column (no resizer of
+// its own), but dragging the column *before* it steals width from it — so the
+// left neighbour is tagged too and both resize handles are hidden via theme CSS.
+function tagLastForActions(data: React.ReactNode[]): React.ReactNode[] {
+    const last = data.length - 1;
+    return data.map((child, i) => {
+        if (i !== last || !React.isValidElement(child)) return child;
         const props = child.props as { headerClassName?: string };
         return React.cloneElement(child as React.ReactElement<any>, {
             headerClassName: [props.headerClassName, 'ktable-actions-col'].filter(Boolean).join(' '),
@@ -190,11 +218,9 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
     // often only half the window wide, so up to five always-visible action
     // buttons were the widest thing on the row that carried no information.
     //
-    // It is deliberately a single column, not one per action: `toColumnArray`
-    // takes a single `extra` and tags the action column *and* its left
-    // neighbour so their resize handles stay hidden. A second appended column
-    // would land between that pair and reintroduce a draggable edge that steals
-    // width from the button.
+    // It shares one right-frozen column with the view's own action buttons
+    // (see `splitColumns`), so a row's actions stay on screen however far the
+    // table is scrolled sideways.
     //
     // One Menu for the whole list, not one per row: the body renderer runs for
     // every visible row, so a per-row Menu (and, before this, a per-row set of
@@ -247,41 +273,58 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
     };
 
     const hasRowMenu = !!describeResource || !!portForward || !!workloadActions;
-    const trailing = hasRowMenu ? (
+    const renderKebab = (row: T) => {
+        // A row whose capabilities add up to nothing gets no button at
+        // all, rather than one that opens an empty menu.
+        const items = buildRowMenu(row);
+        if (items.length === 0) return null;
+        const key = `${row.namespace ?? ''}/${row.name}`;
+        return (
+            <Button
+                icon={<VscKebabVertical size={16} />}
+                text
+                size="small"
+                severity="secondary"
+                style={{ padding: '0.2rem' }}
+                aria-label={t('action.more')}
+                aria-haspopup
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setRowMenuItems(items);
+                    if (openRowRef.current === key) {
+                        rowMenuRef.current?.hide(e);
+                        openRowRef.current = null;
+                    } else {
+                        openRowRef.current = key;
+                        rowMenuRef.current?.show(e);
+                    }
+                }}
+            />
+        );
+    };
+
+    const { data: dataColumns, actions: viewActions } = splitColumns(columns({ items, buildInOptions, reload, toastRef }));
+    const hasActions = viewActions.length > 0 || hasRowMenu;
+    let actionsWidth = 0;
+    if (hasActions) {
+        const widths = [...viewActions.map((a) => a.widthRem), ...(hasRowMenu ? [KEBAB_WIDTH_REM + CELL_PADDING_REM] : [])];
+        actionsWidth = widths.reduce((sum, w) => sum + w, 0) - CELL_PADDING_REM * (widths.length - 1);
+    }
+    const actionsColumn = hasActions ? (
         <Column
             key="__actions"
             header=""
-            headerStyle={{ width: '3rem' }}
-            style={{ minWidth: '3rem', maxWidth: '3rem' }}
-            body={(row: T) => {
-                // A row whose capabilities add up to nothing gets no button at
-                // all, rather than one that opens an empty menu.
-                const items = buildRowMenu(row);
-                if (items.length === 0) return null;
-                const key = `${row.namespace ?? ''}/${row.name}`;
-                return (
-                    <Button
-                        icon={<VscKebabVertical size={16} />}
-                        text
-                        size="small"
-                        severity="secondary"
-                        style={{ padding: '0.2rem' }}
-                        aria-label={t('action.more')}
-                        aria-haspopup
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setRowMenuItems(items);
-                            if (openRowRef.current === key) {
-                                rowMenuRef.current?.hide(e);
-                                openRowRef.current = null;
-                            } else {
-                                openRowRef.current = key;
-                                rowMenuRef.current?.show(e);
-                            }
-                        }}
-                    />
-                );
-            }}
+            {...ACTION_COLUMN_PROPS}
+            headerStyle={{ width: `${actionsWidth}rem` }}
+            style={{ width: `${actionsWidth}rem`, minWidth: `${actionsWidth}rem`, maxWidth: `${actionsWidth}rem` }}
+            body={(row: T, options: any) => (
+                <div className="ktable-actions">
+                    {viewActions.map((a, i) => (
+                        <React.Fragment key={i}>{typeof a.body === 'function' ? (a.body as CellRenderer)(row, options) : a.body}</React.Fragment>
+                    ))}
+                    {hasRowMenu && renderKebab(row)}
+                </div>
+            )}
         />
     ) : null;
 
@@ -451,7 +494,8 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                     {deletable && (
                         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} style={{ minWidth: '3rem', maxWidth: '3rem' }} />
                     )}
-                    {toColumnArray(columns({ items, buildInOptions, reload, toastRef }), trailing)}
+                    {hasActions ? tagLastForActions(dataColumns) : dataColumns}
+                    {actionsColumn}
                 </DataTable>
                 )}
             </div>

@@ -8,6 +8,10 @@ const (
 	PodStatusTerminating PodStatus = "Terminating"
 )
 
+// PodInfo.Status is not limited to the constants above: like kubectl's STATUS
+// column it surfaces the most telling container reason (CrashLoopBackOff,
+// ImagePullBackOff, Init:0/2, Completed, OOMKilled, Evicted, ...).
+
 // ContainerStatusInfo is one container's live status, used by the pod list's
 // per-container status dots. Covers both init and regular containers.
 type ContainerStatusInfo struct {
@@ -33,7 +37,12 @@ type PodInfo struct {
 	Restarts          int32                 `json:"restarts"`        // sum across all containers (init + regular)
 	LastRestartAt     string                `json:"last_restart_at"` // latest restart across all containers; "" if none
 
+	// kubectl's READY column: ready / total over regular (non-init) containers.
+	ReadyCount int32 `json:"ready_count"`
+	TotalCount int32 `json:"total_count"`
+
 	PodIP     string `json:"pod_ip"`
+	NodeName  string `json:"node_name"` // "" while unscheduled
 	OwnerKind string `json:"owner_kind"` // "Deployment"/"StatefulSet"/"DaemonSet"/"Job"/... ("" = bare pod)
 
 	// Live usage from metrics-server; -1 means metrics unavailable (distinct from a real 0).

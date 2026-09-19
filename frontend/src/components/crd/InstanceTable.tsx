@@ -9,6 +9,7 @@ import { Tag } from 'primereact/tag';
 import { VscInfo, VscNote, VscRefresh, VscTrash, VscTypeHierarchySub } from 'react-icons/vsc';
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
+import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
 
 // Must match the fixed row height enforced by theme-monolith.css
 // (.p-datatable-tbody > tr > td { height: 40px }).
@@ -261,6 +262,7 @@ export default function InstanceTable(props: InstanceTableProps) {
                     ))}
                     <Column
                         header=""
+                        {...ACTION_COLUMN_PROPS}
                         style={{ width: '9.5rem' }}
                         body={(row: InstanceRow) => (
                             <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'flex-end' }}>
