@@ -170,7 +170,7 @@ func TestPodWarnings(t *testing.T) {
 		{"not ready past grace", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
 			ContainerStatuses: []corev1.ContainerStatus{runningSince(false, time.Minute)}}}, []string{"notReady"}},
 		{"not ready while warming up", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
-			ContainerStatuses: []corev1.ContainerStatus{runningSince(false, 5 * time.Second)}}}, nil},
+			ContainerStatuses: []corev1.ContainerStatus{runningSince(false, 5*time.Second)}}}, nil},
 		{"recent crash", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
 			ContainerStatuses: []corev1.ContainerStatus{crashed(10 * time.Minute)}}}, []string{"recentCrash"}},
 		{"old crash is forgotten", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
