@@ -227,7 +227,7 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: 
 .p-datatable .p-datatable-thead > tr > th.p-filter-column { background: var(--panel); }
 .p-datatable .p-datatable-thead > tr > th.p-filter-column .p-inputtext { height: 28px;  font-size: 12px; border-radius: 4px; }
 .p-datatable .p-datatable-thead > tr > th.p-filter-column .p-multiselect { height: 28px; font-size: 12px; border-radius: 4px; }
-.p-datatable .p-datatable-thead > tr > th.p-filter-column .p-multiselect .p-multiselect-label { padding: 0 8px; line-height: 28px; font-size: 12px; text-transform: capitalize; letter-spacing: normal; font-weight: normal; }
+.p-datatable .p-datatable-thead > tr > th.p-filter-column .p-multiselect .p-multiselect-label { padding: 0 8px; line-height: 28px; font-size: 12px; text-transform: none; letter-spacing: normal; font-weight: normal; }
 .p-datatable .p-datatable-thead > tr > th.p-filter-column .p-column-filter-row { gap: 0; }
 .p-datatable .p-sortable-column:hover, .p-datatable .p-sortable-column:focus { background: var(--hover); color: var(--teal); box-shadow: none; }
 .p-datatable .p-sortable-column.p-highlight { background: var(--panel); color: var(--teal); }
