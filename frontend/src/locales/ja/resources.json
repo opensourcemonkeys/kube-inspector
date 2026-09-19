@@ -88,7 +88,8 @@
     "verbs": "動詞",
     "volume": "ボリューム",
     "volumeMode": "ボリュームモード",
-    "vulnerability": "脆弱性"
+    "vulnerability": "脆弱性",
+    "warnings": "警告"
   },
   "filter": {
     "count": "件数",
@@ -175,7 +176,16 @@
     "containerRestarts": " — 再起動 {{count}} 回",
     "containerReady": "準備完了",
     "containerNotReady": "未準備",
-    "notScheduled": "未スケジュール"
+    "notScheduled": "未スケジュール",
+    "warning": {
+      "podReason": "Pod: {{reason}}",
+      "unschedulable": "スケジュール不可（{{reason}}）",
+      "stuckTerminating": "終了処理が停止",
+      "waiting": "待機中: {{reason}}",
+      "failed": "失敗: {{reason}}",
+      "recentCrash": "直近1時間以内にクラッシュ: {{reason}}",
+      "notReady": "実行中だが未準備（Readiness プローブ失敗）"
+    }
   },
   "replicaset": {
     "title": "ReplicaSet 一覧",

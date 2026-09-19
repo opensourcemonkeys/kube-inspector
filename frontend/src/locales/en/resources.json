@@ -88,7 +88,8 @@
     "verbs": "Verbs",
     "volume": "Volume",
     "volumeMode": "Volume Mode",
-    "vulnerability": "Vulnerability"
+    "vulnerability": "Vulnerability",
+    "warnings": "Warnings"
   },
   "filter": {
     "count": "Count",
@@ -175,7 +176,16 @@
     "containerRestarts": " — {{count}} restart",
     "containerReady": "ready",
     "containerNotReady": "not ready",
-    "notScheduled": "Not scheduled"
+    "notScheduled": "Not scheduled",
+    "warning": {
+      "podReason": "Pod: {{reason}}",
+      "unschedulable": "Cannot be scheduled ({{reason}})",
+      "stuckTerminating": "Stuck terminating",
+      "waiting": "Waiting: {{reason}}",
+      "failed": "Failed: {{reason}}",
+      "recentCrash": "Crashed within the last hour: {{reason}}",
+      "notReady": "Running but not ready (readiness probe failing)"
+    }
   },
   "replicaset": {
     "title": "ReplicaSet List",

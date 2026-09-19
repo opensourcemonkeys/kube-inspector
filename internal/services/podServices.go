@@ -125,6 +125,7 @@ func podToInfo(pod corev1.Pod, rsToDeploy map[string]string, podUsage map[string
 		NodeName:          pod.Spec.NodeName,
 		Namespace:         pod.Namespace,
 		Status:            getPodStatus(pod),
+		Warnings:          podWarnings(pod, time.Now()),
 		Containers:        containers,
 		ContainerStatuses: containerStatuses,
 		Restarts:          restarts,
@@ -220,6 +221,72 @@ func getPodStatus(pod corev1.Pod) models.PodStatus {
 	}
 
 	return models.PodStatus(reason)
+}
+
+// How long a container may run without passing readiness before it is flagged,
+// how recent a crash must be to still count, and how far past its deletion
+// deadline a terminating pod may go before it is called stuck.
+const (
+	notReadyGrace       = 30 * time.Second
+	recentCrashWindow   = time.Hour
+	stuckTerminateGrace = time.Minute
+)
+
+// benignWaiting are waiting reasons that mean "on its way", not "broken".
+var benignWaiting = map[string]bool{"": true, "ContainerCreating": true, "PodInitializing": true}
+
+// podWarnings lists why a pod is not running healthily. Codes:
+//
+//	podReason        pod-level reason set by the kubelet/controller (Evicted, NodeLost, ...)
+//	unschedulable    PodScheduled=False
+//	stuckTerminating deletion deadline passed a minute ago and the pod is still here
+//	waiting          container waiting on a fault (CrashLoopBackOff, ImagePullBackOff, ...)
+//	failed           container terminated with a non-zero exit
+//	recentCrash      container restarted within the last hour after a failure (OOMKilled, Error)
+//	notReady         container running for a while but failing readiness
+func podWarnings(pod corev1.Pod, now time.Time) []models.PodWarning {
+	warnings := []models.PodWarning{}
+	succeeded := pod.Status.Phase == corev1.PodSucceeded
+
+	if pod.Status.Reason != "" {
+		warnings = append(warnings, models.PodWarning{Code: "podReason", Reason: pod.Status.Reason, Message: pod.Status.Message})
+	}
+	for _, c := range pod.Status.Conditions {
+		if c.Type == corev1.PodScheduled && c.Status == corev1.ConditionFalse {
+			warnings = append(warnings, models.PodWarning{Code: "unschedulable", Reason: c.Reason, Message: c.Message})
+		}
+	}
+	if dt := pod.DeletionTimestamp; dt != nil && now.Sub(dt.Time) > stuckTerminateGrace {
+		warnings = append(warnings, models.PodWarning{Code: "stuckTerminating"})
+	}
+
+	check := func(cs corev1.ContainerStatus, init bool) {
+		switch {
+		case cs.State.Waiting != nil && !benignWaiting[cs.State.Waiting.Reason]:
+			warnings = append(warnings, models.PodWarning{Code: "waiting", Container: cs.Name, Reason: cs.State.Waiting.Reason, Message: cs.State.Waiting.Message})
+		case cs.State.Terminated != nil && cs.State.Terminated.ExitCode != 0:
+			t := cs.State.Terminated
+			msg := t.Message
+			if msg == "" {
+				msg = fmt.Sprintf("exit code %d", t.ExitCode)
+			}
+			warnings = append(warnings, models.PodWarning{Code: "failed", Container: cs.Name, Reason: t.Reason, Message: msg})
+		case !init && !succeeded && pod.DeletionTimestamp == nil && cs.State.Running != nil && !cs.Ready &&
+			now.Sub(cs.State.Running.StartedAt.Time) > notReadyGrace:
+			warnings = append(warnings, models.PodWarning{Code: "notReady", Container: cs.Name})
+		}
+		if last := cs.LastTerminationState.Terminated; last != nil && last.ExitCode != 0 &&
+			now.Sub(last.FinishedAt.Time) < recentCrashWindow {
+			warnings = append(warnings, models.PodWarning{Code: "recentCrash", Container: cs.Name, Reason: last.Reason, Message: fmt.Sprintf("exit code %d", last.ExitCode)})
+		}
+	}
+	for _, cs := range pod.Status.InitContainerStatuses {
+		check(cs, true)
+	}
+	for _, cs := range pod.Status.ContainerStatuses {
+		check(cs, false)
+	}
+	return warnings
 }
 
 // readyCounts is kubectl's READY column: ready / total regular containers.

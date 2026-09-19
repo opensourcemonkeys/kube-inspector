@@ -88,7 +88,8 @@
     "verbs": "动作",
     "volume": "卷",
     "volumeMode": "卷模式",
-    "vulnerability": "漏洞"
+    "vulnerability": "漏洞",
+    "warnings": "警告"
   },
   "filter": {
     "count": "数量",
@@ -175,7 +176,16 @@
     "containerRestarts": " — 重启 {{count}} 次",
     "containerReady": "就绪",
     "containerNotReady": "未就绪",
-    "notScheduled": "未调度"
+    "notScheduled": "未调度",
+    "warning": {
+      "podReason": "Pod：{{reason}}",
+      "unschedulable": "无法调度（{{reason}}）",
+      "stuckTerminating": "终止卡住",
+      "waiting": "等待中：{{reason}}",
+      "failed": "失败：{{reason}}",
+      "recentCrash": "过去一小时内崩溃：{{reason}}",
+      "notReady": "运行中但未就绪（就绪探针失败）"
+    }
   },
   "replicaset": {
     "title": "ReplicaSet 列表",

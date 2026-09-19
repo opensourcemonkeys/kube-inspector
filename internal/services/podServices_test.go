@@ -1,7 +1,9 @@
 package services_k8sclient
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -132,5 +134,64 @@ func TestReadyCounts(t *testing.T) {
 	ready, total := readyCounts(pod)
 	if ready != 1 || total != 3 {
 		t.Fatalf("readyCounts() = %d/%d, want 1/3", ready, total)
+	}
+}
+
+func TestPodWarnings(t *testing.T) {
+	now := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	ago := func(d time.Duration) metav1.Time { return metav1.NewTime(now.Add(-d)) }
+	runningSince := func(ready bool, d time.Duration) corev1.ContainerStatus {
+		return corev1.ContainerStatus{Name: "app", Ready: ready, State: corev1.ContainerState{Running: &corev1.ContainerStateRunning{StartedAt: ago(d)}}}
+	}
+	crashed := func(d time.Duration) corev1.ContainerStatus {
+		cs := runningSince(true, time.Minute)
+		cs.RestartCount = 1
+		cs.LastTerminationState.Terminated = &corev1.ContainerStateTerminated{Reason: "OOMKilled", ExitCode: 137, FinishedAt: ago(d)}
+		return cs
+	}
+	deleting := ago(5 * time.Minute)
+	deletingSoon := ago(10 * time.Second)
+
+	cases := []struct {
+		name string
+		pod  corev1.Pod
+		want []string
+	}{
+		{"healthy", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
+			ContainerStatuses: []corev1.ContainerStatus{runningSince(true, time.Hour)}}}, nil},
+		{"container creating is benign", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodPending,
+			ContainerStatuses: []corev1.ContainerStatus{waiting("ContainerCreating")}}}, nil},
+		{"crashloop", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
+			ContainerStatuses: []corev1.ContainerStatus{waiting("CrashLoopBackOff")}}}, []string{"waiting"}},
+		{"failed container", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodFailed,
+			ContainerStatuses: []corev1.ContainerStatus{terminated("Error", 1)}}}, []string{"failed"}},
+		{"completed is fine", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodSucceeded,
+			ContainerStatuses: []corev1.ContainerStatus{terminated("Completed", 0)}}}, nil},
+		{"not ready past grace", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
+			ContainerStatuses: []corev1.ContainerStatus{runningSince(false, time.Minute)}}}, []string{"notReady"}},
+		{"not ready while warming up", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
+			ContainerStatuses: []corev1.ContainerStatus{runningSince(false, 5 * time.Second)}}}, nil},
+		{"recent crash", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
+			ContainerStatuses: []corev1.ContainerStatus{crashed(10 * time.Minute)}}}, []string{"recentCrash"}},
+		{"old crash is forgotten", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodRunning,
+			ContainerStatuses: []corev1.ContainerStatus{crashed(2 * time.Hour)}}}, nil},
+		{"unschedulable", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodPending,
+			Conditions: []corev1.PodCondition{{Type: corev1.PodScheduled, Status: corev1.ConditionFalse, Reason: "Unschedulable"}}}}, []string{"unschedulable"}},
+		{"evicted", corev1.Pod{Status: corev1.PodStatus{Phase: corev1.PodFailed, Reason: "Evicted"}}, []string{"podReason"}},
+		{"stuck terminating", corev1.Pod{ObjectMeta: metav1.ObjectMeta{DeletionTimestamp: &deleting},
+			Status: corev1.PodStatus{Phase: corev1.PodRunning, ContainerStatuses: []corev1.ContainerStatus{runningSince(false, time.Hour)}}}, []string{"stuckTerminating"}},
+		{"terminating within grace", corev1.Pod{ObjectMeta: metav1.ObjectMeta{DeletionTimestamp: &deletingSoon},
+			Status: corev1.PodStatus{Phase: corev1.PodRunning, ContainerStatuses: []corev1.ContainerStatus{runningSince(false, time.Hour)}}}, nil},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			var got []string
+			for _, w := range podWarnings(tc.pod, now) {
+				got = append(got, w.Code)
+			}
+			if fmt.Sprint(got) != fmt.Sprint(tc.want) {
+				t.Errorf("podWarnings = %v, want %v", got, tc.want)
+			}
+		})
 	}
 }

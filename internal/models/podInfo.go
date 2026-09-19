@@ -24,6 +24,16 @@ type ContainerStatusInfo struct {
 	LastRestartAt string `json:"last_restart_at"` // RFC3339; "" if never restarted
 }
 
+// PodWarning is one reason the pod is not running healthily, shown in the pod
+// list's warning column. Code is a stable identifier the frontend translates;
+// Reason and Message come verbatim from the cluster and may be empty.
+type PodWarning struct {
+	Code      string `json:"code"`      // see services.podWarnings for the set
+	Container string `json:"container"` // "" for pod-level warnings
+	Reason    string `json:"reason"`    // e.g. CrashLoopBackOff, OOMKilled, Unschedulable
+	Message   string `json:"message"`   // cluster-supplied detail
+}
+
 type PodInfo struct {
 	Name       string    `json:"name"`
 	Namespace  string    `json:"namespace"`
@@ -41,8 +51,11 @@ type PodInfo struct {
 	ReadyCount int32 `json:"ready_count"`
 	TotalCount int32 `json:"total_count"`
 
+	// Conditions that keep the pod from running healthily; empty when it is fine.
+	Warnings []PodWarning `json:"warnings"`
+
 	PodIP     string `json:"pod_ip"`
-	NodeName  string `json:"node_name"` // "" while unscheduled
+	NodeName  string `json:"node_name"`  // "" while unscheduled
 	OwnerKind string `json:"owner_kind"` // "Deployment"/"StatefulSet"/"DaemonSet"/"Job"/... ("" = bare pod)
 
 	// Live usage from metrics-server; -1 means metrics unavailable (distinct from a real 0).

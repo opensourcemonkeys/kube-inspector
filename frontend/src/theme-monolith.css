@@ -316,6 +316,8 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: 
 /* ── OverlayPanel & Tooltip ──────────────────────────────────*/
 .p-overlaypanel { background: var(--panel2); border: 1px solid var(--line2); border-radius: 6px; box-shadow: 0 8px 32px rgba(0,0,0,.45); }
 .p-overlaypanel .p-overlaypanel-content { padding: 0; }
+.p-tooltip.pod-warning-tooltip { max-width: 32rem; }
+.pod-warning-tooltip .p-tooltip-text { white-space: pre-line; }
 .p-tooltip .p-tooltip-text { background: var(--panel3); color: var(--ink); border: 1px solid var(--line2); border-radius: 6px; font-size: 12px; padding: 4px 10px; box-shadow: 0 8px 24px rgba(0,0,0,.3); }
 
 /* ════════════════════════════════════════════════════════════

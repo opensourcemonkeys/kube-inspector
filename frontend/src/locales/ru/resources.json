@@ -88,7 +88,8 @@
     "verbs": "Действия",
     "volume": "Том",
     "volumeMode": "Режим тома",
-    "vulnerability": "Уязвимость"
+    "vulnerability": "Уязвимость",
+    "warnings": "Предупреждения"
   },
   "filter": {
     "count": "Количество",
@@ -175,7 +176,16 @@
     "containerRestarts": " — перезапусков: {{count}}",
     "containerReady": "готов",
     "containerNotReady": "не готов",
-    "notScheduled": "Не запланирован"
+    "notScheduled": "Не запланирован",
+    "warning": {
+      "podReason": "Pod: {{reason}}",
+      "unschedulable": "Не удаётся запланировать ({{reason}})",
+      "stuckTerminating": "Завис при завершении",
+      "waiting": "Ожидание: {{reason}}",
+      "failed": "Сбой: {{reason}}",
+      "recentCrash": "Падал за последний час: {{reason}}",
+      "notReady": "Работает, но не готов (readiness-проба не проходит)"
+    }
   },
   "replicaset": {
     "title": "Список ReplicaSets",

@@ -7,8 +7,9 @@ import { Button } from 'primereact/button';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { Menu } from 'primereact/menu';
+import { Tooltip } from 'primereact/tooltip';
 import type { MenuItem, MenuItemOptions } from 'primereact/menuitem';
-import { VscTerminal, VscListFlat } from 'react-icons/vsc';
+import { VscTerminal, VscListFlat, VscWarning } from 'react-icons/vsc';
 import { GetPods, DeletePod } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
@@ -105,11 +106,16 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
     const { openYamlPanel, openLogPanel, openExecPanel } = useTabContext();
     const referencePanel = `pods:${clusterName}`;
     const execMenuRef = useRef<Menu>(null);
+    const warningTooltipRef = useRef<Tooltip>(null);
     const [execMenuItems, setExecMenuItems] = useState<MenuItem[]>([]);
 
     return (
       <>
         <Menu model={execMenuItems} popup ref={execMenuRef} className="exec-container-menu" />
+        {/* One tooltip for every warning icon; each icon carries its text in data-pr-tooltip.
+            The Tooltip only looks up its targets when it renders, and the rows arrive later
+            from the poll, so each icon registers itself through updateTargetEvents. */}
+        <Tooltip ref={warningTooltipRef} target=".pod-warning" position="right" className="pod-warning-tooltip" />
         <ResourceListView<models.PodInfo>
             title={t('resources:pod.title')}
             clusterName={clusterName}
@@ -137,6 +143,24 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('status')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
+                    <Column header={<VscWarning size={14} title={t('resources:column.warnings')} style={{ color: 'var(--amber)', verticalAlign: 'middle' }} />}
+                        sortable sortField="warnings" sortFunction={(e) => [...e.data].sort((a: models.PodInfo, b: models.PodInfo) => ((a.warnings?.length ?? 0) - (b.warnings?.length ?? 0)) * (e.order ?? 1))}
+                        style={{ width: '3.5rem', textAlign: 'center' }}
+                        body={(row: models.PodInfo) => {
+                            const ws = row.warnings || [];
+                            if (ws.length === 0) return null;
+                            // The label is translated; reason, container and message
+                            // come from the cluster and stay verbatim.
+                            const lines = ws.map((w) =>
+                                `${w.container ? `[${w.container}] ` : ''}${t(`resources:pod.warning.${w.code}` as never, { reason: w.reason || '' })}` +
+                                `${w.message ? ` — ${w.message}` : ''}`);
+                            return (
+                                <span className="pod-warning" ref={(el) => { if (el) warningTooltipRef.current?.updateTargetEvents(el); }} data-pr-tooltip={lines.join('\n')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', color: 'var(--amber)' }}>
+                                    <VscWarning size={16} />
+                                    {ws.length > 1 && <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{ws.length}</span>}
+                                </span>
+                            );
+                        }} />
                     <Column field="ready_count" header={t('resources:column.ready')} sortable style={{ minWidth: '5rem' }}
                         body={(row: models.PodInfo) => (
                             <Tag value={`${row.ready_count}/${row.total_count}`} severity={getReadySeverity(row.ready_count, row.total_count)} />

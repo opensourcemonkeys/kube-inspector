@@ -181,6 +181,7 @@
   "179": "Community 179",
   "180": "@emotion/styled",
   "181": "Community 181",
+  "182": "main.tsx",
   "183": "main.tsx",
   "184": "AppInfo",
   "185": "Community 185",
@@ -188,6 +189,7 @@
   "187": "Community 187",
   "188": "AboutModal.tsx",
   "189": "job.go",
+  "190": "main.tsx",
   "191": "Community 191",
   "192": "endpoint.go",
   "193": "Community 193",
@@ -211,9 +213,12 @@
   "211": "Community 211",
   "212": "Community 212",
   "213": "podExec.go",
+  "214": "limitRange.go",
+  "215": "ingressClass.go",
   "216": "primereact",
   "217": "SweepStaleUpdateTemps",
   "218": "@fontsource/geist",
+  "219": "replicaSet.go",
   "220": "daemonSet.go",
   "221": "persistentVolume.go",
   "222": "yaml",
@@ -232,7 +237,5 @@
   "235": "dockview-react",
   "236": "namespace.go",
   "238": "@fontsource/jetbrains-mono",
-  "239": "role.go",
-  "240": "serviceAccount.go",
-  "241": "persistentVolume.go"
+  "240": "serviceAccount.go"
 }

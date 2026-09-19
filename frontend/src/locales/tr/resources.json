@@ -88,7 +88,8 @@
     "verbs": "Fiiller",
     "volume": "Volume",
     "volumeMode": "Volume Modu",
-    "vulnerability": "Güvenlik Açığı"
+    "vulnerability": "Güvenlik Açığı",
+    "warnings": "Uyarılar"
   },
   "filter": {
     "count": "Adet",
@@ -175,7 +176,16 @@
     "containerRestarts": " — {{count}} yeniden başlatma",
     "containerReady": "hazır",
     "containerNotReady": "hazır değil",
-    "notScheduled": "Zamanlanmadı"
+    "notScheduled": "Zamanlanmadı",
+    "warning": {
+      "podReason": "Pod: {{reason}}",
+      "unschedulable": "Zamanlanamıyor ({{reason}})",
+      "stuckTerminating": "Sonlandırmada takıldı",
+      "waiting": "Bekliyor: {{reason}}",
+      "failed": "Başarısız: {{reason}}",
+      "recentCrash": "Son bir saat içinde çöktü: {{reason}}",
+      "notReady": "Çalışıyor ama hazır değil (readiness probe başarısız)"
+    }
   },
   "replicaset": {
     "title": "ReplicaSet Listesi",
