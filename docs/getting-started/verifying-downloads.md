@@ -26,7 +26,7 @@ Each release publishes two things alongside every artifact:
 
 Both live next to the downloads at `https://kubeinspector.com/dist/`.
 `SHA256SUMS-<version>` is **also attached to the
-[GitHub release](https://github.com/opensourcemonkeys/kube-in-go/releases)** —
+[GitHub release](https://github.com/opensourcemonkeys/kube-inspector/releases)** —
 a second, independently hosted copy you can compare against.
 
 ## Verify one file
@@ -93,7 +93,7 @@ diff <(curl -fsSL https://kubeinspector.com/dist/SHA256SUMS-<version>) \
 ```
 
 If those two disagree, **stop and report it** as a security issue on the
-[issue tracker](https://github.com/opensourcemonkeys/kube-in-go/issues).
+[issue tracker](https://github.com/opensourcemonkeys/kube-inspector/issues).
 
 ## If verification fails
 

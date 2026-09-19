@@ -6,7 +6,7 @@
 
 Use GitHub's private vulnerability reporting on this repository:
 
-**<https://github.com/opensourcemonkeys/kube-in-go/security/advisories/new>**
+**<https://github.com/opensourcemonkeys/kube-inspector/security/advisories/new>**
 
 That reaches the maintainers without disclosing anything. If the form is
 unavailable to you, open a public issue containing only "I would like to report

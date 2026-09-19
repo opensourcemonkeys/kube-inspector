@@ -7,7 +7,7 @@ description: What Kube Inspector deliberately does not do in beta — unsigned b
 This page is the honest list. Everything below is either a deliberate decision
 or a known gap — none of it is worth a bug report, though the reasoning behind
 any of it is fair game to raise on the
-[issue tracker](https://github.com/opensourcemonkeys/kube-in-go/issues).
+[issue tracker](https://github.com/opensourcemonkeys/kube-inspector/issues).
 
 If what you are seeing is *not* on this page, it probably is a bug:
 [report it](support.md).

@@ -3,7 +3,7 @@
 Thanks for being here. Bug reports, translation fixes and pull requests are all
 welcome.
 
-- **Found a bug?** [Open a bug report](https://github.com/opensourcemonkeys/kube-in-go/issues/new?template=bug_report.yml) — the diagnostics blob it asks for is required and saves a round-trip.
+- **Found a bug?** [Open a bug report](https://github.com/opensourcemonkeys/kube-inspector/issues/new?template=bug_report.yml) — the diagnostics blob it asks for is required and saves a round-trip.
 - **A string reads wrong in your language?** That is expected for German, Russian, Chinese and Japanese, and [fixing it](https://kubeinspector.com/contributing/translations/) is the smallest useful contribution here.
 - **Found a security problem?** Do not open an issue — see [SECURITY.md](SECURITY.md).
 

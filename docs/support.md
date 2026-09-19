@@ -15,11 +15,11 @@ into a fix.
 2. Skim [Troubleshooting](troubleshooting.md) — the cluster-connection, empty-list
    and port-forward sections cover most reports.
 3. Search [existing
-   issues](https://github.com/opensourcemonkeys/kube-in-go/issues?q=is%3Aissue).
+   issues](https://github.com/opensourcemonkeys/kube-inspector/issues?q=is%3Aissue).
 
 ## Reporting a bug
 
-**[Open a bug report →](https://github.com/opensourcemonkeys/kube-in-go/issues/new?template=bug_report.yml)**
+**[Open a bug report →](https://github.com/opensourcemonkeys/kube-inspector/issues/new?template=bug_report.yml)**
 
 The template asks for a **diagnostics blob**, and it is required. It carries the
 version, platform, shell, health checks and — when you copy it from an error
@@ -55,7 +55,7 @@ at, and any UI crash stack), so give the blob a quick read before posting it.
 ## Requesting a feature
 
 **[Open a feature request
-→](https://github.com/opensourcemonkeys/kube-in-go/issues/new?template=feature_request.yml)**
+→](https://github.com/opensourcemonkeys/kube-inspector/issues/new?template=feature_request.yml)**
 
 Say what you are trying to do, not only what UI you want — the underlying task
 often has a better answer than the one that comes to mind first. If `kubectl`
@@ -68,7 +68,7 @@ read by a fluent speaker. If a string is wrong, awkward, or unidiomatic, that is
 expected and worth reporting.
 
 **[Report a translation problem
-→](https://github.com/opensourcemonkeys/kube-in-go/issues/new?template=translation_fix.yml)**
+→](https://github.com/opensourcemonkeys/kube-inspector/issues/new?template=translation_fix.yml)**
 
 Even "this word is wrong, it should be X" is enough. Sending a pull request is
 easier still — see [Translations](contributing/translations.md).
@@ -76,17 +76,17 @@ easier still — see [Translations](contributing/translations.md).
 ## Reporting a security vulnerability
 
 **Do not open a public issue.** Use GitHub's [private vulnerability
-reporting](https://github.com/opensourcemonkeys/kube-in-go/security/advisories/new)
+reporting](https://github.com/opensourcemonkeys/kube-inspector/security/advisories/new)
 on the repository, which reaches the maintainers without disclosing anything.
 
 The full policy — supported versions, what is in scope, and the threat model
 behind the loopback servers and tokens — is in
-[SECURITY.md](https://github.com/opensourcemonkeys/kube-in-go/blob/main/.github/SECURITY.md).
+[SECURITY.md](https://github.com/opensourcemonkeys/kube-inspector/blob/main/.github/SECURITY.md).
 
 ## Contributing a fix
 
 Pull requests are welcome. The
-[contributing guide](https://github.com/opensourcemonkeys/kube-in-go/blob/main/.github/CONTRIBUTING.md)
+[contributing guide](https://github.com/opensourcemonkeys/kube-inspector/blob/main/.github/CONTRIBUTING.md)
 covers the build prerequisites (including the mandatory `GOEXPERIMENT=jsonv2`),
 the `make check` gate, and the conventions the codebase follows.
 

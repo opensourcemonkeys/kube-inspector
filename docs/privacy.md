@@ -103,5 +103,5 @@ removal, including in-app storage.
 
 If something on this page is unclear or looks wrong, open an issue — see
 [Support](support.md). Security concerns go through
-[the security policy](https://github.com/opensourcemonkeys/kube-in-go/blob/main/.github/SECURITY.md)
+[the security policy](https://github.com/opensourcemonkeys/kube-inspector/blob/main/.github/SECURITY.md)
 instead of a public issue.

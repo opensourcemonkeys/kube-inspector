@@ -62,7 +62,7 @@ Corrections are the easiest contribution this project takes, and they are
 wanted.
 
 - **Report it** — [translation issue
-  template](https://github.com/opensourcemonkeys/kube-in-go/issues/new?template=translation_fix.yml).
+  template](https://github.com/opensourcemonkeys/kube-inspector/issues/new?template=translation_fix.yml).
   "This word is wrong, it should be X" is a complete report.
 - **Fix it** — see [Translations](../contributing/translations.md). It is a JSON
   value change plus one command.

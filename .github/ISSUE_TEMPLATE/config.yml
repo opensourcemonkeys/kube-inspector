@@ -10,5 +10,5 @@ contact_links:
     url: https://kubeinspector.com/faq/
     about: Permissions, kubectl, multiple clusters, telemetry, update channels.
   - name: Report a security vulnerability
-    url: https://github.com/opensourcemonkeys/kube-in-go/security/advisories/new
+    url: https://github.com/opensourcemonkeys/kube-inspector/security/advisories/new
     about: Please report vulnerabilities privately, never as a public issue.

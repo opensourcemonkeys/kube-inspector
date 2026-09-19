@@ -97,5 +97,5 @@ body:
           required: true
         - label: I searched the existing issues.
           required: true
-        - label: This is not a security vulnerability (those go through [private reporting](https://github.com/opensourcemonkeys/kube-in-go/security/advisories/new)).
+        - label: This is not a security vulnerability (those go through [private reporting](https://github.com/opensourcemonkeys/kube-inspector/security/advisories/new)).
           required: true

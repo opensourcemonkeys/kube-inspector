@@ -6,8 +6,8 @@ site_url: https://kubeinspector.com
 # Open-source repository — rendered as the GitHub link in the header (top right)
 # and inside the drawer on small screens. Material also fetches the star/fork
 # counts from the GitHub API and shows them under the repo name.
-repo_url: https://github.com/opensourcemonkeys/kube-in-go
-repo_name: kube-in-go
+repo_url: https://github.com/opensourcemonkeys/kube-inspector
+repo_name: kube-inspector
 # No "edit this page" links (content.action.edit is not enabled), so keep the
 # default edit_uri from pointing at a branch that doesn't exist.
 edit_uri: edit/main/docs/

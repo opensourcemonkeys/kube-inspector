@@ -32,7 +32,7 @@ it.
 
 **It does not mean the build is unsafe.** Builds are produced by GitHub Actions
 from tagged commits in the [public
-repository](https://github.com/opensourcemonkeys/kube-in-go), and the checksums
+repository](https://github.com/opensourcemonkeys/kube-inspector), and the checksums
 are published in two independently hosted places (the download site and the
 GitHub release).
 

@@ -58,10 +58,10 @@ individual is officially representing the community in public spaces.
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
 reported to the maintainers privately through GitHub's [private reporting
-form](https://github.com/opensourcemonkeys/kube-in-go/security/advisories/new),
+form](https://github.com/opensourcemonkeys/kube-inspector/security/advisories/new),
 which reaches the maintainers without disclosing anything publicly. For
 non-sensitive matters, an issue on the
-[tracker](https://github.com/opensourcemonkeys/kube-in-go/issues) is fine.
+[tracker](https://github.com/opensourcemonkeys/kube-inspector/issues) is fine.
 
 All complaints will be reviewed and investigated promptly and fairly. All
 community leaders are obligated to respect the privacy and security of the

@@ -11,7 +11,7 @@ the project takes.
 
 **You do not have to open a pull request.** A sentence on the
 [translation issue
-template](https://github.com/opensourcemonkeys/kube-in-go/issues/new?template=translation_fix.yml)
+template](https://github.com/opensourcemonkeys/kube-inspector/issues/new?template=translation_fix.yml)
 naming the wrong string and what it should say is enough.
 
 ## Where the strings live
@@ -126,4 +126,4 @@ The status table in `frontend/src/locales/README.md` and on the
 - [Language](../settings/language.md) — the user-facing side
 - [Support](../support.md)
 - [Contributing
-  guide](https://github.com/opensourcemonkeys/kube-in-go/blob/main/.github/CONTRIBUTING.md)
+  guide](https://github.com/opensourcemonkeys/kube-inspector/blob/main/.github/CONTRIBUTING.md)
