@@ -4,6 +4,30 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [v0.16.1-beta] - 2026-09-20
+
+A pod-list release. The Pods screen previously reported a pod whose only container was in `CrashLoopBackOff` as **Running**, because it showed the phase and nothing else. It now says what `kubectl` says, adds a warning column that explains *why* a pod is unhealthy, and keeps the row's action buttons on screen when the table is wider than its panel.
+
+### Added
+- **A warnings column on the Pods screen.** An amber icon (with a count when there is more than one) marks every pod that is not running healthily, and hovering it lists each reason in full: a pod-level reason from the kubelet or controller (`Evicted`, `NodeLost`, …), a pod that cannot be scheduled, one stuck terminating past its deletion deadline, a container waiting on a fault (`CrashLoopBackOff`, `ImagePullBackOff`, …), a container that exited non-zero, and a container that is running but failing readiness. It also flags **a crash within the last hour even when the container is healthy now**, which is what makes a pod that "works but flaps" visible at all. Readiness gets a 30-second grace period so a warming-up container is not reported as broken. The column sorts by warning count, so the pods that need attention come to the top of the list.
+- **A READY column** — ready / total containers, exactly as `kubectl get pods` counts it, coloured green when all are ready, amber when some are, red when none are.
+- **A NODE column**, filterable like the others, showing which node a pod landed on and an explicit "not scheduled" dash while it has not.
+
+### Changed
+- **Pod status now mirrors `kubectl`'s STATUS column.** The screen showed the pod phase alone, so `CrashLoopBackOff`, `ImagePullBackOff`, `OOMKilled`, `Evicted` and an init container stuck at `Init:0/2` all appeared as `Running` or `Pending`. The most telling container or init-container reason now wins over the phase, the way `kubectl` picks it — including the details: a native sidecar (an init container with `restartPolicy: Always`) that has started no longer counts as blocking initialization, a pod whose job containers have finished while others still serve reads as `Running` rather than `Completed`, and a terminating pod on a lost node reads `Unknown`. The status colour follows the meaning rather than the word: progress states are amber, faults red, clean completions grey.
+- **The per-container dots say more.** A container waiting for a normal reason (`ContainerCreating`, `PodInitializing`) is now blue rather than red, one that terminated with an error is red rather than grey, and **a container that has restarted carries an amber corner mark even while it is currently ready**. The tooltip adds ready / not-ready to the state and reason it already showed. Init containers are still squares, regular containers circles.
+- **Row actions stay on screen.** A resource table is often wider than the panel it lives in, and the buttons that act on a row were the first thing to scroll out of sight. Each view's action buttons and the ⋮ menu are now merged into **one column frozen to the right edge**, separated by a divider, so they are reachable however far the table is scrolled sideways.
+
+### Fixed
+- **A split workspace no longer freezes every panel but one.** Background tabs stop polling (v0.16.0-beta), but the check asked dockview whether a panel was *active* — true for exactly one panel in the whole window. With the workspace split into two or more groups, every visible panel except the one last clicked was treated as backgrounded and quietly stopped refreshing. It now asks whether the panel is *visible*, which is per group, so the foreground tab of each group stays live.
+- **Filter dropdowns no longer rewrite the values they show.** A stylesheet rule capitalised the selected entries, so `CrashLoopBackOff` was displayed as `Crashloopbackoff` and `kube-system` as `Kube-System` — values that match nothing the cluster ever reports.
+
+### Internal
+- The repository moved to [`opensourcemonkeys/kube-inspector`](https://github.com/opensourcemonkeys/kube-inspector); every link in the README, the documentation site, the issue templates and the security policy follows it.
+- Pod status derivation and the warning rules are covered by unit tests.
+
+---
+
 ## [v0.16.0-beta] - 2026-08-25
 
 The first beta. Alongside the actions that were missing — describe, scale, rollout restart, port forwarding — this release is mostly about the app telling you the truth: when a call fails it says so instead of showing an empty table, it writes a log file you can attach to a bug report, and the local network surfaces it opens are now authenticated.
