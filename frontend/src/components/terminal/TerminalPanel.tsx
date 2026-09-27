@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { IDockviewPanelProps } from 'dockview';
 import { Terminal } from '@xterm/xterm';
-import { useXtermTheme, xtermTheme } from '../../lib/xtermTheme';
+import { useXtermTheme, xtermOptions } from '../../lib/xtermTheme';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { Dropdown } from 'primereact/dropdown';
@@ -15,6 +15,7 @@ import {
     CloseTerminalSession,
 } from '../../../wailsjs/go/controller_app/App';
 import { useClusterContext } from '../../contexts/ClusterContext';
+import { useTerminalActions } from './useTerminalActions';
 import { renderPanelTitle } from '../../contexts/TabContext';
 import { useT } from '../../i18n/useT';
 
@@ -44,6 +45,24 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
     const clusterRef = useRef(cluster);
     clusterRef.current = cluster;
 
+    // Selection, clipboard, shortcuts, right-click menu and find. Shared with
+    // PodExecPanel; the panel only supplies the three things that differ.
+    const fitRef = useRef<FitAddon | null>(null);
+    const actions = useTerminalActions({
+        write: (data) => WriteToTerminalSession(sessionId, data).catch(() => {}),
+        resize: () => {
+            const term = termRef.current;
+            if (!term || !fitRef.current) return;
+            fitRef.current.fit();
+            ResizeTerminalSession(sessionId, term.cols, term.rows).catch(() => {});
+        },
+        saveName: `terminal-${cluster || 'shell'}`,
+    });
+    // Read through a ref so the session effect below can stay keyed on
+    // sessionId alone — anything unstable in its deps recreates the pty.
+    const actionsRef = useRef(actions);
+    actionsRef.current = actions;
+
     const handleClusterChange = (next: string) => {
         setCluster(next);
         SetTerminalSessionCluster(sessionId, next).catch(() => {});
@@ -58,19 +77,15 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
     useEffect(() => {
         if (!containerRef.current) return;
 
-        const term = new Terminal({
-            cursorBlink: true,
-            cursorStyle: 'underline',
-            fontFamily: '"JetBrains Mono", "Cascadia Code", monospace',
-            fontSize: 13,
-            lineHeight: 1.4,
-            theme: xtermTheme(),
-        });
+        const term = new Terminal(xtermOptions());
 
         const fitAddon = new FitAddon();
         term.loadAddon(fitAddon);
+        fitRef.current = fitAddon;
         termRef.current = term;
         term.open(containerRef.current);
+
+        const detachActions = actionsRef.current.attach(term, fitAddon);
 
         // small delay so the DOM has settled before fitting
         const fitTimer = setTimeout(() => {
@@ -113,14 +128,20 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
             offExit();
             onData.dispose();
             observer.disconnect();
+            detachActions();
             CloseTerminalSession(sessionId).catch(() => {});
+            if (fitRef.current === fitAddon) fitRef.current = null;
             if (termRef.current === term) termRef.current = null;
             term.dispose();
         };
     }, [sessionId]);
 
     return (
-        <div className="flex flex-column h-full" style={{ background: 'var(--panel2)' }}>
+        <div
+            className="flex flex-column h-full"
+            // relative: the find bar is absolutely positioned over the terminal.
+            style={{ background: 'var(--panel2)', position: 'relative' }}
+        >
             <div className="yaml-editor-toolbar flex align-items-center justify-content-between">
                 <span className="yaml-editor-toolbar__label flex align-items-center gap-1">
                     <VscTerminal size={14} /> {t('panels:terminal.label')}
@@ -138,6 +159,7 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
 
             <div
                 ref={containerRef}
+                onContextMenu={actions.onContextMenu}
                 style={{
                     flex: 1,
                     minHeight: 0,
@@ -146,6 +168,8 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
                     overflow: 'hidden',
                 }}
             />
+
+            {actions.overlays}
         </div>
     );
 }

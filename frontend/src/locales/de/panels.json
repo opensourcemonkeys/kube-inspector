@@ -282,7 +282,41 @@
   "terminal": {
     "label": "Terminal",
     "selectCluster": "Cluster auswählen",
-    "clusterAria": "Kubeconfig-Cluster"
+    "clusterAria": "Kubeconfig-Cluster",
+    "ctx": {
+      "copy": "Kopieren",
+      "paste": "Einfügen",
+      "selectAll": "Alles auswählen",
+      "clear": "Bildschirm leeren",
+      "find": "Suchen…",
+      "copyAll": "Gesamte Ausgabe kopieren",
+      "saveOutput": "Ausgabe in Datei speichern…",
+      "fontIncrease": "Schrift vergrößern",
+      "fontDecrease": "Schrift verkleinern",
+      "fontReset": "Schriftgröße zurücksetzen"
+    },
+    "paste": {
+      "header": "In Terminal einfügen",
+      "warning_one": "Dieser Einfügevorgang umfasst {{count}} Zeile. Bitte vorher prüfen.",
+      "warning_other": "Dieser Einfügevorgang umfasst {{count}} Zeilen. Bitte vorher prüfen — jeder Zeilenumbruch führt einen Befehl aus.",
+      "empty": "Die Zwischenablage konnte nicht gelesen werden. Drücken Sie hier Strg+V zum Einfügen.",
+      "confirm": "Einfügen",
+      "hint": "Enter fügt ein · Umschalt+Enter fügt eine Zeile hinzu · Esc bricht ab",
+      "aria": "Einzufügender Text"
+    },
+    "search": {
+      "placeholder": "Im Terminal suchen",
+      "previous": "Vorheriger Treffer",
+      "next": "Nächster Treffer",
+      "close": "Suche schließen"
+    },
+    "toast": {
+      "copied": "Kopiert",
+      "copyFailed": "Kopieren fehlgeschlagen",
+      "nothingToCopy": "Nichts zu kopieren",
+      "saved": "Ausgabe gespeichert",
+      "saveFailed": "Ausgabe konnte nicht gespeichert werden"
+    }
   },
   "applyYaml": {
     "label": "YAML-Editor",

@@ -115,6 +115,26 @@ func (a *App) SaveReport(defaultName, content string) (string, error) {
 	return bussiness.SaveTextFile(path, content)
 }
 
+// SaveText prompts for a location and writes plain text to it. Returns the saved
+// path, or "" if the user cancelled. Separate from SaveReport because that one
+// forces an .html extension; this is the terminal's "save output" path.
+func (a *App) SaveText(defaultName, content string) (string, error) {
+	path, err := a.saveFile(SaveFileOptions{
+		Title:       "Save text",
+		DefaultName: defaultName,
+		FilterName:  "Text file (*.txt)",
+		Pattern:     "*.txt",
+	})
+	if err != nil || path == "" {
+		return "", err
+	}
+	lower := strings.ToLower(path)
+	if !strings.HasSuffix(lower, ".txt") && !strings.HasSuffix(lower, ".log") {
+		path += ".txt"
+	}
+	return bussiness.SaveTextFile(path, content)
+}
+
 func (a *App) GetK8sSchema() string {
 	return bussiness.GetK8sSchema()
 }

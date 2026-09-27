@@ -45,3 +45,36 @@ export async function writeClipboard(text: string, onDone?: () => void): Promise
     onDone?.();
     return ok;
 }
+
+/**
+ * Reads the clipboard, preferring the native shell over the web API.
+ *
+ * The distinction between "" and null is load-bearing for callers: "" means the
+ * clipboard is empty and there is nothing to do, null means it could not be
+ * read at all and the caller should fall back to asking the user (a textarea
+ * they can press Ctrl+V into needs no permission and always works).
+ *
+ * The Electron branch reads in the main process, which has neither Chromium's
+ * clipboard-read permission gate nor its transient-activation requirement —
+ * both of which reject silently in a frameless window that is not focused.
+ * Under Wails (WebKitGTK) readText is generally unavailable, so that path
+ * usually ends at null by design.
+ */
+export async function readClipboard(): Promise<string | null> {
+    const shell = (window as any).__KUBE_INS_SHELL__;
+    if (typeof shell?.readClipboard === 'function') {
+        try {
+            return (await shell.readClipboard()) ?? '';
+        } catch {
+            /* fall through to the web API */
+        }
+    }
+    if (navigator.clipboard?.readText) {
+        try {
+            return await navigator.clipboard.readText();
+        } catch {
+            /* blocked */
+        }
+    }
+    return null;
+}

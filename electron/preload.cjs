@@ -42,6 +42,11 @@ contextBridge.exposeInMainWorld('__KUBE_INS_SHELL__', {
   relaunch: () => ipcRenderer.send('shell:relaunch'),
   quitApp: () => ipcRenderer.send('shell:quitApp'),
 
+  // Clipboard read, done in the main process. The renderer's own
+  // navigator.clipboard.readText() is gated on a permission prompt and on
+  // transient activation, and rejects silently in a frameless unfocused window.
+  readClipboard: () => ipcRenderer.invoke('shell:readClipboard'),
+
   // Real window state, so the titlebar icon tracks OS-initiated changes.
   isMaximised: () => ipcRenderer.invoke('shell:isMaximised'),
   onMaximised: (cb) => {

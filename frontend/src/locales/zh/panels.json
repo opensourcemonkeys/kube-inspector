@@ -281,7 +281,40 @@
   "terminal": {
     "label": "终端",
     "selectCluster": "选择集群",
-    "clusterAria": "Kubeconfig 集群"
+    "clusterAria": "Kubeconfig 集群",
+    "ctx": {
+      "copy": "复制",
+      "paste": "粘贴",
+      "selectAll": "全选",
+      "clear": "清屏",
+      "find": "查找…",
+      "copyAll": "复制全部输出",
+      "saveOutput": "将输出保存到文件…",
+      "fontIncrease": "增大字号",
+      "fontDecrease": "减小字号",
+      "fontReset": "重置字号"
+    },
+    "paste": {
+      "header": "粘贴到终端",
+      "warning_other": "此次粘贴共 {{count}} 行。执行前请先检查——每个换行都会运行一条命令。",
+      "empty": "无法读取剪贴板。请在此处按 Ctrl+V 粘贴。",
+      "confirm": "粘贴",
+      "hint": "Enter 粘贴 · Shift+Enter 换行 · Esc 取消",
+      "aria": "要粘贴的文本"
+    },
+    "search": {
+      "placeholder": "在终端中查找",
+      "previous": "上一个匹配",
+      "next": "下一个匹配",
+      "close": "关闭查找"
+    },
+    "toast": {
+      "copied": "已复制",
+      "copyFailed": "复制失败",
+      "nothingToCopy": "没有可复制的内容",
+      "saved": "输出已保存",
+      "saveFailed": "无法保存输出"
+    }
   },
   "applyYaml": {
     "label": "YAML 编辑器",

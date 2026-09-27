@@ -282,7 +282,41 @@
   "terminal": {
     "label": "Terminal",
     "selectCluster": "Select cluster",
-    "clusterAria": "Kubeconfig cluster"
+    "clusterAria": "Kubeconfig cluster",
+    "ctx": {
+      "copy": "Copy",
+      "paste": "Paste",
+      "selectAll": "Select all",
+      "clear": "Clear screen",
+      "find": "Find…",
+      "copyAll": "Copy all output",
+      "saveOutput": "Save output to file…",
+      "fontIncrease": "Increase font size",
+      "fontDecrease": "Decrease font size",
+      "fontReset": "Reset font size"
+    },
+    "paste": {
+      "header": "Paste into terminal",
+      "warning_one": "This paste is {{count}} line long. Review it before it runs.",
+      "warning_other": "This paste is {{count}} lines long. Review it before it runs — every newline runs a command.",
+      "empty": "The clipboard could not be read. Press Ctrl+V here to paste.",
+      "confirm": "Paste",
+      "hint": "Enter pastes · Shift+Enter adds a line · Esc cancels",
+      "aria": "Text to paste"
+    },
+    "search": {
+      "placeholder": "Find in terminal",
+      "previous": "Previous match",
+      "next": "Next match",
+      "close": "Close search"
+    },
+    "toast": {
+      "copied": "Copied",
+      "copyFailed": "Copy failed",
+      "nothingToCopy": "Nothing to copy",
+      "saved": "Output saved",
+      "saveFailed": "Could not save output"
+    }
   },
   "applyYaml": {
     "label": "YAML Editor",

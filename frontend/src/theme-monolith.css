@@ -455,7 +455,8 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 /* One look for both: the pod list's container picker and the ⋮ menu every
    resource list hangs its Describe / Port forward / Scale actions off. */
 .exec-container-menu.p-menu,
-.row-actions-menu.p-menu {
+.row-actions-menu.p-menu,
+.terminal-ctx-menu.p-contextmenu {
   background: var(--panel2);
   border: 1px solid var(--line2);
   border-radius: 11px;
@@ -469,7 +470,8 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 .exec-container-menu.p-menu .p-menu-list,
-.row-actions-menu.p-menu .p-menu-list { padding: 0; }
+.row-actions-menu.p-menu .p-menu-list,
+.terminal-ctx-menu.p-contextmenu .p-contextmenu-root-list { padding: 0; }
 .exec-container-menu .p-submenu-header,
 .row-actions-menu .p-submenu-header {
   background: transparent;
@@ -483,9 +485,11 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
   border-bottom: 1px solid var(--line);
 }
 .exec-container-menu .p-menuitem,
-.row-actions-menu .p-menuitem { margin: 1px 0; }
+.row-actions-menu .p-menuitem,
+.terminal-ctx-menu .p-menuitem { margin: 1px 0; }
 .exec-container-menu .p-menuitem-link,
-.row-actions-menu .p-menuitem-link {
+.row-actions-menu .p-menuitem-link,
+.terminal-ctx-menu .p-menuitem-link {
   padding: 7px 11px;
   border-radius: 8px;
   border-left: 2px solid transparent;
@@ -496,7 +500,10 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 .exec-container-menu .p-menuitem.p-focus > .p-menuitem-link,
 .row-actions-menu .p-menuitem-link:hover,
 .row-actions-menu .p-menuitem.p-focus > .p-menuitem-content > .p-menuitem-link,
-.row-actions-menu .p-menuitem.p-focus > .p-menuitem-link {
+.row-actions-menu .p-menuitem.p-focus > .p-menuitem-link,
+.terminal-ctx-menu .p-menuitem-link:not([aria-disabled="true"]):hover,
+.terminal-ctx-menu .p-menuitem.p-focus > .p-menuitem-content > .p-menuitem-link,
+.terminal-ctx-menu .p-menuitem.p-focus > .p-menuitem-link {
   background: color-mix(in srgb, var(--teal) 12%, var(--hover));
   border-left-color: var(--teal);
 }
@@ -526,6 +533,76 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
   border-top: 1px solid var(--line);
   margin: 4px 6px;
 }
+
+/* ── Terminal right-click menu ───────────────────────────────────────────── */
+/* Shares the row-menu surface above; only the shortcut hint column and the
+   disabled state are new. Same JSX-icon caveat applies: the spacing is the
+   link's `gap`, never a margin on the icon. */
+.terminal-ctx-menu.p-contextmenu { min-width: 262px; }
+.terminal-ctx-menu .p-menuitem-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.terminal-ctx-menu .p-menuitem-link > svg { flex-shrink: 0; color: var(--ink2); }
+.terminal-ctx-menu .p-menuitem-link:not([aria-disabled="true"]):hover > svg { color: var(--teal); }
+.terminal-ctx-menu .p-menuitem-link .p-menuitem-text { font-size: 12px; color: var(--ink); }
+/* margin-left:auto pushes the hint to the trailing edge; no-shrink stops it
+   from stealing width back from the label on the longest rows. */
+.terminal-ctx-menu__key {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-family: var(--font-family-mono);
+  font-size: 10.5px;
+  color: var(--ink3);
+  letter-spacing: .02em;
+}
+.terminal-ctx-menu .p-menuitem-link:hover .terminal-ctx-menu__key { color: var(--ink2); }
+/* Copy is disabled whenever there is no selection, so this state is common
+   enough to have to read as deliberate rather than broken. */
+.terminal-ctx-menu .p-menuitem-link[aria-disabled="true"] {
+  opacity: .4;
+  pointer-events: none;
+  cursor: default;
+}
+.terminal-ctx-menu .p-menu-separator,
+.terminal-ctx-menu .p-contextmenu-separator,
+.terminal-ctx-menu .p-menuitem-separator {
+  border-top: 1px solid var(--line);
+  margin: 4px 6px;
+}
+
+/* ── Terminal find bar ───────────────────────────────────────────────────── */
+/* Floats over the terminal instead of taking a row, so opening it never
+   refits the terminal and reflows the shell's output. */
+.terminal-search-bar {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 5px;
+  background: var(--panel2);
+  border: 1px solid var(--line2);
+  border-radius: 10px;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .45);
+}
+.terminal-search-bar .p-inputtext {
+  width: 190px;
+  height: 26px;
+  padding: 0 8px;
+  font-size: 12px;
+  font-family: var(--font-family-mono);
+}
+.terminal-search-bar .p-button.p-button-text {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  color: var(--ink2);
+}
+.terminal-search-bar .p-button.p-button-text:hover { color: var(--teal); }
 .tb-actions { display: flex; align-items: center; height: 100%; --wails-draggable: no-drag; flex-shrink: 0; }
 .tb-actions .p-menubar { background: transparent; border: none; padding: 0; height: 100%; border-radius: 0; }
 .tb-actions .p-menubar .p-menubar-root-list { gap: 0; height: 100%; padding: 0; flex-wrap: nowrap; }

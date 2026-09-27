@@ -22,7 +22,8 @@ if (typeof electron === 'string') {
   process.exit(1);
 }
 
-const { app, BrowserWindow, dialog, shell, ipcMain, protocol, net, screen } = electron;
+const { app, BrowserWindow, dialog, shell, ipcMain, protocol, net, screen, Menu, clipboard } =
+  electron;
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -443,6 +444,18 @@ function createWindow({ panel } = {}) {
     }
   });
 
+  // The default application menu is removed below, which takes its devtools and
+  // reload accelerators with it. Devtools is the one worth keeping, so it is
+  // re-added here deliberately rather than as a side effect of a menu nobody
+  // can see. Ctrl+Shift+I is therefore off-limits to the terminal shortcut set.
+  win.webContents.on('before-input-event', (_event, input) => {
+    if (input.type !== 'keyDown') return;
+    const devtools =
+      input.key === 'F12' ||
+      (input.control && input.shift && String(input.key).toUpperCase() === 'I');
+    if (devtools) win.webContents.toggleDevTools();
+  });
+
   // Real window state, so the titlebar's restore icon cannot desync from the
   // OS (snap, double-click, keyboard shortcuts).
   const pushMaximised = () =>
@@ -481,6 +494,13 @@ ipcMain.on('shell:toggleMaximise', (e) => {
 // window is gone, so single-window behaviour is unchanged.
 ipcMain.on('shell:quit', (e) => senderWindow(e)?.close());
 ipcMain.handle('shell:isMaximised', (e) => senderWindow(e)?.isMaximized() ?? false);
+
+// Read the OS clipboard in the main process. The renderer's
+// navigator.clipboard.readText() goes through Chromium's permission + transient
+// activation gates and rejects silently in a frameless window that is not
+// focused; this path has neither gate. lib/clipboard.ts prefers it and falls
+// back to the web API under Wails/browser.
+ipcMain.handle('shell:readClipboard', () => clipboard.readText());
 
 // --- Self-update restart -----------------------------------------------------
 //
@@ -676,6 +696,15 @@ ipcMain.on('shell:sendPanel', (_e, { targetWindowId, panel } = {}) => {
 // transferring tabs between them is a product feature (internal/ipc).
 
 app.whenReady().then(async () => {
+  // Electron installs a default application menu when none is set, and its role
+  // accelerators are matched in the browser process before the keystroke ever
+  // reaches the page. The window is frameless, so that menu is invisible *and*
+  // harmful: Ctrl+C could not send SIGINT to a terminal, Ctrl+W closed the
+  // window mid-command and Ctrl+R reloaded the whole app. macOS is different —
+  // there the application menu *is* the system menubar, and dropping it takes
+  // Cmd+Q, the app name and native field editing with it.
+  if (process.platform !== 'darwin') Menu.setApplicationMenu(null);
+
   logfile.setVersion(app.getVersion());
   logfile.info('shell.main', 'shell starting', {
     electron: process.versions.electron,

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { IDockviewPanelProps } from 'dockview';
 import { Terminal } from '@xterm/xterm';
-import { useXtermTheme, xtermTheme } from '../../lib/xtermTheme';
+import { useXtermTheme, xtermOptions } from '../../lib/xtermTheme';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
@@ -11,6 +11,7 @@ import {
     ResizePodExecSession,
     ClosePodExecSession,
 } from '../../../wailsjs/go/controller_app/App';
+import { useTerminalActions } from '../terminal/useTerminalActions';
 
 export interface PodExecPanelParams {
     clusterName: string;
@@ -28,22 +29,33 @@ export default function PodExecPanel({ params }: IDockviewPanelProps<PodExecPane
     const termRef = useRef<Terminal | null>(null);
     useXtermTheme(termRef);
 
+    const fitRef = useRef<FitAddon | null>(null);
+    const actions = useTerminalActions({
+        write: (data) => WriteToPodExecSession(sessionId, data).catch(() => {}),
+        resize: () => {
+            const term = termRef.current;
+            if (!term || !fitRef.current) return;
+            fitRef.current.fit();
+            ResizePodExecSession(sessionId, term.cols, term.rows).catch(() => {});
+        },
+        saveName: `exec-${namespace}-${name}`,
+    });
+    // Read through a ref so the session effect stays keyed on the session only.
+    const actionsRef = useRef(actions);
+    actionsRef.current = actions;
+
     useEffect(() => {
         if (!containerRef.current) return;
 
-        const term = new Terminal({
-            cursorBlink: true,
-            cursorStyle: 'underline',
-            fontFamily: '"JetBrains Mono", "Cascadia Code", monospace',
-            fontSize: 13,
-            lineHeight: 1.4,
-            theme: xtermTheme(),
-        });
+        const term = new Terminal(xtermOptions());
 
         const fitAddon = new FitAddon();
         term.loadAddon(fitAddon);
+        fitRef.current = fitAddon;
         termRef.current = term;
         term.open(containerRef.current);
+
+        const detachActions = actionsRef.current.attach(term, fitAddon);
 
         const fitTimer = setTimeout(() => {
             fitAddon.fit();
@@ -88,23 +100,31 @@ export default function PodExecPanel({ params }: IDockviewPanelProps<PodExecPane
             offClosed();
             onData.dispose();
             observer.disconnect();
+            detachActions();
             ClosePodExecSession(sessionId).catch(() => {});
+            if (fitRef.current === fitAddon) fitRef.current = null;
             if (termRef.current === term) termRef.current = null;
             term.dispose();
         };
     }, [sessionId, name, namespace, container]);
 
     return (
-        <div
-            ref={containerRef}
-            style={{
-                width: '100%',
-                height: '100%',
-                padding: '4px',
-                boxSizing: 'border-box',
-                background: 'var(--panel2)',
-                overflow: 'hidden',
-            }}
-        />
+        // The wrapper exists so the find bar has a positioned ancestor; the
+        // terminal element itself is unchanged.
+        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+            <div
+                ref={containerRef}
+                onContextMenu={actions.onContextMenu}
+                style={{
+                    width: '100%',
+                    height: '100%',
+                    padding: '4px',
+                    boxSizing: 'border-box',
+                    background: 'var(--panel2)',
+                    overflow: 'hidden',
+                }}
+            />
+            {actions.overlays}
+        </div>
     );
 }

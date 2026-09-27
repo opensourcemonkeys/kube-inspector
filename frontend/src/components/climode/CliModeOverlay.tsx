@@ -10,7 +10,7 @@ import {
     ResizeCliModeSession,
     CloseCliModeSession,
 } from '../../../wailsjs/go/controller_app/App';
-import { writeClipboard as copyToClipboard } from '../../lib/clipboard';
+import { readClipboard, writeClipboard as copyToClipboard } from '../../lib/clipboard';
 import { useT } from '../../i18n/useT';
 
 // CliModeOverlay renders a fullscreen xterm that hosts the kube-ins terminal UI
@@ -51,12 +51,13 @@ export default function CliModeOverlay({ onClose }: { onClose: () => void }) {
             void copyToClipboard(text, () => term.focus());
         };
         const pasteClipboard = () => {
-            navigator.clipboard
-                ?.readText()
-                .then((text) => {
-                    if (text) WriteToCliModeSession(sessionId, text).catch(() => {});
-                })
-                .catch(() => {});
+            // readClipboard prefers the Electron main process, which has neither
+            // the clipboard-read permission gate nor the transient-activation
+            // requirement that make the renderer's own readText() reject
+            // silently in a frameless window.
+            void readClipboard().then((text) => {
+                if (text) WriteToCliModeSession(sessionId, text).catch(() => {});
+            });
         };
 
         // Copy selection on Ctrl/Cmd+Shift+C, paste on Ctrl/Cmd+Shift+V. Plain

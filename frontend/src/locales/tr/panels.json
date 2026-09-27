@@ -282,7 +282,41 @@
   "terminal": {
     "label": "Terminal",
     "selectCluster": "Küme seç",
-    "clusterAria": "Kubeconfig kümesi"
+    "clusterAria": "Kubeconfig kümesi",
+    "ctx": {
+      "copy": "Kopyala",
+      "paste": "Yapıştır",
+      "selectAll": "Tümünü seç",
+      "clear": "Ekranı temizle",
+      "find": "Bul…",
+      "copyAll": "Tüm çıktıyı kopyala",
+      "saveOutput": "Çıktıyı dosyaya kaydet…",
+      "fontIncrease": "Yazı tipini büyüt",
+      "fontDecrease": "Yazı tipini küçült",
+      "fontReset": "Yazı tipini sıfırla"
+    },
+    "paste": {
+      "header": "Terminale yapıştır",
+      "warning_one": "Bu yapıştırma {{count}} satır. Çalıştırmadan önce gözden geçirin.",
+      "warning_other": "Bu yapıştırma {{count}} satır. Çalıştırmadan önce gözden geçirin — her satır sonu bir komut çalıştırır.",
+      "empty": "Pano okunamadı. Yapıştırmak için buraya Ctrl+V yapın.",
+      "confirm": "Yapıştır",
+      "hint": "Enter yapıştırır · Shift+Enter satır ekler · Esc iptal eder",
+      "aria": "Yapıştırılacak metin"
+    },
+    "search": {
+      "placeholder": "Terminalde bul",
+      "previous": "Önceki eşleşme",
+      "next": "Sonraki eşleşme",
+      "close": "Aramayı kapat"
+    },
+    "toast": {
+      "copied": "Kopyalandı",
+      "copyFailed": "Kopyalanamadı",
+      "nothingToCopy": "Kopyalanacak bir şey yok",
+      "saved": "Çıktı kaydedildi",
+      "saveFailed": "Çıktı kaydedilemedi"
+    }
   },
   "applyYaml": {
     "label": "YAML Düzenleyici",

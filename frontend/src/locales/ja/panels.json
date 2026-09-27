@@ -281,7 +281,40 @@
   "terminal": {
     "label": "ターミナル",
     "selectCluster": "クラスターを選択",
-    "clusterAria": "Kubeconfig のクラスター"
+    "clusterAria": "Kubeconfig のクラスター",
+    "ctx": {
+      "copy": "コピー",
+      "paste": "貼り付け",
+      "selectAll": "すべて選択",
+      "clear": "画面をクリア",
+      "find": "検索…",
+      "copyAll": "出力をすべてコピー",
+      "saveOutput": "出力をファイルに保存…",
+      "fontIncrease": "文字を大きく",
+      "fontDecrease": "文字を小さく",
+      "fontReset": "文字サイズをリセット"
+    },
+    "paste": {
+      "header": "ターミナルに貼り付け",
+      "warning_other": "この貼り付けは {{count}} 行あります。実行前に確認してください — 改行ごとにコマンドが実行されます。",
+      "empty": "クリップボードを読み取れませんでした。ここで Ctrl+V を押して貼り付けてください。",
+      "confirm": "貼り付け",
+      "hint": "Enter で貼り付け · Shift+Enter で改行 · Esc でキャンセル",
+      "aria": "貼り付けるテキスト"
+    },
+    "search": {
+      "placeholder": "ターミナル内を検索",
+      "previous": "前の一致",
+      "next": "次の一致",
+      "close": "検索を閉じる"
+    },
+    "toast": {
+      "copied": "コピーしました",
+      "copyFailed": "コピーに失敗しました",
+      "nothingToCopy": "コピーするものがありません",
+      "saved": "出力を保存しました",
+      "saveFailed": "出力を保存できませんでした"
+    }
   },
   "applyYaml": {
     "label": "YAML エディター",

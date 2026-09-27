@@ -70,13 +70,33 @@ _VERSION_RE = re.compile(r"^##\s+\[(?P<ver>[^\]]+)\]\s*(?:-\s*(?P<date>.+))?$")
 _SECTION_RE = re.compile(r"^###\s+(?P<name>.+?)\s*$")
 
 
+def _strip_unreleased(text):
+    """Drop the Keep-a-Changelog `## [Unreleased]` section.
+
+    It is a staging area for work that is not in any download yet, so it must
+    never reach the public changelog: being first in the file, it would take the
+    "Latest" badge and open by default with an empty body. Stripped here, at the
+    single read point, so the timeline and the llms-full.txt inline of
+    CHANGELOG.md agree about what "released" means.
+    """
+    out = []
+    skipping = False
+    for line in text.splitlines(keepends=True):
+        m = _VERSION_RE.match(line.rstrip("\n"))
+        if m:
+            skipping = m.group("ver").strip().lower() == "unreleased"
+        if not skipping:
+            out.append(line)
+    return "".join(out)
+
+
 def _read_changelog(config):
-    """Return the raw CHANGELOG.md text, or None if it can't be found."""
+    """Return the released part of CHANGELOG.md, or None if it can't be found."""
     root = os.path.dirname(config["config_file_path"])
     path = os.path.join(root, "CHANGELOG.md")
     try:
         with open(path, "r", encoding="utf-8") as fh:
-            return fh.read()
+            return _strip_unreleased(fh.read())
     except OSError:
         return None
 
