@@ -41,6 +41,7 @@
   },
   "menu": {
     "open": "開く",
+    "newPanel": "新しいパネル",
     "yamlEditor": "YAML エディター",
     "terminal": "ターミナル",
     "cliMode": "CLI モード",

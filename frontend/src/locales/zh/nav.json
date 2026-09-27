@@ -41,6 +41,7 @@
   },
   "menu": {
     "open": "打开",
+    "newPanel": "新建面板",
     "yamlEditor": "YAML 编辑器",
     "terminal": "终端",
     "cliMode": "CLI 模式",

@@ -101,9 +101,17 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: 
 }
 .p-button .p-button-icon  { font-size: 13px; }
 .p-button .p-button-label { line-height: 1; }
-.p-button.p-button-icon-only { width: 32px; padding: 0; }
+/* PrimeReact's Button always emits a `.p-button-label` (an `&nbsp;`, width 0)
+   even when icon-only, and `.p-button` spaces its children with `gap`. A
+   zero-width second flex item still consumes that gap, so `justify-content:
+   center` centres a line of `icon + gap` and leaves the glyph gap/2 to the
+   left of the button's real centre — invisible on a wide button, obvious the
+   moment a hover/active background is drawn around it. */
+.p-button.p-button-icon-only { width: 32px; padding: 0; gap: 0; }
 .p-button.p-button-sm { height: 28px; padding: 0 10px; font-size: 11.5px; gap: 6px; }
-.p-button.p-button-sm.p-button-icon-only { width: 28px; padding: 0; }
+/* Repeated rather than inherited: `.p-button.p-button-sm` above re-sets `gap`
+   at the same specificity as the icon-only rule and wins on order. */
+.p-button.p-button-sm.p-button-icon-only { width: 28px; padding: 0; gap: 0; }
 /* p-button-text overrides height:auto which collapses icon-only buttons; restore fixed size */
 .p-button.p-button-text.p-button-icon-only { height: 32px; width: 32px; padding: 0; }
 .p-button.p-button-sm.p-button-text.p-button-icon-only { height: 28px; width: 28px; padding: 0; }
@@ -906,6 +914,49 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 .dockview-theme-monolith .dv-tab.dv-active-tab { background-image: linear-gradient(to bottom, color-mix(in srgb, var(--tab-accent, transparent) 14%, transparent), transparent 65%); }
 .dockview-theme-monolith .dv-content-container { background: var(--app); height: 100%; overflow: hidden; }
 body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-user-select: none !important; }
+
+/* ── "+" new-panel SpeedDial in each group's tab bar (GroupActions.tsx) ───────
+   Sits in dockview's `dv-left-actions-container`, i.e. immediately after the
+   last tab. dockview ships no rules for that container at all, so it needs its
+   own box. */
+.dockview-theme-monolith .dv-left-actions-container { display: flex; align-items: center; }
+/* dockview wraps a header-actions component in a `display: block` .dv-react-part,
+   so `align-items` on the container above has nothing to centre — the box has to
+   take the bar's full height and do the centring itself. */
+/* This box, not the SpeedDial root, is the positioning context: anchoring the
+   action row to it means `top: 100%` is the bottom of the *tab bar* rather than
+   the bottom of a 22px button floating inside it, so the row clears the bar
+   without hard-coding either height. It also carries the z-index, because the
+   list has to paint over `.dv-content-container` — a later in-flow sibling that
+   only a positioned box with a z-index can get above. */
+.dv-group-actions { display: flex; align-items: center; height: 100%; padding: 0 4px; position: relative; z-index: 20; }
+/* PrimeReact designs SpeedDial as a floating action button and sets
+   `position: absolute` on its root, which would tear the button out of the bar;
+   `static` hands the anchoring to the box above. */
+.dv-group-actions .p-speeddial { position: static; }
+/* The row drops below the bar and is centred on the "+": the box is symmetric
+   around the button, so 50% of it is the button's centre. Out of flow so the
+   closed dial adds no width to the header; PrimeReact's own `pointer-events:
+   none` (lifted by `.p-speeddial-opened`) keeps the invisible box from
+   swallowing clicks meant for the panel underneath. */
+.dv-group-actions .p-speeddial-list { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); padding: 6px 0 0; }
+/* The theme gives the first item an extra leading margin to space it off the
+   FAB it would normally sit beside. Here that asymmetry would push the whole
+   row off the "+" it is supposed to be centred under. */
+.dv-group-actions .p-speeddial-direction-right .p-speeddial-item,
+.dv-group-actions .p-speeddial-direction-right .p-speeddial-item:first-child { margin: 0 3px; }
+/* The theme sizes the toggle 4rem and the actions 3rem — FAB proportions, four
+   times the height of the bar this lives in. */
+.dv-group-actions .p-speeddial-button.p-button.p-button-icon-only { width: 22px; height: 22px; min-width: 22px; padding: 0; background: transparent; border: none; color: var(--ink2); box-shadow: none; }
+.dv-group-actions .p-speeddial-button.p-button.p-button-icon-only:enabled:hover { background: var(--hover); color: var(--ink); }
+.dv-group-actions .p-speeddial-button.p-button.p-button-icon-only:focus-visible { box-shadow: 0 0 0 2px color-mix(in srgb, var(--teal) 55%, transparent); }
+/* --dial-accent is the cluster colour of whatever these will open into, set
+   inline by GroupActions the way FloatableTab sets --tab-accent. Only the
+   border and a wash of fill carry it — the icon stays --ink, so a colour the
+   user picked freely from the colour picker never has to work as a glyph
+   colour on a dark panel. With no cluster the fallbacks give the neutral look. */
+.dv-group-actions .p-speeddial-action { width: 34px; height: 34px; background: color-mix(in srgb, var(--dial-accent, transparent) 14%, var(--panel3)); border: 1px solid var(--dial-accent, var(--line2)); color: var(--ink); box-shadow: 0 6px 16px rgba(0,0,0,.5); }
+.dv-group-actions .p-speeddial-action:hover { background: color-mix(in srgb, var(--dial-accent, var(--teal)) 28%, var(--panel3)); border-color: var(--dial-accent, var(--teal)); color: var(--ink); }
 
 /* ════════════════════════════════════════════════════════════
    APP PANELS

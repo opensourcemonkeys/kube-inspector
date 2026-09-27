@@ -2665,8 +2665,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "frontend_package_dependencies_mui_material",
-      "community": 248,
-      "community_name": "@mui/material",
+      "community": 141,
+      "community_name": "Community 141",
       "norm_label": "@mui/material"
     },
     {
@@ -2676,8 +2676,8 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "mui_material",
-      "community": 248,
-      "community_name": "@mui/material",
+      "community": 141,
+      "community_name": "Community 141",
       "norm_label": "@mui/material"
     },
     {
@@ -2753,8 +2753,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_package_dependencies_dockview",
-      "community": 141,
-      "community_name": "Community 141",
+      "community": 242,
+      "community_name": "dockview",
       "norm_label": "dockview"
     },
     {
@@ -2764,8 +2764,8 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "dockview",
-      "community": 141,
-      "community_name": "Community 141",
+      "community": 242,
+      "community_name": "dockview",
       "norm_label": "dockview"
     },
     {
@@ -8701,7 +8701,7 @@
       "label": "mount()",
       "file_type": "code",
       "source_file": "frontend/src/components/workspace/GroupActions.test.tsx",
-      "source_location": "L24",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "frontend_src_components_workspace_groupactions_test_mount",
       "community": 176,
@@ -8712,7 +8712,7 @@
       "label": "openDial()",
       "file_type": "code",
       "source_file": "frontend/src/components/workspace/GroupActions.test.tsx",
-      "source_location": "L38",
+      "source_location": "L36",
       "_origin": "ast",
       "id": "frontend_src_components_workspace_groupactions_test_opendial",
       "community": 176,
@@ -8723,7 +8723,7 @@
       "label": "clickAction()",
       "file_type": "code",
       "source_file": "frontend/src/components/workspace/GroupActions.test.tsx",
-      "source_location": "L44",
+      "source_location": "L42",
       "_origin": "ast",
       "id": "frontend_src_components_workspace_groupactions_test_clickaction",
       "community": 176,
@@ -11784,8 +11784,8 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "frontend_src_stores_metricsstore",
-      "community": 242,
-      "community_name": "dockview",
+      "community": 9,
+      "community_name": "Monitoring & Overview Dashboards",
       "norm_label": "metricsstore.ts"
     },
     {
@@ -11795,8 +11795,8 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "frontend_src_stores_metricsstore_clusterpoint",
-      "community": 242,
-      "community_name": "dockview",
+      "community": 9,
+      "community_name": "Monitoring & Overview Dashboards",
       "norm_label": "clusterpoint"
     },
     {
@@ -11806,8 +11806,8 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "frontend_src_stores_metricsstore_entitypoint",
-      "community": 242,
-      "community_name": "dockview",
+      "community": 9,
+      "community_name": "Monitoring & Overview Dashboards",
       "norm_label": "entitypoint"
     },
     {
@@ -11817,8 +11817,8 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "frontend_src_stores_metricsstore_metricstabstate",
-      "community": 242,
-      "community_name": "dockview",
+      "community": 9,
+      "community_name": "Monitoring & Overview Dashboards",
       "norm_label": "metricstabstate"
     },
     {
@@ -11828,8 +11828,8 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_src_stores_metricsstore_emptytab",
-      "community": 242,
-      "community_name": "dockview",
+      "community": 9,
+      "community_name": "Monitoring & Overview Dashboards",
       "norm_label": "emptytab()"
     },
     {
@@ -11839,8 +11839,8 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "frontend_src_stores_metricsstore_cap",
-      "community": 242,
-      "community_name": "dockview",
+      "community": 9,
+      "community_name": "Monitoring & Overview Dashboards",
       "norm_label": "cap()"
     },
     {
@@ -11850,8 +11850,8 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "frontend_src_stores_metricsstore_metricsstore",
-      "community": 242,
-      "community_name": "dockview",
+      "community": 9,
+      "community_name": "Monitoring & Overview Dashboards",
       "norm_label": "metricsstore"
     },
     {
@@ -35004,9 +35004,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 76,
+      "community": 95,
       "norm_label": "kube-ins desktop application",
-      "community_name": "Community 76",
+      "community_name": "Community 95",
       "id": "claude_kube_ins"
     },
     {
@@ -35019,9 +35019,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 76,
+      "community": 95,
       "norm_label": "layered go backend architecture",
-      "community_name": "Community 76",
+      "community_name": "Community 95",
       "id": "claude_layered_backend_architecture"
     },
     {
@@ -35034,9 +35034,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 76,
+      "community": 95,
       "norm_label": "controller layer (wails binding point)",
-      "community_name": "Community 76",
+      "community_name": "Community 95",
       "id": "claude_controller_layer"
     },
     {
@@ -35137,9 +35137,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 227,
+      "community": 76,
       "norm_label": "ai assistant (ollama tool-calling agent)",
-      "community_name": "@mui/material",
+      "community_name": "Community 76",
       "id": "claude_ai_assistant"
     },
     {
@@ -35152,9 +35152,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 227,
+      "community": 76,
       "norm_label": "ai tool registry (aitools)",
-      "community_name": "@mui/material",
+      "community_name": "Community 76",
       "id": "claude_ai_tool_registry"
     },
     {
@@ -35436,9 +35436,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 76,
+      "community": 71,
       "norm_label": "tabcontext",
-      "community_name": "Community 76",
+      "community_name": "Community 71",
       "id": "claude_tab_context"
     },
     {
@@ -35450,9 +35450,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 51,
+      "community": 71,
       "norm_label": "clustercontext",
-      "community_name": "Community 51",
+      "community_name": "Community 71",
       "id": "claude_cluster_context"
     },
     {
@@ -35613,9 +35613,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 51,
+      "community": 71,
       "norm_label": "cluster configuration (~/.kube-ins)",
-      "community_name": "Community 51",
+      "community_name": "Community 71",
       "id": "claude_cluster_configuration"
     },
     {
@@ -35702,9 +35702,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 76,
+      "community": 95,
       "norm_label": "go-embedded kubernetes json schema",
-      "community_name": "Community 76",
+      "community_name": "Community 95",
       "id": "claude_k8s_schema_embed"
     },
     {
@@ -35747,9 +35747,9 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 51,
+      "community": 71,
       "norm_label": "selenium + pytest e2e suite",
-      "community_name": "Community 51",
+      "community_name": "Community 71",
       "id": "claude_e2e_tests"
     },
     {
@@ -56275,7 +56275,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/components/workspace/GroupActions.test.tsx",
-      "source_location": "L44",
+      "source_location": "L42",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_components_workspace_groupactions_test",
@@ -56286,7 +56286,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/components/workspace/GroupActions.test.tsx",
-      "source_location": "L24",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_components_workspace_groupactions_test",
@@ -56308,7 +56308,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/src/components/workspace/GroupActions.test.tsx",
-      "source_location": "L38",
+      "source_location": "L36",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_components_workspace_groupactions_test",
@@ -56486,7 +56486,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/src/components/workspace/GroupActions.tsx",
-      "source_location": "L39",
+      "source_location": "L37",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_src_components_workspace_groupactions_groupactions",

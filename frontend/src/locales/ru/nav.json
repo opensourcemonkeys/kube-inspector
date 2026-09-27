@@ -41,6 +41,7 @@
   },
   "menu": {
     "open": "Открыть",
+    "newPanel": "Новая панель",
     "yamlEditor": "Редактор YAML",
     "terminal": "Терминал",
     "cliMode": "Режим CLI",

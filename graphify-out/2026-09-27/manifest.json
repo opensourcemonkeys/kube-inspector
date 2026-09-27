@@ -1270,8 +1270,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1790530522.2644334,
-    "ast_hash": "d8e887963835d589f32ef3cfe6f40768",
+    "mtime": 1790530278.3125632,
+    "ast_hash": "595a675d5040c64dcabdee17f29bb6f3",
     "semantic_hash": ""
   },
   "README.md": {
@@ -2425,13 +2425,13 @@
     "semantic_hash": ""
   },
   "frontend/src/components/workspace/GroupActions.test.tsx": {
-    "mtime": 1790530407.877508,
-    "ast_hash": "c1daa6dab65684aac81a38b9f968c2a8",
+    "mtime": 1790528997.1581876,
+    "ast_hash": "35d97172e106dbff3aa4410485ed12d8",
     "semantic_hash": ""
   },
   "frontend/src/components/workspace/GroupActions.tsx": {
-    "mtime": 1790530425.805971,
-    "ast_hash": "1d21dde13296d7b1c9ca492709679e50",
+    "mtime": 1790530103.3564322,
+    "ast_hash": "2b1e737c2e851879a3e1db1af6eaccb7",
     "semantic_hash": ""
   }
 }

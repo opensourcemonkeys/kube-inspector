@@ -41,6 +41,7 @@
   },
   "menu": {
     "open": "Open",
+    "newPanel": "New panel",
     "yamlEditor": "YAML Editor",
     "terminal": "Terminal",
     "cliMode": "CLI Mode",

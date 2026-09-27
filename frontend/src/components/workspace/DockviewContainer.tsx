@@ -14,6 +14,7 @@ import {
     takeDroppedPanel,
 } from '../../lib/crossWindowDrop';
 import FloatableTab from './FloatableTab';
+import GroupActions from './GroupActions';
 import ViewPanel from './ViewPanel';
 import { withBoundary } from '../shared/PanelErrorBoundary';
 
@@ -173,6 +174,11 @@ export default function DockviewContainer() {
             theme={{ name: 'monolith', className: 'dockview-theme-monolith' } as any}
             components={components}
             defaultTabComponent={FloatableTab}
+            // dockview lays the header out as tabs → leftActions → void strip →
+            // rightActions, so the "left" slot is the one immediately after the
+            // last tab (VS Code's "+" position). "right" would pin it to the far
+            // edge of the bar, a whole empty strip away from the tabs.
+            leftHeaderActionsComponent={GroupActions}
             floatingGroupBounds="boundedWithinViewport"
             onReady={onReady}
             onDidDrop={placeDrop}

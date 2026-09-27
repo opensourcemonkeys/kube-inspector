@@ -89,7 +89,7 @@ export default tseslint.config(
                         // Identifiers and layout knobs, never display text.
                         'field', 'dataKey', 'filterField', 'sortField', 'filterMatchMode',
                         'selectionMode', 'display', 'filterDisplay', 'severity', 'position',
-                        'mode', 'size', 'variant', 'align', 'target', 'rel', 'href', 'src',
+                        'mode', 'size', 'variant', 'align', 'direction', 'target', 'rel', 'href', 'src',
                         'role', 'view', 'component', 'resourceKind', 'describeResource',
                         'deleteLabel', 'clusterName', 'name', 'value', 'theme', 'lang',
                         'data-.*', 'aria-hidden', 'shadowRgb', 'shadowOpacity',

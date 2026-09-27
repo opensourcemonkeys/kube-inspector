@@ -41,6 +41,7 @@
   },
   "menu": {
     "open": "Aç",
+    "newPanel": "Yeni panel",
     "yamlEditor": "YAML Düzenleyici",
     "terminal": "Terminal",
     "cliMode": "CLI Modu",

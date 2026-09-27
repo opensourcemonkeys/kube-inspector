@@ -1,11 +1,11 @@
 # Graph Report - kube-in-go  (2026-09-27)
 
 ## Corpus Check
-- 458 files · ~553,336 words
+- 458 files · ~553,277 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 3235 nodes · 5794 edges · 249 communities (201 shown, 48 thin omitted)
+- 3235 nodes · 5794 edges · 248 communities (200 shown, 48 thin omitted)
 - Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 594 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
@@ -240,7 +240,6 @@
 - ingress.go
 - persistentVolume.go
 - html-to-image
-- @mui/material
 
 ## God Nodes (most connected - your core abstractions)
 1. `App` - 190 edges
@@ -280,7 +279,7 @@
 - **Per-tab Cluster Pinning Flow** — claude_dockview_panel_system, claude_panel_id_scheme, claude_use_resource_list, claude_controller_layer, claude_business_layer, claude_repository_layer [EXTRACTED 1.00]
 - **graphify Build Pipeline Stages** — _claude_skills_graphify_skill_interpreter_detection, _claude_skills_graphify_skill_ast_extraction, _claude_skills_graphify_skill_semantic_extraction, _claude_skills_graphify_skill_extraction_cache, _claude_skills_graphify_skill_community_clustering, _claude_skills_graphify_skill_graph_health_check, _claude_skills_graphify_skill_god_nodes [EXTRACTED 1.00]
 
-## Communities (249 total, 48 thin omitted)
+## Communities (248 total, 48 thin omitted)
 
 ### Community 1 - "Cluster & CRD Business Layer"
 Cohesion: 0.20
@@ -315,8 +314,8 @@ Cohesion: 0.07
 Nodes (33): Cloudflare R2 Artifact Publishing, MkDocs Site Deploy Job, Disabled E2E (kind + xvfb + Chrome), GOEXPERIMENT=jsonv2 Build Flag, nfpm deb/rpm Packaging, Build & Release CI Pipeline, Embedded Chromium (Electron) Shell, Monitoring Dashboard (+25 more)
 
 ### Community 9 - "Monitoring & Overview Dashboards"
-Cohesion: 0.17
-Nodes (25): BdRow, BreakdownList(), defaultFilters(), DetailDrawer(), findUsage(), fmtTime(), lineOptions(), MonitoringDashboard() (+17 more)
+Cohesion: 0.12
+Nodes (29): BdRow, BreakdownList(), defaultFilters(), DetailDrawer(), findUsage(), fmtTime(), lineOptions(), MonitoringDashboard() (+21 more)
 
 ### Community 10 - "MkDocs Build Hooks"
 Cohesion: 0.09
@@ -479,8 +478,8 @@ Cohesion: 0.23
 Nodes (12): Folder Watcher (--watch), URL Ingest (/graphify add), MCP stdio Server, Post-Commit Auto-Rebuild Hook, graphify explain (single-node explanation), graphify path (shortest path between concepts), Work Memory / Self-Improving Loop, Whisper Video/Audio Transcription (+4 more)
 
 ### Community 51 - "Community 51"
-Cohesion: 0.20
-Nodes (12): No API Key Required Policy, Cluster Configuration (~/.kube-ins), ClusterContext, kubeinsdev Build Tag Relaxations, Selenium + pytest E2E Suite, Electron Shell (shipped GUI), GOEXPERIMENT=jsonv2 Build Requirement, electron-builder Builds, nfpm Packages (+4 more)
+Cohesion: 0.28
+Nodes (9): No API Key Required Policy, kubeinsdev Build Tag Relaxations, Electron Shell (shipped GUI), GOEXPERIMENT=jsonv2 Build Requirement, electron-builder Builds, nfpm Packages, Loopback RPC Server (rpcserver.go), Trivy Vulnerability Scanner Integration, TUI / CLI Mode (tview terminal front end) (+1 more)
 
 ### Community 52 - "Community 52"
 Cohesion: 0.47
@@ -559,8 +558,8 @@ Cohesion: 0.18
 Nodes (10): author, email, name, frontend:build, frontend:dev:serverUrl, frontend:dev:watcher, frontend:install, name (+2 more)
 
 ### Community 71 - "Community 71"
-Cohesion: 0.21
-Nodes (13): Business Orchestration Layer, CRDs and Generic Object CRUD, Dockview Panel System, Module-level DataTable Body Helpers, Panel ID Scheme, Per-tab Cluster Isolation, Repository Layer (kubeconfig loading), ResourceListView Shared Scaffold (+5 more)
+Cohesion: 0.15
+Nodes (17): Business Orchestration Layer, Cluster Configuration (~/.kube-ins), ClusterContext, CRDs and Generic Object CRUD, Dockview Panel System, Selenium + pytest E2E Suite, Module-level DataTable Body Helpers, Panel ID Scheme (+9 more)
 
 ### Community 72 - "Community 72"
 Cohesion: 0.24
@@ -579,8 +578,8 @@ Cohesion: 0.11
 Nodes (22): AboutModal(), DEP_LABELS, Props, HealthCheckList(), STATUS_LABEL, fetchPodsForKind(), LogViewerPanel(), LogViewerPanelParams (+14 more)
 
 ### Community 76 - "Community 76"
-Cohesion: 0.17
-Nodes (13): Controller Layer (Wails binding point), Event Streaming (terminal, logs, AI, tab transfer), InstanceContext, IPC InstanceHub (WebSocket multi-instance discovery), Go-embedded Kubernetes JSON Schema, kube-ins Desktop Application, Layered Go Backend Architecture, Multi-Instance Tab Transfer (+5 more)
+Cohesion: 0.22
+Nodes (10): AI Assistant (Ollama tool-calling agent), AI Tool Registry (aiTools), Event Streaming (terminal, logs, AI, tab transfer), InstanceContext, IPC InstanceHub (WebSocket multi-instance discovery), Multi-Instance Tab Transfer, Shell-Agnostic Transport Interface, Go Sidecar Process Lifecycle (+2 more)
 
 ### Community 77 - "Community 77"
 Cohesion: 0.29
@@ -655,8 +654,8 @@ Cohesion: 0.07
 Nodes (31): AiChat(), buildContext(), ConfirmReq, fmtBytes(), PullState, ToolLines(), DiagnosticsPanel(), ExportTab() (+23 more)
 
 ### Community 95 - "Community 95"
-Cohesion: 0.29
-Nodes (7): Verbatim source_file Rule, build_merge Replace-on-Re-extract, Semantic Extraction Cache, frontend/dist/.gitkeep Embed Bootstrap Cycle, Models Layer (frontend serialization structs), Services Layer (Kubernetes API calls), Generated Wails TypeScript Bindings
+Cohesion: 0.18
+Nodes (11): Verbatim source_file Rule, build_merge Replace-on-Re-extract, Semantic Extraction Cache, Controller Layer (Wails binding point), frontend/dist/.gitkeep Embed Bootstrap Cycle, Go-embedded Kubernetes JSON Schema, kube-ins Desktop Application, Layered Go Backend Architecture (+3 more)
 
 ### Community 96 - "Community 96"
 Cohesion: 0.38
@@ -800,7 +799,7 @@ Nodes (9): cancelRegistry, cancelToken, CancelFunc, Mutex, newCancelRegistry(), 
 
 ### Community 141 - "Community 141"
 Cohesion: 0.07
-Nodes (27): chart.js, @dagrejs/dagre, dockview, @emotion/react, @fontsource/inter, dependencies, chart.js, @dagrejs/dagre (+19 more)
+Nodes (27): chart.js, @dagrejs/dagre, @emotion/react, @fontsource/inter, dependencies, chart.js, @dagrejs/dagre, @emotion/react (+19 more)
 
 ### Community 142 - "Community 142"
 Cohesion: 0.67
@@ -943,8 +942,8 @@ Cohesion: 0.60
 Nodes (4): defaultFilters, getCompletionSeverity(), getStatusSeverity(), JobListComponent()
 
 ### Community 227 - "@mui/material"
-Cohesion: 0.20
-Nodes (10): AI Assistant (Ollama tool-calling agent), AI Tool Registry (aiTools), Fixed app:// Origin with protocol.handle Proxy, Live Resource Monitoring Dashboard, Shell Channel (native save dialog bridge), Window Screenshot (SaveSnapshot), theme-monolith.css Variable-Driven Theming, Zustand Per-tab Stores (+2 more)
+Cohesion: 0.25
+Nodes (8): Fixed app:// Origin with protocol.handle Proxy, Live Resource Monitoring Dashboard, Shell Channel (native save dialog bridge), Window Screenshot (SaveSnapshot), theme-monolith.css Variable-Driven Theming, Zustand Per-tab Stores, Nunito Font Family, SIL Open Font License v1.1
 
 ### Community 229 - "persistentVolumeClaim.go"
 Cohesion: 0.29
@@ -973,10 +972,6 @@ Nodes (4): open_resource_graph(), Click the 'Resource Graph' button in the Clust
 ### Community 240 - "serviceAccount.go"
 Cohesion: 0.40
 Nodes (4): DeleteServiceAccount(), GetServiceAccountYaml(), UpdateServiceAccount(), UpdateServiceAccountYaml()
-
-### Community 242 - "dockview"
-Cohesion: 0.29
-Nodes (4): ClusterPoint, EntityPoint, MetricsStore, MetricsTabState
 
 ### Community 243 - "InstancePickerMenu.tsx"
 Cohesion: 0.40
