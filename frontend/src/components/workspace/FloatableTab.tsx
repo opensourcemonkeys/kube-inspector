@@ -19,7 +19,7 @@ import {
 
 // Live PTY sessions are bound to the process that opened them, and moving a
 // panel re-creates it rather than reparenting the DOM — so these cannot travel.
-const NON_TRANSFERABLE = new Set(['terminal', 'podExec']);
+const NON_TRANSFERABLE = new Set(['terminal', 'podExec', 'nodeShell']);
 
 // How far the pointer must travel before a press counts as a drag rather than
 // a click. Matches dockview's own default threshold.
@@ -29,6 +29,7 @@ function getComponentType(panelId: string): string {
     if (panelId.startsWith('yaml:')) return 'yamlEditor';
     if (panelId.startsWith('log:')) return 'logViewer';
     if (panelId.startsWith('exec:')) return 'podExec';
+    if (panelId.startsWith('nodeshell:')) return 'nodeShell';
     if (panelId.startsWith('terminal-')) return 'terminal';
     if (panelId.startsWith('applyYaml:')) return 'applyYaml';
     if (panelId.startsWith('policy:')) return 'policyViewer';

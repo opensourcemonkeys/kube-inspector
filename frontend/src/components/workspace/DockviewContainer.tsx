@@ -44,6 +44,7 @@ const rawComponents = {
     configMapEditor: lazy(() => import('../configmap/ConfigMapEditorPanel')),
     secretEditor: lazy(() => import('../secret/SecretEditorPanel')),
     podExec: lazy(() => import('../pod/PodExecPanel')),
+    nodeShell: lazy(() => import('../node/NodeShellPanel')),
     roleEditor: lazy(() => import('../role/RoleEditorPanel')),
     roleBindingEditor: lazy(() => import('../rolebinding/RoleBindingEditorPanel')),
     objectYaml: lazy(() => import('./ObjectYamlPanel')),

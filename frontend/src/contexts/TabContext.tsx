@@ -77,6 +77,12 @@ export interface ExecPanelDef {
     referencePanel: string;
 }
 
+export interface NodeShellDef {
+    clusterName: string;
+    nodeName: string;
+    referencePanel: string;
+}
+
 export interface PolicyViewerDef {
     clusterName: string;
     name: string;
@@ -144,6 +150,7 @@ interface TabContextValue {
     openYamlPanel: (def: YamlPanelDef) => void;
     openLogPanel: (def: LogPanelDef) => void;
     openExecPanel: (def: ExecPanelDef) => void;
+    openNodeShellPanel: (def: NodeShellDef) => void;
     openPolicyViewer: (def: PolicyViewerDef) => void;
     openConfigMapEditor: (def: ConfigMapEditorDef) => void;
     openSecretEditor: (def: SecretEditorDef) => void;
@@ -348,6 +355,39 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
                 name: def.name,
                 namespace: def.namespace,
                 container: def.container,
+            },
+        };
+
+        const pos = positionAfter(api, def.referencePanel);
+        if (pos) addOptions.position = pos;
+
+        api.addPanel(addOptions);
+    }, [t]);
+
+    // One shell per node per cluster: the panel id carries both, so a second
+    // click focuses the open tab instead of creating a second privileged pod.
+    const openNodeShellPanel = useCallback((def: NodeShellDef) => {
+        const api = apiRef.current;
+        if (!api) return;
+
+        const panelId = `nodeshell:${def.clusterName}:${def.nodeName}`;
+        const existing = api.getPanel(panelId);
+        if (existing) {
+            existing.focus();
+            return;
+        }
+
+        const sessionId = `nodeshell-${Date.now()}`;
+        const titleParams = { titleKey: 'panels:title.nodeShell', titleVars: { suffix: def.nodeName } };
+        const addOptions: any = {
+            id: panelId,
+            component: 'nodeShell',
+            title: renderPanelTitle(t, titleParams),
+            params: {
+                ...titleParams,
+                clusterName: def.clusterName,
+                sessionId,
+                nodeName: def.nodeName,
             },
         };
 
@@ -658,7 +698,7 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
     }, [openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openApplyYaml, openDiagnostics, openPortForwards]);
 
     return (
-        <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openDiagnostics, openPortForwards, openReceivedPanel }}>
+        <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openNodeShellPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openDiagnostics, openPortForwards, openReceivedPanel }}>
             {children}
         </TabContext.Provider>
     );

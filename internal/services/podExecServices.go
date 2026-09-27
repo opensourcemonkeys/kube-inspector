@@ -73,8 +73,6 @@ func releaseExecSession(id string, want *podExecSession) bool {
 // going away, the stream breaking — but not when the caller closed it, so the
 // frontend can tell a dead terminal from one it shut down itself.
 func CreatePodExecSession(id, namespace, podName, container string, onOutput func(string), onClosed func(), client *kubernetes.Clientset, config *rest.Config) error {
-	releaseExecSession(id, nil)
-
 	if container == "" {
 		pod, err := client.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 		if err != nil {
@@ -84,6 +82,16 @@ func CreatePodExecSession(id, namespace, podName, container string, onOutput fun
 			container = pod.Spec.Containers[0].Name
 		}
 	}
+	return startExecSession(id, namespace, podName, container, []string{"/bin/sh"}, onOutput, onClosed, client, config)
+}
+
+// startExecSession is the exec machinery shared by a pod shell and a node shell
+// (nodeShellServices.go): one registry, one stdin pipe, one terminal size queue.
+// The two differ only in the command run inside the container — "/bin/sh" for a
+// pod, nsenter into PID 1's namespaces for a node — so `command` is the seam
+// rather than a second copy of everything below.
+func startExecSession(id, namespace, podName, container string, command []string, onOutput func(string), onClosed func(), client *kubernetes.Clientset, config *rest.Config) error {
+	releaseExecSession(id, nil)
 
 	req := client.CoreV1().RESTClient().Post().
 		Resource("pods").
@@ -93,7 +101,7 @@ func CreatePodExecSession(id, namespace, podName, container string, onOutput fun
 
 	req.VersionedParams(&corev1.PodExecOptions{
 		Container: container,
-		Command:   []string{"/bin/sh"},
+		Command:   command,
 		Stdin:     true,
 		Stdout:    true,
 		Stderr:    true,

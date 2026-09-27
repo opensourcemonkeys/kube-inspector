@@ -248,16 +248,10 @@
   "246": "TestClusterConfigPath",
   "247": "html-to-image",
   "248": "@mui/material",
-  "249": "PingCluster",
+  "249": "limitRange.go",
   "250": "MetricsSnapshot",
-  "251": "writeClipboard",
+  "251": "PanelErrorBoundary",
   "252": "main.tsx",
-  "253": "InstancePickerMenu.tsx",
-  "254": "node.go",
-  "255": "endpoint.go",
-  "256": "roleBinding.go",
-  "257": "PanelErrorBoundary",
-  "258": "cronJob.go",
-  "259": "safego.go",
-  "260": "resourceQuota.go"
+  "253": "persistentVolume.go",
+  "254": "resourceQuota.go"
 }

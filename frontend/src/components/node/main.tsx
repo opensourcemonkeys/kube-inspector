@@ -3,7 +3,7 @@ import React from 'react';
 import type { DockviewPanelApi } from 'dockview';
 import { Trans } from 'react-i18next';
 import { Chart } from 'primereact/chart';
-import { VscServer, VscPass, VscCircleSlash, VscOutput, VscNote, VscClose, VscInfo, VscLocation, VscTag, VscDesktopDownload, VscChip, VscDatabase } from 'react-icons/vsc';
+import { VscServer, VscPass, VscCircleSlash, VscOutput, VscNote, VscClose, VscInfo, VscLocation, VscTag, VscDesktopDownload, VscChip, VscDatabase, VscTerminal } from 'react-icons/vsc';
 import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import { Button } from 'primereact/button';
@@ -94,15 +94,17 @@ function UsageChart({ label, used, total, unit }: {
  * none of them re-render. Safe to memo: it is module-scope and takes
  * everything it needs as explicit props.
  */
-const NodeCard = React.memo(function NodeCard({ node, clusterName, onEditYaml, onAction, onToast }: {
+const NodeCard = React.memo(function NodeCard({ node, clusterName, onEditYaml, onOpenShell, onAction, onToast }: {
     node: models.NodeInfo;
     clusterName: string;
     onEditYaml: (name: string) => void;
+    onOpenShell: (name: string) => void;
     onAction: () => void;
     onToast: (severity: 'success' | 'error', summary: string, detail: string) => void;
 }) {
     const t = useT();
     const [drainDialogVisible, setDrainDialogVisible] = useState(false);
+    const [shellDialogVisible, setShellDialogVisible] = useState(false);
     const [cordonLoading, setCordonLoading] = useState(false);
     const [drainLoading, setDrainLoading] = useState(false);
 
@@ -140,6 +142,18 @@ const NodeCard = React.memo(function NodeCard({ node, clusterName, onEditYaml, o
         } finally { setDrainLoading(false); }
     };
 
+    const handleOpenShell = () => {
+        setShellDialogVisible(false);
+        onOpenShell(node.name);
+    };
+
+    const shellFooter = (
+        <div className="flex justify-content-end gap-2">
+            <Button label={t('action.cancel')} icon={<VscClose fontSize="small" />} text onClick={() => setShellDialogVisible(false)} />
+            <Button label={t('panels:node.shell')} icon={<VscTerminal fontSize="small" />} severity="warning" onClick={handleOpenShell} />
+        </div>
+    );
+
     const drainFooter = (
         <div className="flex justify-content-end gap-2">
             <Button label={t('action.cancel')} icon={<VscClose fontSize="small" />} text onClick={() => setDrainDialogVisible(false)} disabled={drainLoading} />
@@ -172,6 +186,7 @@ const NodeCard = React.memo(function NodeCard({ node, clusterName, onEditYaml, o
                         <Button label={t('panels:node.cordon')} icon={<VscCircleSlash fontSize="small" />} size="small" severity="warning" text loading={cordonLoading} onClick={handleCordon} tooltip={t('panels:node.cordonTooltip')} tooltipOptions={{ position: 'top' }} />
                     )}
                     <Button label={t('panels:node.drain')} icon={<VscOutput fontSize="small" />} size="small" severity="danger" text loading={drainLoading} onClick={() => setDrainDialogVisible(true)} tooltip={t('panels:node.drainTooltip')} tooltipOptions={{ position: 'top' }} />
+                    <Button icon={<VscTerminal fontSize="small" />} text size="small" severity="info" onClick={() => setShellDialogVisible(true)} tooltip={t('panels:node.shellTooltip')} tooltipOptions={{ position: 'top' }} />
                     <Button icon={<VscNote fontSize="small" />} text size="small" severity="secondary" onClick={() => onEditYaml(node.name)} tooltip={t('panels:node.editYaml')} tooltipOptions={{ position: 'top' }} />
                 </div>
             </div>
@@ -216,6 +231,27 @@ const NodeCard = React.memo(function NodeCard({ node, clusterName, onEditYaml, o
                     <Trans t={t} i18nKey="panels:node.drainTarget" values={{ name: node.name }} components={{ 1: <strong /> }} />
                 </p>
             </Dialog>
+
+            {/* Gated like drain, and for a stronger reason: opening this shell
+                creates a privileged pod and hands out root on the host. */}
+            <Dialog
+                header={`${t('panels:node.shell')}: ${node.name}`}
+                visible={shellDialogVisible}
+                style={{ width: '32rem' }}
+                modal
+                footer={shellFooter}
+                onHide={() => setShellDialogVisible(false)}
+            >
+                <p className="m-0 mb-3">
+                    <Trans t={t} i18nKey="panels:node.shellWarning" components={{ 1: <strong /> }} />
+                </p>
+                <p className="m-0 mb-3" style={{ fontSize: '0.85rem', color: 'var(--ink2)' }}>
+                    {t('panels:node.shellCleanup')}
+                </p>
+                <p className="m-0" style={{ fontSize: '0.85rem', color: 'var(--ink2)' }}>
+                    <Trans t={t} i18nKey="panels:node.shellTarget" values={{ name: node.name }} components={{ 1: <strong /> }} />
+                </p>
+            </Dialog>
         </div>
     );
 });
@@ -242,7 +278,7 @@ export default function NodeListComponent({ clusterName, api }: { clusterName: s
     const [loaded, setLoaded] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const toast = useRef<Toast | null>(null);
-    const { openYamlPanel } = useTabContext();
+    const { openYamlPanel, openNodeShellPanel } = useTabContext();
     const payload = usePayloadSignature();
 
     // Mirrors lib/useResourceList: keep the last good cards on a failed poll and
@@ -283,6 +319,10 @@ export default function NodeListComponent({ clusterName, api }: { clusterName: s
             resourceKind: 'node', name, namespace: '', referencePanel: `nodes:${clusterName}` });
     }, [openYamlPanel, clusterName]);
 
+    const handleOpenShell = useCallback((name: string) => {
+        openNodeShellPanel({ clusterName, nodeName: name, referencePanel: `nodes:${clusterName}` });
+    }, [openNodeShellPanel, clusterName]);
+
     const showToast = useCallback((severity: 'success' | 'error', summary: string, detail: string) => {
         toast.current?.show({ severity, summary, detail, life: 3000 });
     }, []);
@@ -320,7 +360,7 @@ export default function NodeListComponent({ clusterName, api }: { clusterName: s
                     )
                 ) : (
                     nodes.map(node => (
-                        <NodeCard key={node.name} node={node} clusterName={clusterName} onEditYaml={handleEditYaml} onAction={loadNodes} onToast={showToast} />
+                        <NodeCard key={node.name} node={node} clusterName={clusterName} onEditYaml={handleEditYaml} onOpenShell={handleOpenShell} onAction={loadNodes} onToast={showToast} />
                     ))
                 )}
             </div>

@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- **A shell on a node, from the Nodes screen.** Each node card gains a terminal button beside **Drain** that opens a root shell in the node's own process, network and mount namespaces — enough to read kubelet logs, check disk pressure or inspect `containerd` without leaving the app. Kubernetes exposes no node-exec API, so this works the way `kubectl debug node/...` does: a privileged helper pod is created in `kube-system`, pinned to the node with a toleration for every taint so a cordoned or tainted node still gets one, and the app then execs `nsenter` into PID 1's namespaces. The pod is deleted when the tab closes or the shell exits, carries an 8-hour `activeDeadlineSeconds` backstop in case neither happens, and is labelled `kube-ins/node-shell=true` so a leaked one is findable. A confirmation dialog explains the privilege before anything is created, and the terminal narrates pod creation, scheduling and the image pull so a slow start does not read as a hang. The node's `/etc/profile` is sourced non-interactively rather than by a login shell, so `PATH` picks up `/usr/sbin` and `/sbin` without the host profile's `tty` call failing against a pty that no longer exists in the namespace just entered.
+
 ## [v0.16.1-beta] - 2026-09-20
 
 A pod-list release. The Pods screen previously reported a pod whose only container was in `CrashLoopBackOff` as **Running**, because it showed the phase and nothing else. It now says what `kubectl` says, adds a warning column that explains *why* a pod is unhealthy, and keeps the row's action buttons on screen when the table is wider than its panel.

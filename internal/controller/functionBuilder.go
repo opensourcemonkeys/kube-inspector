@@ -243,6 +243,21 @@ func (a *App) ClosePodExecSession(sessionId string) error {
 	return bussiness.ClosePodExecSession(sessionId)
 }
 
+// CreateNodeShellSession opens a root shell on a node. It reuses the pod-exec
+// event channels on purpose: once the helper pod is up this *is* an exec
+// session, so the frontend needs no second set of output/closed listeners and no
+// second Write/Resize pair.
+func (a *App) CreateNodeShellSession(clusterName string, sessionId string, nodeName string) error {
+	return bussiness.CreateNodeShellSession(clusterName, sessionId, nodeName,
+		func(data string) { a.emit("exec:output:"+sessionId, data) },
+		func() { a.emit("exec:closed:" + sessionId) },
+	)
+}
+
+func (a *App) CloseNodeShellSession(sessionId string) error {
+	return bussiness.CloseNodeShellSession(sessionId)
+}
+
 // ============================================================================
 // Workloads Screen: Cross-kind actions (scale, rollout restart, suspend)
 // ============================================================================
