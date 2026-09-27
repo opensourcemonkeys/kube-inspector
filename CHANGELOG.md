@@ -2,10 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [v0.17.0-beta] - 2026-09-27
+
+A terminal release. Every terminal in the app — the shell panel, a pod's Exec tab, CLI Mode — gained the interactions a terminal is expected to have: copy and paste that work, find, save the output, resizable text. And there is a new terminal to use them in, a root shell on a node, opened from the Nodes screen.
 
 ### Added
-- **A shell on a node, from the Nodes screen.** Each node card gains a terminal button beside **Drain** that opens a root shell in the node's own process, network and mount namespaces — enough to read kubelet logs, check disk pressure or inspect `containerd` without leaving the app. Kubernetes exposes no node-exec API, so this works the way `kubectl debug node/...` does: a privileged helper pod is created in `kube-system`, pinned to the node with a toleration for every taint so a cordoned or tainted node still gets one, and the app then execs `nsenter` into PID 1's namespaces. The pod is deleted when the tab closes or the shell exits, carries an 8-hour `activeDeadlineSeconds` backstop in case neither happens, and is labelled `kube-ins/node-shell=true` so a leaked one is findable. A confirmation dialog explains the privilege before anything is created, and the terminal narrates pod creation, scheduling and the image pull so a slow start does not read as a hang. The node's `/etc/profile` is sourced non-interactively rather than by a login shell, so `PATH` picks up `/usr/sbin` and `/sbin` without the host profile's `tty` call failing against a pty that no longer exists in the namespace just entered.
+- **A shell on a node, from the Nodes screen.** Each node card gains a terminal button beside **Drain** that opens a root shell in the node's own process, network and mount namespaces — enough to read kubelet logs, check disk pressure or inspect `containerd` without leaving the app. Kubernetes exposes no node-exec API, so this works the way `kubectl debug node/...` does: a privileged helper pod is created in `kube-system`, pinned to the node with a toleration for every taint so a cordoned or tainted node still gets one, and the app then execs `nsenter` into PID 1's namespaces. The shell starts with the node's own environment, so `systemctl`, `iptables` and the rest of `/usr/sbin` are on `PATH`. The pod is deleted when the tab closes or the shell exits, carries an 8-hour `activeDeadlineSeconds` backstop in case neither happens, and is labelled `kube-ins/node-shell=true` so a leaked one is findable. A confirmation dialog explains the privilege before anything is created, and the terminal narrates pod creation, scheduling and the image pull so a slow start does not read as a hang.
+- **Copy, paste, find and save in every terminal.** A right-click menu with Copy, Paste, Select all, Clear screen, Find, Copy all output and Save output to file, plus `Ctrl+Shift+C` / `V` / `A` / `K` / `F` for the same actions and `Ctrl++` / `Ctrl+-` / `Ctrl+0` for the font size. `Ctrl+C` does double duty: with text selected it copies and drops the selection, with nothing selected it interrupts the running command as usual — so pressing it twice always interrupts. The font size is shared by every terminal and Exec panel and is remembered between restarts. All of it works the same in a pod's Exec panel and in the new node shell.
+- **A multi-line paste is previewed before it runs.** Pasting more than one line opens an editable dialog first, because a terminal runs each line as it arrives and a snippet copied out of a wiki may not be what you expected: fix a namespace, drop a line, then press `Enter` to send it. A single line pastes straight through with no dialog. If the clipboard cannot be read programmatically the dialog opens empty, so `Ctrl+V` inside it still works.
+- **A find bar in the terminal** (`Ctrl+Shift+F`), with next and previous match navigation and matches highlighted in place.
+- **A "+" in the tab bar** that opens a terminal or a blank YAML editor, the same pair the title bar's Open menu offers. It opens into the group whose "+" you clicked, which matters in a split workspace, and the new panel is pinned to the cluster selected in the sidebar's cluster bar and carries that cluster's colour.
+
+### Changed
+- **Scrollback raised to 3500 lines.** xterm's default is 1000, which a single `kubectl logs` scrolls past. Rows beyond the limit are dropped from the buffer rather than hidden, so this is also the bound on what "Copy all output" and "Save output to file" can reach — pipe long output to a file if you need all of it.
+- **The terminal selection is visible now.** xterm's default is a theme-blind `rgba(255,255,255,.3)` wash that barely registers on these dark backgrounds, which matters once copying is selection-driven. The selection *foreground* is deliberately left alone, so coloured output keeps its colours while selected.
+
+### Fixed
+- **Electron's invisible application menu no longer swallows terminal keys.** Electron installs a default application menu when none is set, and matches its role accelerators in the browser process before the keystroke ever reaches the page. The app window is frameless, so that menu was invisible *and* harmful: `Ctrl+C` could not send SIGINT to a shell, `Ctrl+W` closed the window mid-command and `Ctrl+R` reloaded the whole app. It is now removed on Linux and Windows, with `F12` and `Ctrl+Shift+I` re-registered explicitly so devtools survive. macOS keeps its menu, because there it *is* the system menubar and dropping it would take `Cmd+Q`, the app name and native field editing with it.
+- **Paste works in an unfocused frameless window.** The renderer's `navigator.clipboard.readText()` goes through Chromium's permission and transient-activation gates and rejects silently under exactly those conditions. The clipboard is now read in the Electron main process, with the web API kept as the fallback for the Wails and browser shells. CLI Mode's paste uses the same path.
+
+### Internal
+- The xterm wiring behind the Terminal, pod Exec and Node Shell panels is one shared `ExecTerminal` component, and the interaction layer — selection, clipboard, shortcuts, right-click menu, find — one shared `useTerminalActions` hook, so the three cannot drift apart.
+- `startExecSession` now takes the command to run. That single seam is what lets a node shell reuse the pod-exec session registry, stdin pipe and terminal size queue rather than duplicating them.
+- `SaveText` on the backend for the terminal's "save output", kept separate from `SaveReport` because that one forces an `.html` extension.
+- Terminal font size lives in a persisted Zustand store (`kube-ins-terminal`).
+- The documentation site's changelog page now skips the `## [Unreleased]` staging section, which would otherwise take the "Latest" badge and open with an empty body.
+- Unit tests cover the terminal action helpers, the search wiring, the tab-bar "+" actions, and the node shell's helper-pod lifecycle — that pod is host root, so "deleted exactly once, on every path" is asserted rather than assumed.
+
+---
 
 ## [v0.16.1-beta] - 2026-09-20
 
