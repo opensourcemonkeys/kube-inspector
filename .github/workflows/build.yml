@@ -452,7 +452,7 @@ jobs:
           cat /tmp/release_notes.md
 
       - name: Create Release
-        uses: softprops/action-gh-release@b4309332981a82ec1c5618f44dd2e27cc8bfbfda # v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3
         if: github.ref_type == 'tag'
         with:
           body_path: /tmp/release_notes.md
