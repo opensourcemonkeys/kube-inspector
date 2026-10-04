@@ -1,16 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
-import { Chart } from 'primereact/chart';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
-import { Button } from 'primereact/button';
 import { Message } from 'primereact/message';
 import { FilterMatchMode } from 'primereact/api';
-import { VscPulse, VscClose, VscChevronRight, VscDeviceCamera } from 'react-icons/vsc';
-import { toPng } from 'html-to-image';
+import { VscPulse, VscClose, VscChevronRight } from 'react-icons/vsc';
 
-import { GetMetricsSnapshot, SaveSnapshot } from '../../../wailsjs/go/controller_app/App';
+import { GetMetricsSnapshot } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useMetricsStore, ClusterPoint, EntityPoint } from '../../stores/metricsStore';
 import { fmtCpu, fmtMem, pct, getUsageColor, UsageBarChart, CssBar } from '../../lib/usage';
@@ -19,6 +16,7 @@ import { errText } from '../../lib/errText';
 import ErrorBanner from '../shared/ErrorBanner';
 import { useT } from '../../i18n/useT';
 import { usePanelActive } from '../../lib/usePanelActive';
+import { LiveChart } from '../../lib/LiveChart';
 
 const POLL_MS = 4000;
 
@@ -123,7 +121,6 @@ export default function MonitoringDashboard({ clusterName, api }: { clusterName:
     const [filters, setFilters] = useState<DataTableFilterMeta>(defaultFilters);
     const [selected, setSelected] = useState<Selected | null>(null);
     const [windowMin, setWindowMin] = useState(15);
-    const [snapping, setSnapping] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -132,43 +129,11 @@ export default function MonitoringDashboard({ clusterName, api }: { clusterName:
 
     const selRef = useRef<Selected | null>(null);
     selRef.current = selected;
-    const rootRef = useRef<HTMLDivElement>(null);
 
     // Keep only points within the selected time window.
     const clip = <T extends { t: number }>(pts: T[]): T[] => {
         const since = Date.now() - windowMin * 60_000;
         return pts.filter((p) => p.t >= since);
-    };
-
-    // Capture the whole dashboard panel as a PNG and download it. html-to-image
-    // often captures live <canvas> (chart.js) blank, so we temporarily swap each
-    // canvas for a static <img> of its contents, capture, then restore.
-    const takeSnapshot = async () => {
-        const root = rootRef.current;
-        if (!root || snapping) return;
-        setSnapping(true);
-        const swaps: { canvas: HTMLCanvasElement; img: HTMLImageElement }[] = [];
-        try {
-            root.querySelectorAll('canvas').forEach((canvas) => {
-                const img = document.createElement('img');
-                img.src = canvas.toDataURL('image/png');
-                const cs = getComputedStyle(canvas);
-                img.style.width = cs.width;
-                img.style.height = cs.height;
-                img.style.display = 'inline-block';
-                canvas.style.display = 'none';
-                canvas.parentElement?.insertBefore(img, canvas);
-                swaps.push({ canvas, img });
-            });
-            const dataUrl = await toPng(root, { backgroundColor: themeColor('--app'), pixelRatio: 2, cacheBust: true });
-            const name = `monitoring-${clusterName}-${new Date().toISOString().replace(/[:.]/g, '-')}.png`;
-            await SaveSnapshot(name, dataUrl);
-        } catch (e) {
-            console.error('snapshot failed:', e);
-        } finally {
-            swaps.forEach(({ canvas, img }) => { img.remove(); canvas.style.display = ''; });
-            setSnapping(false);
-        }
     };
 
     const tick = useCallback(async () => {
@@ -263,12 +228,11 @@ export default function MonitoringDashboard({ clusterName, api }: { clusterName:
     };
 
     return (
-        <div className="mon-root" ref={rootRef}>
+        <div className="mon-root">
             <div className="mon-header">
                 <VscPulse /> <span>{t('panels:monitoring.label')}</span><span className="mon-cluster">• {clusterName}</span>
                 <div className="mon-header__actions">
                     <Dropdown value={windowMin} options={WINDOWS} onChange={(e) => setWindowMin(e.value)} aria-label={t('panels:monitoring.timeWindow')} />
-                    <Button label={t('panels:monitoring.takeSnapshot')} icon={<VscDeviceCamera />} outlined onClick={takeSnapshot} loading={snapping} />
                 </div>
             </div>
 
@@ -281,12 +245,12 @@ export default function MonitoringDashboard({ clusterName, api }: { clusterName:
                         <div className="mon-card">
                             <div className="mon-card__head"><span>{t('panels:monitoring.clusterCpu')}</span><b>{fmtCpu(c.cpuMillis)} / {fmtCpu(c.cpuCapMillis)}</b></div>
                             <div className="mon-card__pct" style={{ color: getUsageColor(cpuClusterPct) }}>{cpuClusterPct.toFixed(0)}%</div>
-                            <div className="mon-trend"><Chart type="line" data={cpuTrend} options={lineOptions(100, xMin, xMax)} style={{ height: 130 }} /></div>
+                            <div className="mon-trend"><LiveChart type="line" data={cpuTrend} options={lineOptions(100, xMin, xMax)} height={130} /></div>
                         </div>
                         <div className="mon-card">
                             <div className="mon-card__head"><span>{t('panels:monitoring.clusterMemory')}</span><b>{fmtMem(c.memMi)} / {fmtMem(c.memCapMi)}</b></div>
                             <div className="mon-card__pct" style={{ color: getUsageColor(memClusterPct) }}>{memClusterPct.toFixed(0)}%</div>
-                            <div className="mon-trend"><Chart type="line" data={memTrend} options={lineOptions(100, xMin, xMax)} style={{ height: 130 }} /></div>
+                            <div className="mon-trend"><LiveChart type="line" data={memTrend} options={lineOptions(100, xMin, xMax)} height={130} /></div>
                         </div>
                     </div>
 
@@ -435,8 +399,8 @@ function DetailDrawer({ snap, selected, series, cpuCap, memCap, windowMin, onSel
                 <div className="mon-empty">{t('panels:monitoring.collecting', { seconds: POLL_MS / 1000 })}</div>
             ) : (
                 <>
-                    <div className="mon-trend mon-trend--lg"><Chart type="line" data={cpuTrend} options={lineOptions(undefined, xMin, xMax)} style={{ height: 130 }} /></div>
-                    <div className="mon-trend mon-trend--lg"><Chart type="line" data={memTrend} options={lineOptions(undefined, xMin, xMax)} style={{ height: 130 }} /></div>
+                    <div className="mon-trend mon-trend--lg"><LiveChart type="line" data={cpuTrend} options={lineOptions(undefined, xMin, xMax)} height={130} /></div>
+                    <div className="mon-trend mon-trend--lg"><LiveChart type="line" data={memTrend} options={lineOptions(undefined, xMin, xMax)} height={130} /></div>
                 </>
             )}
 

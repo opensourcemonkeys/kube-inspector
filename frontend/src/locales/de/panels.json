@@ -172,7 +172,6 @@
     "loading": "Metriken werden geladen…",
     "noMetricsServer": "Auf diesem Cluster ist kein metrics-server verfügbar — die Ressourcennutzung kann nicht angezeigt werden. Installieren Sie metrics-server, um die Überwachung zu aktivieren.",
     "timeWindow": "Zeitfenster",
-    "takeSnapshot": "Snapshot erstellen",
     "clusterCpu": "Cluster-CPU",
     "clusterMemory": "Cluster-Speicher",
     "pods": "Pods",

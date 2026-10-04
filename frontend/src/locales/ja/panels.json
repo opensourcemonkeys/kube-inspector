@@ -171,7 +171,6 @@
     "loading": "メトリクスを読み込み中…",
     "noMetricsServer": "このクラスターには metrics-server がないため、リソース使用量を表示できません。モニタリングを有効にするには metrics-server をインストールしてください。",
     "timeWindow": "表示期間",
-    "takeSnapshot": "スナップショットを撮る",
     "clusterCpu": "クラスター CPU",
     "clusterMemory": "クラスターメモリ",
     "pods": "Pods",

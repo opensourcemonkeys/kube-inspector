@@ -82,7 +82,7 @@ hide:
       <img src="assets/screenshots/monitoring.png" alt="Live resource monitoring dashboard" loading="lazy" />
       <div class="ki-shot__text">
         <h3>Live resource monitoring</h3>
-        <p>Watch cluster, node, pod and workload CPU &amp; memory over time, drill into the top consumers, and snapshot the view.</p>
+        <p>Watch cluster, node, pod and workload CPU &amp; memory over time and drill into the top consumers.</p>
       </div>
     </div>
   </div>

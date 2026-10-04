@@ -172,7 +172,6 @@
     "loading": "Metrikler yükleniyor…",
     "noMetricsServer": "Bu kümede metrics-server yok — kaynak kullanımı gösterilemiyor. İzlemeyi etkinleştirmek için metrics-server kurun.",
     "timeWindow": "Zaman aralığı",
-    "takeSnapshot": "Anlık görüntü al",
     "clusterCpu": "Küme CPU",
     "clusterMemory": "Küme Belleği",
     "pods": "Pods",

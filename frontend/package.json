@@ -29,7 +29,6 @@
     "chart.js": "^4.5.1",
     "dockview": "^6.6.1",
     "dockview-react": "^6.6.1",
-    "html-to-image": "^1.11.13",
     "i18next": "^26.4.0",
     "monaco-editor": "^0.55.1",
     "monaco-yaml": "^5.5.0",

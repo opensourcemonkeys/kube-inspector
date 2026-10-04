@@ -172,7 +172,6 @@
     "loading": "Loading metrics…",
     "noMetricsServer": "metrics-server is not available on this cluster — resource usage cannot be shown. Install metrics-server to enable monitoring.",
     "timeWindow": "Time window",
-    "takeSnapshot": "Take snapshot",
     "clusterCpu": "Cluster CPU",
     "clusterMemory": "Cluster Memory",
     "pods": "Pods",

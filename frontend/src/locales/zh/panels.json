@@ -171,7 +171,6 @@
     "loading": "正在加载指标…",
     "noMetricsServer": "此集群没有 metrics-server — 无法显示资源用量。安装 metrics-server 即可启用监控。",
     "timeWindow": "时间范围",
-    "takeSnapshot": "截取快照",
     "clusterCpu": "集群 CPU",
     "clusterMemory": "集群内存",
     "pods": "Pods",

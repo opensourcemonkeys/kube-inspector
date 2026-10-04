@@ -1,4 +1,4 @@
-import { Chart } from 'primereact/chart';
+import { LiveChart } from './LiveChart';
 import { themeColor } from './themeColors';
 
 // Shared resource-usage formatting + tiny bar widgets, used by the Monitoring
@@ -41,7 +41,7 @@ export function UsageBarChart({ p }: { p: number }) {
             { data: [100 - p], backgroundColor: [themeColor('--line2')], borderRadius: 0, borderSkipped: false as const },
         ],
     };
-    return <div style={{ flex: 1, height: 14, minWidth: 60 }}><Chart type="bar" data={data} options={barOptions} style={{ height: 14 }} /></div>;
+    return <div style={{ flex: 1, height: 14, minWidth: 60 }}><LiveChart type="bar" data={data} options={barOptions} height={14} /></div>;
 }
 
 export function CssBar({ p }: { p: number }) {

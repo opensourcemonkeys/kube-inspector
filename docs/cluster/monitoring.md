@@ -26,10 +26,9 @@ Click any node, pod or workload row to open a detail drawer with:
 - For a **workload**: its member pods (click one to drill into it).
 - For a **node**: the pods running on it (click one to drill in).
 
-## Time window & snapshots
+## Time window
 
-- The **time-window** dropdown (5 min → 2 hours) scales every chart to that range.
-- **Take snapshot** captures the whole dashboard as a PNG via a native save dialog.
+The **time-window** dropdown (5 min → 2 hours) scales every chart to that range.
 
 !!! note "History is live and in-memory"
     Trends are accumulated while the screen is open (polled every few seconds) and kept in memory only — they reset when the app restarts. There is no long-term/historical store.

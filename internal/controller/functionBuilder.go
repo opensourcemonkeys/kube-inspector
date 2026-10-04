@@ -82,21 +82,6 @@ func (a *App) CancelSelfUpdate(sessionId string) error {
 	return nil
 }
 
-// SaveSnapshot prompts the user for a location (native Save dialog) and writes
-// the given PNG (data URL or base64). Returns the saved path, or "" if cancelled.
-func (a *App) SaveSnapshot(defaultName, dataURL string) (string, error) {
-	path, err := a.saveFile(SaveFileOptions{
-		Title:       "Save snapshot",
-		DefaultName: defaultName,
-		FilterName:  "PNG Image (*.png)",
-		Pattern:     "*.png",
-	})
-	if err != nil || path == "" {
-		return "", err
-	}
-	return bussiness.SaveSnapshotPNG(path, dataURL)
-}
-
 // SaveReport prompts for a location and writes an HTML report to it. Returns the
 // saved path, or "" if the user cancelled.
 func (a *App) SaveReport(defaultName, content string) (string, error) {
