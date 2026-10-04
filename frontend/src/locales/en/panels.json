@@ -56,7 +56,20 @@
     "close": "Close",
     "failedTitle": "The last update did not apply",
     "failedBody": "Kube Inspector tried to install {{version}} but is still running {{current}}. Install it manually from the downloads page.",
-    "failedLog": "Update helper log"
+    "failedLog": "Update helper log",
+    "whatsNew": "What's new",
+    "notesLoading": "Loading release notes…",
+    "notesUnavailable": "Release notes could not be loaded.",
+    "notesOnSite": "Read the changelog on the website",
+    "section": {
+      "breaking": "Breaking changes",
+      "added": "Added",
+      "changed": "Changed",
+      "fixed": "Fixed",
+      "removed": "Removed",
+      "deprecated": "Deprecated",
+      "security": "Security"
+    }
   },
   "tour": {
     "welcome": {

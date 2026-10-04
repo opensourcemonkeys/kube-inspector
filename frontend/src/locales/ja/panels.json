@@ -55,7 +55,20 @@
     "close": "閉じる",
     "failedTitle": "前回のアップデートが適用されませんでした",
     "failedBody": "Kube Inspector は {{version}} のインストールを試みましたが、まだ {{current}} を実行しています。ダウンロードページから手動でインストールしてください。",
-    "failedLog": "アップデートヘルパーのログ"
+    "failedLog": "アップデートヘルパーのログ",
+    "whatsNew": "新機能",
+    "notesLoading": "リリースノートを読み込み中…",
+    "notesUnavailable": "リリースノートを読み込めませんでした。",
+    "notesOnSite": "ウェブサイトで変更履歴を見る",
+    "section": {
+      "breaking": "互換性のない変更",
+      "added": "追加",
+      "changed": "変更",
+      "fixed": "修正",
+      "removed": "削除",
+      "deprecated": "非推奨",
+      "security": "セキュリティ"
+    }
   },
   "tour": {
     "welcome": {

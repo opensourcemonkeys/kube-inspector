@@ -56,7 +56,20 @@
     "close": "Schließen",
     "failedTitle": "Das letzte Update wurde nicht angewendet",
     "failedBody": "Kube Inspector hat versucht, {{version}} zu installieren, führt aber weiterhin {{current}} aus. Installieren Sie sie manuell über die Download-Seite.",
-    "failedLog": "Protokoll des Update-Helfers"
+    "failedLog": "Protokoll des Update-Helfers",
+    "whatsNew": "Was ist neu",
+    "notesLoading": "Versionshinweise werden geladen…",
+    "notesUnavailable": "Die Versionshinweise konnten nicht geladen werden.",
+    "notesOnSite": "Changelog auf der Website lesen",
+    "section": {
+      "breaking": "Inkompatible Änderungen",
+      "added": "Hinzugefügt",
+      "changed": "Geändert",
+      "fixed": "Behoben",
+      "removed": "Entfernt",
+      "deprecated": "Veraltet",
+      "security": "Sicherheit"
+    }
   },
   "tour": {
     "welcome": {

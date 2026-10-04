@@ -28,6 +28,11 @@ func (a *App) CheckForUpdate() models.UpdateInfo {
 	return bussiness.CheckForUpdate()
 }
 
+// GetChangelog is the update dialog's "What's new": every release in (from, to].
+func (a *App) GetChangelog(from string, to string) ([]models.ChangelogEntry, error) {
+	return bussiness.GetChangelog(from, to)
+}
+
 // SetUpdateChannel switches between the stable and beta update feeds. There is
 // deliberately no matching getter: Wails binds every exported App method, so
 // each one is permanent frontend API surface, and the current channel already

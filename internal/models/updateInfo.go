@@ -48,3 +48,19 @@ type UpdateProgress struct {
 	Total    int64   `json:"total"`
 	Percent  float64 `json:"percent"`
 }
+
+// ChangelogEntry is one released version's notes, from the site's
+// changelog.json (generated from CHANGELOG.md by mkdocs_hooks.py).
+type ChangelogEntry struct {
+	Version  string             `json:"version"`
+	Date     string             `json:"date"`
+	Summary  string             `json:"summary"` // the prose above the first section; may hold several paragraphs
+	Sections []ChangelogSection `json:"sections"`
+}
+
+// ChangelogSection is one Keep-a-Changelog heading (Added, Changed, Fixed, ...)
+// and its bullets. Items are Markdown; the UI renders the inline subset.
+type ChangelogSection struct {
+	Name  string   `json:"name"`
+	Items []string `json:"items"`
+}

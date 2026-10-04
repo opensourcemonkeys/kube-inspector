@@ -7,6 +7,7 @@ import { EventsOn, EventsOff, BrowserOpenURL } from '../../../wailsjs/runtime/ru
 import { models } from '../../../wailsjs/go/models';
 import { relaunchApp, quitApp, supportsSelfRestart } from '../../lib/shellWindows';
 import { useT } from '../../i18n/useT';
+import ChangelogNotes from './ChangelogNotes';
 
 interface Props {
     visible: boolean;
@@ -140,7 +141,7 @@ export default function UpdateModal({ visible, onHide, info }: Props) {
             closeOnEscape={!busy}
             modal
             className="update-modal"
-            style={{ width: '460px' }}
+            style={{ width: '560px', maxWidth: 'calc(100vw - 32px)' }}
         >
             <div className="update-modal__content">
                 <div className="update-modal__logo">
@@ -167,6 +168,7 @@ export default function UpdateModal({ visible, onHide, info }: Props) {
                         <span className="update-modal__ver update-modal__ver--new">{info.latestVersion}</span>
                     </div>
                 )}
+                {!nothingToInstall && <ChangelogNotes from={info.currentVersion} to={info.latestVersion} />}
 
                 {nothingToInstall ? (
                     <div className="update-modal__body">

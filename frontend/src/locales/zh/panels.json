@@ -55,7 +55,20 @@
     "close": "关闭",
     "failedTitle": "上次更新未生效",
     "failedBody": "Kube Inspector 尝试安装 {{version}}，但仍在运行 {{current}}。请从下载页面手动安装。",
-    "failedLog": "更新助手日志"
+    "failedLog": "更新助手日志",
+    "whatsNew": "新功能",
+    "notesLoading": "正在加载发行说明…",
+    "notesUnavailable": "无法加载发行说明。",
+    "notesOnSite": "在网站上查看更新日志",
+    "section": {
+      "breaking": "破坏性变更",
+      "added": "新增",
+      "changed": "变更",
+      "fixed": "修复",
+      "removed": "移除",
+      "deprecated": "弃用",
+      "security": "安全"
+    }
   },
   "tour": {
     "welcome": {

@@ -395,7 +395,62 @@ def _write_llms_full_txt(config, ordered):
         fh.write("\n".join(parts))
 
 
+def _structure_body(body):
+    """Split a version's Markdown body into (summary, sections).
+
+    The summary is whatever prose comes before the first `### Section`;
+    sections are [{"name", "items"}], one item per top-level `- ` bullet, with
+    any wrapped or indented continuation lines folded into that bullet. Items
+    stay Markdown: the app renders the inline subset (bold, code, links).
+    """
+    summary_paras, para = [], []
+    sections = []
+    for raw in body.splitlines():
+        line = raw.rstrip()
+        m = _SECTION_RE.match(line)
+        if m:
+            sections.append({"name": m.group("name"), "items": []})
+            continue
+        if not sections:
+            if line.strip():
+                para.append(line.strip())
+            elif para:
+                summary_paras.append(" ".join(para))
+                para = []
+            continue
+        items = sections[-1]["items"]
+        if line.startswith("- "):
+            items.append(line[2:].strip())
+        elif line.strip() and items:
+            items[-1] += " " + line.strip()
+    if para:
+        summary_paras.append(" ".join(para))
+    return "\n\n".join(summary_paras), [s for s in sections if s["items"]]
+
+
+def _write_changelog_json(config):
+    """Publish the released changelog as /changelog.json for the in-app updater.
+
+    The app's update dialog shows what changed between the running version and
+    the one on offer. It reads this rather than scraping /changelog/, whose
+    markup belongs to the site theme. Every section is kept, Internal included:
+    which ones a reader sees is the app's decision, and this file stays a
+    faithful mirror of CHANGELOG.md.
+    """
+    text = _read_changelog(config)
+    if text is None:
+        return
+    versions = []
+    for v in _parse_versions(text):
+        summary, sections = _structure_body(v["body"])
+        versions.append({"version": v["ver"], "date": v["date"], "summary": summary, "sections": sections})
+    with open(os.path.join(config["site_dir"], "changelog.json"), "w", encoding="utf-8") as fh:
+        json.dump({"versions": versions}, fh, ensure_ascii=False, indent=1)
+
+
 def on_post_build(config):
+    # Before the nav check below: the updater needs this file whatever the nav holds.
+    _write_changelog_json(config)
     ordered = _ordered_pages()
     if not ordered:
         return

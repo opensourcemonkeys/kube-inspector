@@ -56,7 +56,20 @@
     "close": "Kapat",
     "failedTitle": "Son güncelleme uygulanmadı",
     "failedBody": "Kube Inspector {{version}} sürümünü kurmayı denedi ama hâlâ {{current}} çalışıyor. Onu indirmeler sayfasından elle kurun.",
-    "failedLog": "Güncelleme yardımcısı günlüğü"
+    "failedLog": "Güncelleme yardımcısı günlüğü",
+    "whatsNew": "Neler değişti",
+    "notesLoading": "Sürüm notları yükleniyor…",
+    "notesUnavailable": "Sürüm notları yüklenemedi.",
+    "notesOnSite": "Değişiklik günlüğünü web sitesinde oku",
+    "section": {
+      "breaking": "Uyumsuz değişiklikler",
+      "added": "Eklendi",
+      "changed": "Değişti",
+      "fixed": "Düzeltildi",
+      "removed": "Kaldırıldı",
+      "deprecated": "Kullanımdan kalkıyor",
+      "security": "Güvenlik"
+    }
   },
   "tour": {
     "welcome": {
