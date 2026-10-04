@@ -164,11 +164,19 @@ export interface ResourceListViewProps<T extends ResourceRow> {
      * toolbar. Rows a `canExpand` rejects get no toggler. Turning this on
      * also turns the virtual scroller off — it lays rows out at a fixed
      * `itemSize`, which an expanded row of arbitrary height breaks — so keep
-     * it to lists that stay short.
+     * it to lists that stay short, or set `pageSize` for one that does not.
      */
     rowExpansion?: {
         template: (row: T) => React.ReactNode;
         canExpand?: (row: T) => boolean;
+        /** Pages the table instead, so a long list does not render every row at once. */
+        pageSize?: number;
+        /**
+         * Show Expand all / Collapse all (default true). Turn it off when the
+         * template fetches on mount: expanding every row would fire one
+         * request per row.
+         */
+        expandAll?: boolean;
     };
 }
 
@@ -244,6 +252,9 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
               expandedRows,
               onRowToggle: (e: DataTableRowToggleEvent) => setExpandedRows(e.data as DataTableExpandedRows),
               rowExpansionTemplate: (row: T) => rowExpansion.template(row),
+              ...(rowExpansion.pageSize
+                  ? { paginator: true, rows: rowExpansion.pageSize, rowsPerPageOptions: [25, 50, 100] }
+                  : {}),
           }
         : { virtualScrollerOptions: { itemSize: ROW_HEIGHT } };
 
@@ -443,7 +454,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                 <h3 className="rlv-toolbar__title" style={{ margin: 0 }} title={title}>{title}</h3>
                 <div className="rlv-toolbar__actions" style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     {toolbarExtra?.({ reload })}
-                    {rowExpansion && (
+                    {rowExpansion && rowExpansion.expandAll !== false && (
                         <>
                             <Button
                                 icon={<VscExpandAll size={16} />}

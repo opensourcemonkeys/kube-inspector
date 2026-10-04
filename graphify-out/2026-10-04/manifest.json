@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/pod/PodExecPanel.tsx": {
-    "mtime": 1790536578.9490695,
-    "ast_hash": "3f4448a1d6b248081525b22b86e5e908",
+    "mtime": 1791138789.7022614,
+    "ast_hash": "ff9ec7535be5c31ed4946cc38dc44032",
     "semantic_hash": ""
   },
   "frontend/src/components/pod/main.tsx": {
@@ -325,8 +325,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/terminal/TerminalPanel.tsx": {
-    "mtime": 1791138342.0259674,
-    "ast_hash": "47b2bf099a08c0da8f3ea3f857b335d3",
+    "mtime": 1791138766.3086274,
+    "ast_hash": "7e67ac673e730aa946cf8cff942fcd92",
     "semantic_hash": ""
   },
   "frontend/src/components/titlebar/TitleBar.tsx": {
@@ -355,8 +355,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/workspace/FloatableTab.tsx": {
-    "mtime": 1791138312.913789,
-    "ast_hash": "bf0671edfea49cf177212386aa3ed72d",
+    "mtime": 1791138805.091182,
+    "ast_hash": "01453dabfd8b224556c33367f95f427e",
     "semantic_hash": ""
   },
   "frontend/src/components/workspace/ObjectYamlPanel.tsx": {
@@ -390,8 +390,8 @@
     "semantic_hash": ""
   },
   "frontend/src/contexts/TabContext.tsx": {
-    "mtime": 1791138327.4509196,
-    "ast_hash": "f433ce8752be6905092da1f34912eed7",
+    "mtime": 1791138805.0917103,
+    "ast_hash": "50dc086f329ac66427fd0a1129c99928",
     "semantic_hash": ""
   },
   "frontend/src/lib/k8sYamlIntellisense.ts": {
@@ -665,8 +665,8 @@
     "semantic_hash": ""
   },
   "internal/business/podExec.go": {
-    "mtime": 1786201909.8575733,
-    "ast_hash": "eaa351939d1dacb08e4b66166f0bb15e",
+    "mtime": 1791138713.792345,
+    "ast_hash": "5e0b0610eda15d94c34a8443d8892113",
     "semantic_hash": ""
   },
   "internal/business/replicaSet.go": {
@@ -730,8 +730,8 @@
     "semantic_hash": ""
   },
   "internal/business/terminal.go": {
-    "mtime": 1791138266.5827312,
-    "ast_hash": "408269ae623c071b1843e2ffc46d8b5e",
+    "mtime": 1791138713.7921581,
+    "ast_hash": "a28bf0f7b4bf9f709362c8a220aa1ab5",
     "semantic_hash": ""
   },
   "internal/business/trivy.go": {
@@ -760,8 +760,8 @@
     "semantic_hash": "10ef7b66452ca6c79904cb99d2b183d6"
   },
   "internal/controller/functionBuilder.go": {
-    "mtime": 1791138266.5839949,
-    "ast_hash": "9dc5fd94522ced8e73088792c3753159",
+    "mtime": 1791138713.7926877,
+    "ast_hash": "04eb629aff136ddd6628798043296cda",
     "semantic_hash": ""
   },
   "internal/controller/rpcserver.go": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "internal/services/podExecServices.go": {
-    "mtime": 1790536264.9961002,
-    "ast_hash": "0cf8db1aa0c8a5c86baaa73dd605b308",
+    "mtime": 1791138681.4085908,
+    "ast_hash": "bed2b4f8976975f0b876ee512591dafd",
     "semantic_hash": ""
   },
   "internal/services/podServices.go": {
@@ -1145,8 +1145,8 @@
     "semantic_hash": ""
   },
   "internal/services/terminalServices.go": {
-    "mtime": 1791138162.9142327,
-    "ast_hash": "771f18f7fa20c63744d77721af42abd0",
+    "mtime": 1791138681.4083622,
+    "ast_hash": "4ba88917942e40b44066d3d58931a396",
     "semantic_hash": ""
   },
   "internal/services/trivyServices.go": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": "b6c301fcd99f801921265885769b80b7"
   },
   "internal/tui/exec.go": {
-    "mtime": 1786201929.4023376,
-    "ast_hash": "c264d62dc3a1c418ae43ef52fd1c712d",
+    "mtime": 1791138720.8166091,
+    "ast_hash": "2c6773acb9803cd6647c58d8d01315b0",
     "semantic_hash": ""
   },
   "internal/tui/help.go": {
@@ -1270,8 +1270,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1791138393.1474206,
-    "ast_hash": "386c3e495542abc626e1e7a659e1b43a",
+    "mtime": 1791138863.267435,
+    "ast_hash": "eb08afb2f41b401187fe9f9115c68ee5",
     "semantic_hash": ""
   },
   "README.md": {
@@ -2470,23 +2470,23 @@
     "semantic_hash": ""
   },
   "frontend/src/components/node/NodeShellPanel.tsx": {
-    "mtime": 1790536578.9500694,
-    "ast_hash": "2610908069a2a536ad58652c5cc20186",
+    "mtime": 1791138789.7103126,
+    "ast_hash": "cabd7474100d60ffba1a0f29b6e8db3d",
     "semantic_hash": ""
   },
   "frontend/src/components/terminal/ExecTerminal.tsx": {
-    "mtime": 1790538283.5566952,
-    "ast_hash": "967b4e71f25873d3482d848bcbd11bba",
+    "mtime": 1791138789.6932862,
+    "ast_hash": "57a7593bf781f02c3661d89f180e09ee",
     "semantic_hash": ""
   },
   "internal/business/nodeShell.go": {
-    "mtime": 1790536377.3417487,
-    "ast_hash": "5ef5710db8aacefd99368ff0fb817731",
+    "mtime": 1791138713.7924206,
+    "ast_hash": "9a6338699d4f7f7bb566bb1faf1b8c5d",
     "semantic_hash": ""
   },
   "internal/services/nodeShellServices.go": {
-    "mtime": 1790538245.9731545,
-    "ast_hash": "19f99f553180d890d0d296e630d7a0b1",
+    "mtime": 1791138681.412384,
+    "ast_hash": "1a8a3d31f90a4601f1ad338f84acb93a",
     "semantic_hash": ""
   },
   "internal/services/nodeShellServices_test.go": {
@@ -2510,18 +2510,28 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/terminalHandoff.test.ts": {
-    "mtime": 1791138362.7626426,
-    "ast_hash": "f48b158c90eb60c8186dc907c639fa19",
+    "mtime": 1791138833.2623222,
+    "ast_hash": "9dbccf86aa5d01f0d43da90529776c52",
     "semantic_hash": ""
   },
   "frontend/src/lib/terminalHandoff.ts": {
-    "mtime": 1791138299.7802968,
-    "ast_hash": "d01c218dee789571cb7d6534860415d6",
+    "mtime": 1791138756.0824733,
+    "ast_hash": "105e877ff40328108b0821fd3c6e0cb5",
     "semantic_hash": ""
   },
   "internal/models/terminalInfo.go": {
     "mtime": 1791138266.5707314,
     "ast_hash": "2e513357ec37f1195757996830e878f6",
+    "semantic_hash": ""
+  },
+  "internal/services/execHandoffServices.go": {
+    "mtime": 1791138681.415285,
+    "ast_hash": "a7277a7ce8fff7627854f81b5a346704",
+    "semantic_hash": ""
+  },
+  "internal/services/execHandoffServices_test.go": {
+    "mtime": 1791138654.4246566,
+    "ast_hash": "09e589b82c4669ba0dbcde8e9456335b",
     "semantic_hash": ""
   }
 }

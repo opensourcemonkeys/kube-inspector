@@ -46,3 +46,13 @@ func GetPodYaml(clusterName string, name string, namespace string) (string, erro
 
 	return services.GetPodYaml(namespace, name, client)
 }
+
+// GetPodDetail backs the pod list's expanded row; see services.GetPodDetail.
+func GetPodDetail(clusterName string, name string, namespace string) (models.PodDetailInfo, error) {
+	client, err := repository.NewK8sClientForCluster(clusterName)
+	if err != nil {
+		return models.PodDetailInfo{}, fmt.Errorf("connect to cluster %q: %w", clusterName, err)
+	}
+
+	return services.GetPodDetail(namespace, name, client)
+}

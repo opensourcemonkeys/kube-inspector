@@ -259,5 +259,6 @@
   "257": "safego.go",
   "258": "TestNewQuotaEntryRemaining",
   "259": "securityGraphInfo.go",
-  "260": ".reportExecFailure"
+  "260": ".reportExecFailure",
+  "261": "GetMetricsSnapshot"
 }

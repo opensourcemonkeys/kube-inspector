@@ -282,6 +282,39 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: 
 .p-datatable .p-datatable.rlv-subtable .p-datatable-tbody > tr > td.rlv-subtable__group { vertical-align: top; padding-top: 6px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .ktable-actions { display: flex; gap: .15rem; align-items: center; justify-content: center; }
 
+/* The pod list's expanded row (components/pod/PodDetail.tsx): a relations strip
+   of clickable references above the containers / volumes / env sub-tables. */
+/* Sticky + fit-content: the expansion cell spans the outer table's full scroll
+   width, so a 100%-wide sub-table pushed its last columns off screen. */
+.pod-detail { display: flex; flex-direction: column; gap: 10px; position: sticky; left: 3rem; width: fit-content; max-width: 100%; }
+.pod-detail .p-datatable.rlv-subtable { width: fit-content; }
+.pod-detail .p-datatable.rlv-subtable .p-datatable-tbody > tr > td { padding-right: 18px; }
+.pod-detail__loading { display: flex; align-items: center; gap: 8px; color: var(--ink3); font-size: 12px; padding: 4px 0; }
+.pod-detail__relations { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
+.pod-detail__relation { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pod-detail__refresh.p-button { width: 24px; height: 24px; padding: 0; }
+.pod-detail__label,
+.pod-detail__heading { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
+.pod-detail__heading { margin: 0 0 5px; }
+.pod-detail__arrow { color: var(--ink3); }
+.pod-detail__arrow::before { content: '←'; }
+.pod-detail__muted { color: var(--ink3); }
+.pod-detail__refs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pod-detail__mono-ellipsis { display: block; max-width: 28rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "JetBrains Mono", "Cascadia Code", monospace; font-size: .78rem; }
+/* A reference chip: the name opens the YAML panel, the trailing icon Describe. */
+.pod-detail__ref { display: inline-flex; align-items: stretch; border: 1px solid var(--line2, var(--line)); border-radius: 4px; background: var(--panel3); overflow: hidden; }
+.pod-detail__ref--static { padding: 1px 7px; gap: 5px; align-items: center; }
+.pod-detail__ref > button { all: unset; cursor: pointer; display: inline-flex; align-items: center; }
+/* Same specificity as the reset above and after it, or `all: unset` wins. */
+.pod-detail__ref > .pod-detail__ref-open { gap: 5px; padding: 1px 7px; }
+.pod-detail__ref > .pod-detail__ref-describe { padding: 0 5px; color: var(--ink3); border-left: 1px solid var(--line); }
+.pod-detail__ref-open:hover,
+.pod-detail__ref-describe:hover { background: var(--hover); color: var(--ink); }
+.pod-detail__ref-open:hover .pod-detail__ref-name { color: var(--teal); text-decoration: underline; }
+.pod-detail__ref button:focus-visible { outline: 1px solid var(--teal); outline-offset: -1px; }
+.pod-detail__ref-kind { font-size: 10px; color: var(--ink3); }
+.pod-detail__ref-name { font-family: "JetBrains Mono", "Cascadia Code", monospace; font-size: .78rem; color: var(--ink); }
+
 /* Resource-list tables must track their Dockview panel's height.
    PrimeReact's VirtualScroller latches the height it measured at its first init
    (`defaultHeight`) and never refreshes it on its own. DataTable renders it with

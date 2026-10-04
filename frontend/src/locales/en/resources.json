@@ -187,6 +187,29 @@
       "failed": "Failed: {{reason}}",
       "recentCrash": "Crashed within the last hour: {{reason}}",
       "notReady": "Running but not ready (readiness probe failing)"
+    },
+    "detail": {
+      "loading": "Loading pod details…",
+      "refresh": "Refresh details",
+      "openYaml": "Open YAML",
+      "ownedBy": "Owned by",
+      "serviceAccount": "Service account",
+      "services": "Services",
+      "imagePullSecrets": "Image pull secrets",
+      "requests": "Requests",
+      "limits": "Limits",
+      "probes": "Probes",
+      "volumes": "Volumes",
+      "source": "Source",
+      "mounts": "Mounts",
+      "notMounted": "not mounted",
+      "envRefs": "Environment references",
+      "container": "Container",
+      "variable": "Variable",
+      "allKeys": "all keys (envFrom)",
+      "prefix": "prefix {{prefix}}",
+      "optional": "optional",
+      "readOnly": "read-only"
     }
   },
   "replicaset": {

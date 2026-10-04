@@ -187,6 +187,29 @@
       "failed": "Fehlgeschlagen: {{reason}}",
       "recentCrash": "In der letzten Stunde abgestürzt: {{reason}}",
       "notReady": "Läuft, aber nicht bereit (Readiness-Probe schlägt fehl)"
+    },
+    "detail": {
+      "loading": "Pod-Details werden geladen…",
+      "refresh": "Details aktualisieren",
+      "openYaml": "YAML öffnen",
+      "ownedBy": "Gehört zu",
+      "serviceAccount": "Dienstkonto",
+      "services": "Services",
+      "imagePullSecrets": "Image-Pull-Secrets",
+      "requests": "Anforderungen",
+      "limits": "Limits",
+      "probes": "Probes",
+      "volumes": "Volumes",
+      "source": "Quelle",
+      "mounts": "Einhängepunkte",
+      "notMounted": "nicht eingehängt",
+      "envRefs": "Umgebungsreferenzen",
+      "container": "Container",
+      "variable": "Variable",
+      "allKeys": "alle Schlüssel (envFrom)",
+      "prefix": "Präfix {{prefix}}",
+      "optional": "optional",
+      "readOnly": "schreibgeschützt"
     }
   },
   "replicaset": {

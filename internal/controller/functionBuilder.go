@@ -209,6 +209,10 @@ func (a *App) GetPodYaml(clusterName string, name string, namespace string) (str
 	return bussiness.GetPodYaml(clusterName, name, namespace)
 }
 
+func (a *App) GetPodDetail(clusterName string, name string, namespace string) (models.PodDetailInfo, error) {
+	return bussiness.GetPodDetail(clusterName, name, namespace)
+}
+
 func (a *App) CreatePodExecSession(clusterName string, sessionId string, namespace string, podName string, container string) error {
 	return a.reportExecFailure(sessionId, bussiness.CreatePodExecSession(clusterName, sessionId, namespace, podName, container,
 		func(data string, end int64) { a.emit("exec:output:"+sessionId, data, end) },

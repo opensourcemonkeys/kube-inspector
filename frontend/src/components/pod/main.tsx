@@ -14,6 +14,7 @@ import { GetPods, DeletePod } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
+import PodDetail from './PodDetail';
 import { humanAge, absTime } from '../../lib/time';
 import { useT } from '../../i18n/useT';
 
@@ -127,6 +128,14 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
             pollInterval={2000}
             describeResource="pods"
             portForward={{ kind: 'pod' }}
+            rowExpansion={{
+                template: (row) => <PodDetail clusterName={clusterName} pod={row} referencePanel={referencePanel} />,
+                // Expanding turns the virtual scroller off, and a pod list is
+                // the one that can run to thousands of rows.
+                pageSize: 50,
+                // Each expanded row fetches its own detail.
+                expandAll: false,
+            }}
             defaultFilters={defaultFilters}
             emptyMessage={t('resources:pod.empty')}
             onRowDoubleClick={(pod) => openYamlPanel({ clusterName, resourceKind: 'pod', name: pod.name, namespace: pod.namespace, referencePanel })}

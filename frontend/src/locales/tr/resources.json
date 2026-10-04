@@ -187,6 +187,29 @@
       "failed": "Başarısız: {{reason}}",
       "recentCrash": "Son bir saat içinde çöktü: {{reason}}",
       "notReady": "Çalışıyor ama hazır değil (readiness probe başarısız)"
+    },
+    "detail": {
+      "loading": "Pod ayrıntıları yükleniyor…",
+      "refresh": "Ayrıntıları yenile",
+      "openYaml": "YAML'ı aç",
+      "ownedBy": "Sahibi",
+      "serviceAccount": "Servis hesabı",
+      "services": "Services",
+      "imagePullSecrets": "İmaj çekme secret'ları",
+      "requests": "İstekler",
+      "limits": "Limitler",
+      "probes": "Probe'lar",
+      "volumes": "Volume'lar",
+      "source": "Kaynak",
+      "mounts": "Mount'lar",
+      "notMounted": "mount edilmemiş",
+      "envRefs": "Ortam değişkeni referansları",
+      "container": "Container",
+      "variable": "Değişken",
+      "allKeys": "tüm anahtarlar (envFrom)",
+      "prefix": "önek {{prefix}}",
+      "optional": "isteğe bağlı",
+      "readOnly": "salt okunur"
     }
   },
   "replicaset": {

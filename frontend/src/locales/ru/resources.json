@@ -187,6 +187,29 @@
       "failed": "Сбой: {{reason}}",
       "recentCrash": "Падал за последний час: {{reason}}",
       "notReady": "Работает, но не готов (readiness-проба не проходит)"
+    },
+    "detail": {
+      "loading": "Загрузка сведений о Pod…",
+      "refresh": "Обновить сведения",
+      "openYaml": "Открыть YAML",
+      "ownedBy": "Владелец",
+      "serviceAccount": "Сервисный аккаунт",
+      "services": "Services",
+      "imagePullSecrets": "Секреты для загрузки образов",
+      "requests": "Запросы",
+      "limits": "Лимиты",
+      "probes": "Проверки",
+      "volumes": "Тома",
+      "source": "Источник",
+      "mounts": "Точки монтирования",
+      "notMounted": "не смонтирован",
+      "envRefs": "Ссылки переменных окружения",
+      "container": "Контейнер",
+      "variable": "Переменная",
+      "allKeys": "все ключи (envFrom)",
+      "prefix": "префикс {{prefix}}",
+      "optional": "необязательно",
+      "readOnly": "только чтение"
     }
   },
   "replicaset": {

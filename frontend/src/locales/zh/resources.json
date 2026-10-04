@@ -187,6 +187,29 @@
       "failed": "失败：{{reason}}",
       "recentCrash": "过去一小时内崩溃：{{reason}}",
       "notReady": "运行中但未就绪（就绪探针失败）"
+    },
+    "detail": {
+      "loading": "正在加载 Pod 详情…",
+      "refresh": "刷新详情",
+      "openYaml": "打开 YAML",
+      "ownedBy": "所属",
+      "serviceAccount": "服务账号",
+      "services": "Services",
+      "imagePullSecrets": "镜像拉取密钥",
+      "requests": "请求",
+      "limits": "上限",
+      "probes": "探针",
+      "volumes": "卷",
+      "source": "来源",
+      "mounts": "挂载",
+      "notMounted": "未挂载",
+      "envRefs": "环境变量引用",
+      "container": "容器",
+      "variable": "变量",
+      "allKeys": "全部键 (envFrom)",
+      "prefix": "前缀 {{prefix}}",
+      "optional": "可选",
+      "readOnly": "只读"
     }
   },
   "replicaset": {

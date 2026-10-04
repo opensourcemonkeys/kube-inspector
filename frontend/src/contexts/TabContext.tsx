@@ -59,6 +59,12 @@ export interface YamlPanelDef {
     namespace: string;
     /** dockview panel id of the list panel to split beside */
     referencePanel: string;
+    /**
+     * View key that names the tab (`nav:item.<view>`). Defaults to the view of
+     * `referencePanel`, which is right when a list opens its own rows; pass it
+     * when the object is a different kind (a ConfigMap opened from a pod).
+     */
+    titleView?: string;
 }
 
 export interface LogPanelDef {
@@ -587,7 +593,7 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
         }
 
         // referencePanel is now `${view}:${clusterName}` — extract the view key for the label
-        const viewKey = def.referencePanel.split(':')[0];
+        const viewKey = def.titleView ?? def.referencePanel.split(':')[0];
         const titleParams = { titleKey: viewTitleKey(viewKey), titleVars: { suffix: `${def.namespace}/${def.name}` } };
         const addOptions: any = {
             id: panelId,
