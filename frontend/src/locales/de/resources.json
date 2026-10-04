@@ -21,7 +21,6 @@
     "controller": "Controller",
     "count": "Anzahl",
     "cpu": "CPU",
-    "cpuDefaultMax": "CPU (Standard / max.)",
     "created": "Erstellt",
     "currentAvailable": "Aktuell / Verfügbar",
     "dataKeys": "Datenschlüssel",
@@ -30,6 +29,7 @@
     "egress": "Egress",
     "externalIp": "Externe IP",
     "fixed": "Behoben in",
+    "hard": "Grenze",
     "hosts": "Hosts",
     "image": "Image",
     "ingress": "Ingress",
@@ -41,7 +41,6 @@
     "limit": "Limit",
     "match": "Treffer",
     "memory": "Speicher",
-    "memoryDefaultMax": "Speicher (Standard / max.)",
     "message": "Meldung",
     "name": "Name",
     "namespace": "Namespace",
@@ -61,6 +60,7 @@
     "ready": "Bereit",
     "reason": "Grund",
     "reclaimPolicy": "Freigaberichtlinie",
+    "remaining": "Verbleibend",
     "replicas": "Repliken",
     "request": "Anforderung",
     "resolution": "Behebung",
@@ -84,6 +84,8 @@
     "type": "Typ",
     "types": "Typen",
     "updated": "Aktualisiert",
+    "usage": "Auslastung",
+    "used": "Belegt",
     "value": "Wert",
     "verbs": "Verben",
     "volume": "Volume",
@@ -221,9 +223,12 @@
   },
   "resourcequota": {
     "title": "Ressourcenkontingente",
-    "filterNamespace": "Namespace filtern",
-    "clearFilter": "Filter zurücksetzen",
-    "noMatch": "Keine passenden Namespaces.",
-    "empty": "In keinem Namespace sind Ressourcenkontingente definiert."
+    "empty": "In keinem Namespace sind Ressourcenkontingente definiert.",
+    "status": {
+      "ok": "OK",
+      "warning": "Warnung",
+      "critical": "Kritisch",
+      "full": "Voll"
+    }
   }
 }

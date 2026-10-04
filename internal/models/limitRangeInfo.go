@@ -6,6 +6,9 @@ type LimitRangeItemInfo struct {
 	Min            map[string]string `json:"min"`
 	Default        map[string]string `json:"default"`
 	DefaultRequest map[string]string `json:"default_request"`
+	// MaxLimitRequestRatio caps limit ÷ request per resource ("4" means a
+	// limit may be at most four times its request).
+	MaxLimitRequestRatio map[string]string `json:"max_limit_request_ratio"`
 }
 
 type LimitRangeInfo struct {

@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
-import { VscClearAll, VscTrash, VscClose } from 'react-icons/vsc';
-import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
+import { VscClearAll, VscTrash, VscClose, VscExpandAll, VscCollapseAll } from 'react-icons/vsc';
+import { DataTable, DataTableExpandedRows, DataTableFilterMeta, DataTableProps, DataTableRowToggleEvent } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
@@ -158,6 +158,18 @@ export interface ResourceListViewProps<T extends ResourceRow> {
     toolbarExtra?: (ctx: { reload: () => Promise<void> }) => React.ReactNode;
     /** Returns the <Column> elements for this resource (excluding the selection column). */
     columns: (ctx: ColumnsContext<T>) => React.ReactNode;
+    /**
+     * Enables PrimeReact row expansion: a leading toggler column, `template`
+     * rendered under an expanded row, and Expand all / Collapse all in the
+     * toolbar. Rows a `canExpand` rejects get no toggler. Turning this on
+     * also turns the virtual scroller off — it lays rows out at a fixed
+     * `itemSize`, which an expanded row of arbitrary height breaks — so keep
+     * it to lists that stay short.
+     */
+    rowExpansion?: {
+        template: (row: T) => React.ReactNode;
+        canExpand?: (row: T) => boolean;
+    };
 }
 
 export default function ResourceListView<T extends ResourceRow>(props: ResourceListViewProps<T>) {
@@ -180,6 +192,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
         onRowDoubleClick,
         toolbarExtra,
         columns,
+        rowExpansion,
     } = props;
 
     const {
@@ -212,6 +225,27 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
 
     const deletable = !!deleter;
     const { openDescribePanel } = useTabContext();
+
+    // Keyed by `dataKey`, not by row object: a poll replaces every row object,
+    // and the object form of `expandedRows` is what keeps an expanded row open
+    // across it.
+    const [expandedRows, setExpandedRows] = useState<DataTableExpandedRows>({});
+    const canExpand = (row: T) => rowExpansion?.canExpand?.(row) ?? true;
+    const expandAll = () => {
+        const next: DataTableExpandedRows = {};
+        for (const row of items) {
+            if (canExpand(row)) next[String((row as Record<string, unknown>)[dataKey])] = true;
+        }
+        setExpandedRows(next);
+    };
+    // Spread for the same discriminated-union reason as `selectionProps` below.
+    const expansionProps: Partial<DataTableProps<T[]>> = rowExpansion
+        ? {
+              expandedRows,
+              onRowToggle: (e: DataTableRowToggleEvent) => setExpandedRows(e.data as DataTableExpandedRows),
+              rowExpansionTemplate: (row: T) => rowExpansion.template(row),
+          }
+        : { virtualScrollerOptions: { itemSize: ROW_HEIGHT } };
 
     // Every built-in row action lives in one ⋮ (kebab) popup menu instead of a
     // row of icon buttons. A list has ~8 columns of real data in a panel that is
@@ -409,6 +443,26 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                 <h3 className="rlv-toolbar__title" style={{ margin: 0 }} title={title}>{title}</h3>
                 <div className="rlv-toolbar__actions" style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     {toolbarExtra?.({ reload })}
+                    {rowExpansion && (
+                        <>
+                            <Button
+                                icon={<VscExpandAll size={16} />}
+                                text
+                                severity="secondary"
+                                onClick={expandAll}
+                                tooltip={t('action.expandAll')}
+                                tooltipOptions={{ position: 'left' }}
+                            />
+                            <Button
+                                icon={<VscCollapseAll size={16} />}
+                                text
+                                severity="secondary"
+                                onClick={() => setExpandedRows({})}
+                                tooltip={t('action.collapseAll')}
+                                tooltipOptions={{ position: 'left' }}
+                            />
+                        </>
+                    )}
                     <Button
                         icon={<VscClearAll size={16} />}
                         text
@@ -477,6 +531,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                     value={items}
                     dataKey={dataKey}
                     {...selectionProps}
+                    {...expansionProps}
                     onRowDoubleClick={onRowDoubleClick ? (e: any) => onRowDoubleClick(e.data as T) : undefined}
                     filters={filters}
                     onFilter={(e) => setFilters(e.filters)}
@@ -486,11 +541,13 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                     resizableColumns
                     scrollable
                     scrollHeight={scrollHeight}
-                    virtualScrollerOptions={{ itemSize: ROW_HEIGHT }}
                     // A failed fetch must not read as "there are none of these":
                     // the banner above is the message in that case.
                     emptyMessage={error ? ' ' : emptyMessage}
                 >
+                    {rowExpansion && (
+                        <Column expander={canExpand} headerStyle={{ width: '3rem' }} style={{ minWidth: '3rem', maxWidth: '3rem' }} />
+                    )}
                     {deletable && (
                         <Column selectionMode="multiple" headerStyle={{ width: '3rem' }} style={{ minWidth: '3rem', maxWidth: '3rem' }} />
                     )}

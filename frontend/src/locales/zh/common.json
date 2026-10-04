@@ -8,7 +8,9 @@
     "more": "更多操作",
     "describe": "Describe",
     "portForward": "端口转发",
-    "retry": "重试"
+    "retry": "重试",
+    "expandAll": "全部展开",
+    "collapseAll": "全部折叠"
   },
   "filter": {
     "all": "全部"

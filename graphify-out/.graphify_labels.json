@@ -253,5 +253,8 @@
   "251": "PanelErrorBoundary",
   "252": "main.tsx",
   "253": "persistentVolume.go",
-  "254": "resourceQuota.go"
+  "254": "resourceQuota.go",
+  "255": "ingressClass.go",
+  "256": "replicaSet.go",
+  "257": "safego.go"
 }

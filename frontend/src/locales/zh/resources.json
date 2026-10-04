@@ -21,7 +21,6 @@
     "controller": "控制器",
     "count": "数量",
     "cpu": "CPU",
-    "cpuDefaultMax": "CPU（默认 / 上限）",
     "created": "创建时间",
     "currentAvailable": "当前 / 可用",
     "dataKeys": "数据键",
@@ -30,6 +29,7 @@
     "egress": "Egress",
     "externalIp": "外部 IP",
     "fixed": "修复版本",
+    "hard": "上限",
     "hosts": "主机",
     "image": "镜像",
     "ingress": "Ingress",
@@ -41,7 +41,6 @@
     "limit": "上限",
     "match": "匹配内容",
     "memory": "内存",
-    "memoryDefaultMax": "内存（默认 / 上限）",
     "message": "消息",
     "name": "名称",
     "namespace": "Namespace",
@@ -61,6 +60,7 @@
     "ready": "就绪",
     "reason": "原因",
     "reclaimPolicy": "回收策略",
+    "remaining": "剩余",
     "replicas": "副本",
     "request": "请求",
     "resolution": "解决方法",
@@ -84,6 +84,8 @@
     "type": "类型",
     "types": "类型",
     "updated": "已更新",
+    "usage": "使用率",
+    "used": "已用",
     "value": "值",
     "verbs": "动作",
     "volume": "卷",
@@ -221,9 +223,12 @@
   },
   "resourcequota": {
     "title": "资源配额",
-    "filterNamespace": "筛选 namespace",
-    "clearFilter": "清除筛选",
-    "noMatch": "没有匹配的 namespace。",
-    "empty": "所有 namespace 中都没有定义资源配额。"
+    "empty": "所有 namespace 中都没有定义资源配额。",
+    "status": {
+      "ok": "正常",
+      "warning": "警告",
+      "critical": "严重",
+      "full": "已满"
+    }
   }
 }

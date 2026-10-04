@@ -393,11 +393,11 @@
     "firstSeen": "初回検出"
   },
   "limitRange": {
-    "viewLimits": "制限を表示",
     "min": "最小",
     "max": "最大",
     "defaultRequest": "既定の要求量",
-    "defaultLimit": "既定の上限"
+    "defaultLimit": "既定の上限",
+    "maxRatio": "最大 Limit/Request 比"
   },
   "policy": {
     "affectedPods": "対象の Pod",

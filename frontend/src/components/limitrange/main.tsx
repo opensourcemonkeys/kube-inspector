@@ -1,11 +1,8 @@
-import { useState } from 'react';
+import React from 'react';
 import type { DockviewPanelApi } from 'dockview';
-import { VscListOrdered } from 'react-icons/vsc';
-import { DataTableFilterMeta } from 'primereact/datatable';
-import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
+import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
+import { Column, ColumnBodyOptions, ColumnFilterElementTemplateOptions } from 'primereact/column';
 import { Tag } from 'primereact/tag';
-import { Button } from 'primereact/button';
-import { Dialog } from 'primereact/dialog';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { GetLimitRanges, DeleteLimitRange } from '../../../wailsjs/go/controller_app/App';
@@ -13,6 +10,7 @@ import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
 import { useT } from '../../i18n/useT';
+import { humanAge, absTime } from '../../lib/time';
 
 const defaultFilters: DataTableFilterMeta = {
     name:      { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -21,105 +19,111 @@ const defaultFilters: DataTableFilterMeta = {
 
 function allKeys(item: models.LimitRangeItemInfo): string[] {
     const keys = new Set<string>();
-    for (const m of [item.min, item.max, item.default, item.default_request]) {
+    for (const m of [item.min, item.max, item.default, item.default_request, item.max_limit_request_ratio]) {
         if (m) Object.keys(m).forEach(k => keys.add(k));
     }
     return Array.from(keys).sort();
 }
 
-const thStyle: React.CSSProperties = { padding: '0.4rem 0.6rem', textAlign: 'left', color: 'var(--ink3)', fontWeight: 500, fontSize: '12px' };
-const tdStyle: React.CSSProperties = { padding: '0.4rem 0.6rem', color: 'var(--ink)' };
+/** One (limit item, resource) pair: a row of the expanded sub-table. */
+interface LimitRow {
+    _key: string;
+    /**
+     * Rowspan group. Carries the item index, not just the type: a spec may
+     * list the same type twice, and those must stay two groups.
+     */
+    _group: string;
+    type: string;
+    resource: string;
+    min?: string;
+    max?: string;
+    defaultRequest?: string;
+    default?: string;
+    ratio?: string;
+}
+
+function flattenLimits(limits: models.LimitRangeItemInfo[]): LimitRow[] {
+    return limits.flatMap((item, i) =>
+        allKeys(item).map((resource) => ({
+            _key: `${i}/${item.type}/${resource}`,
+            _group: `${i}/${item.type}`,
+            type: item.type,
+            resource,
+            min: item.min?.[resource],
+            max: item.max?.[resource],
+            defaultRequest: item.default_request?.[resource],
+            default: item.default?.[resource],
+            ratio: item.max_limit_request_ratio?.[resource],
+        })),
+    );
+}
+
+/** Shared body for the value columns: the column's own `field`, or a dim dash. */
+const valueBody = (row: LimitRow, { field }: ColumnBodyOptions) =>
+    row[field as keyof LimitRow] ?? <span style={{ color: 'var(--ink3)' }}>-</span>;
+
+/**
+ * The whole LimitRange spec under an expanded row. Module scope and memoized:
+ * an unchanged poll keeps the same `limits` array. Unsortable on purpose —
+ * rowspan merges *adjacent* rows, so a sort would split the type groups.
+ */
+const LimitItemsTable = React.memo(function LimitItemsTable({ limits }: { limits: models.LimitRangeItemInfo[] }) {
+    const t = useT();
+    return (
+        <DataTable value={flattenLimits(limits)} dataKey="_key" size="small" className="rlv-subtable"
+            rowGroupMode="rowspan" groupRowsBy="_group">
+            <Column field="_group" header={t('resources:column.type')} bodyClassName="rlv-subtable__group" style={{ minWidth: '10rem' }}
+                body={(row: LimitRow) => <Tag value={row.type} severity="info" />} />
+            <Column field="resource" header={t('resources:column.resource')} style={{ minWidth: '10rem' }}
+                body={(row: LimitRow) => <code style={{ fontSize: '12px' }}>{row.resource}</code>} />
+            <Column field="min" header={t('panels:limitRange.min')} body={valueBody} style={{ minWidth: '6rem' }} />
+            <Column field="max" header={t('panels:limitRange.max')} body={valueBody} style={{ minWidth: '6rem' }} />
+            <Column field="defaultRequest" header={t('panels:limitRange.defaultRequest')} body={valueBody} style={{ minWidth: '8rem' }} />
+            <Column field="default" header={t('panels:limitRange.defaultLimit')} body={valueBody} style={{ minWidth: '8rem' }} />
+            <Column field="ratio" header={t('panels:limitRange.maxRatio')} body={valueBody} style={{ minWidth: '10rem' }} />
+        </DataTable>
+    );
+});
 
 export default function LimitRangeListComponent({ clusterName, api }: { clusterName: string; api?: DockviewPanelApi }) {
     const t = useT();
     const { openYamlPanel } = useTabContext();
     const referencePanel = `limitranges:${clusterName}`;
-    const [selectedLimitRange, setSelectedLimitRange] = useState<models.LimitRangeInfo | null>(null);
-    const lr = selectedLimitRange;
 
     return (
-        <>
-            <ResourceListView<models.LimitRangeInfo>
-                title={t('resources:limitrange.title')}
-                clusterName={clusterName}
-                api={api}
-                fetcher={GetLimitRanges}
-                createFrom={models.LimitRangeInfo.createFrom}
-                pollInterval={5000}
-                deleter={DeleteLimitRange}
-                deleteLabel="limit range"
-                describeResource="limitranges"
-                defaultFilters={defaultFilters}
-                emptyMessage={t('resources:limitrange.empty')}
-                onRowDoubleClick={(row) => openYamlPanel({ clusterName, resourceKind: 'limitrange', name: row.name, namespace: row.namespace, referencePanel })}
-                columns={({ buildInOptions }) => (
-                    <>
-                        <Column field="name" header={t('resources:column.name')} sortable filter filterField="name" filterPlaceholder={t('resources:filter.searchName')} showFilterMenu={false} style={{ minWidth: '14rem' }} />
-                        <Column field="namespace" header={t('resources:column.namespace')} sortable filter filterField="namespace" showFilterMenu={false} style={{ minWidth: '10rem' }}
-                            filterElement={(options: ColumnFilterElementTemplateOptions) => (
-                                <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
-                            )} />
-                        <Column header={t('resources:column.types')} style={{ minWidth: '14rem' }}
-                            body={(row: models.LimitRangeInfo) => {
-                                if (!row.limits || row.limits.length === 0) return '-';
-                                return <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>{row.limits.map((l, i) => <Tag key={i} value={l.type} severity="info" />)}</div>;
-                            }} />
-                        <Column header={t('resources:column.cpuDefaultMax')} style={{ minWidth: '14rem' }}
-                            body={(row: models.LimitRangeInfo) => {
-                                if (!row.limits || row.limits.length === 0) return '-';
-                                return row.limits.map((l, i) => <div key={i} style={{ fontSize: '12px' }}>{l.type}: {l.default?.cpu ?? '-'} / {l.max?.cpu ?? '-'}</div>);
-                            }} />
-                        <Column header={t('resources:column.memoryDefaultMax')} style={{ minWidth: '16rem' }}
-                            body={(row: models.LimitRangeInfo) => {
-                                if (!row.limits || row.limits.length === 0) return '-';
-                                return row.limits.map((l, i) => <div key={i} style={{ fontSize: '12px' }}>{l.type}: {l.default?.memory ?? '-'} / {l.max?.memory ?? '-'}</div>);
-                            }} />
-                        <Column header="" style={{ minWidth: '5rem', maxWidth: '5rem' }}
-                            body={(row: models.LimitRangeInfo) => (
-                                <Button icon={<VscListOrdered size={16} />} text size="small" tooltip={t('panels:limitRange.viewLimits')} tooltipOptions={{ position: 'left' }}
-                                    onClick={() => setSelectedLimitRange(row)} />
-                            )} />
-                    </>
-                )}
-            />
-
-            <Dialog
-                header={`Limit Range — ${lr?.namespace}/${lr?.name}`}
-                visible={!!selectedLimitRange}
-                style={{ width: '52rem' }}
-                modal
-                onHide={() => setSelectedLimitRange(null)}
-            >
-                {lr?.limits?.map((item, i) => (
-                    <div key={i} style={{ marginBottom: '1.2rem' }}>
-                        <div style={{ marginBottom: '0.5rem' }}>
-                            <Tag value={item.type} severity="info" />
-                        </div>
-                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
-                            <thead>
-                                <tr style={{ borderBottom: '1px solid var(--surface-border)' }}>
-                                    <th style={thStyle}>{t('resources:column.resource')}</th>
-                                    <th style={thStyle}>{t('panels:limitRange.min')}</th>
-                                    <th style={thStyle}>{t('panels:limitRange.max')}</th>
-                                    <th style={thStyle}>{t('panels:limitRange.defaultRequest')}</th>
-                                    <th style={thStyle}>{t('panels:limitRange.defaultLimit')}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {allKeys(item).map(resource => (
-                                    <tr key={resource} style={{ borderBottom: '1px solid var(--surface-border)' }}>
-                                        <td style={tdStyle}><code style={{ fontSize: '12px' }}>{resource}</code></td>
-                                        <td style={tdStyle}>{item.min?.[resource] ?? '-'}</td>
-                                        <td style={tdStyle}>{item.max?.[resource] ?? '-'}</td>
-                                        <td style={tdStyle}>{item.default_request?.[resource] ?? '-'}</td>
-                                        <td style={tdStyle}>{item.default?.[resource] ?? '-'}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                ))}
-            </Dialog>
-        </>
+        <ResourceListView<models.LimitRangeInfo>
+            title={t('resources:limitrange.title')}
+            clusterName={clusterName}
+            api={api}
+            fetcher={GetLimitRanges}
+            createFrom={models.LimitRangeInfo.createFrom}
+            pollInterval={5000}
+            deleter={DeleteLimitRange}
+            deleteLabel="limit range"
+            describeResource="limitranges"
+            defaultFilters={defaultFilters}
+            emptyMessage={t('resources:limitrange.empty')}
+            onRowDoubleClick={(row) => openYamlPanel({ clusterName, resourceKind: 'limitrange', name: row.name, namespace: row.namespace, referencePanel })}
+            rowExpansion={{
+                template: (row) => <LimitItemsTable limits={row.limits} />,
+                canExpand: (row) => (row.limits?.length ?? 0) > 0,
+            }}
+            columns={({ buildInOptions }) => (
+                <>
+                    <Column field="name" header={t('resources:column.name')} sortable filter filterField="name" filterPlaceholder={t('resources:filter.searchName')} showFilterMenu={false} style={{ minWidth: '14rem' }} />
+                    <Column field="namespace" header={t('resources:column.namespace')} sortable filter filterField="namespace" showFilterMenu={false} style={{ minWidth: '10rem' }}
+                        filterElement={(options: ColumnFilterElementTemplateOptions) => (
+                            <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
+                        )} />
+                    <Column header={t('resources:column.types')} style={{ minWidth: '14rem' }}
+                        body={(row: models.LimitRangeInfo) => {
+                            if (!row.limits || row.limits.length === 0) return '-';
+                            return <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>{row.limits.map((l, i) => <Tag key={i} value={l.type} severity="info" />)}</div>;
+                        }} />
+                    <Column field="created_at" header={t('resources:column.age')} sortable style={{ minWidth: '5rem' }}
+                        body={(row: models.LimitRangeInfo) => <span title={absTime(row.created_at)}>{humanAge(row.created_at)}</span>} />
+                </>
+            )}
+        />
     );
 }

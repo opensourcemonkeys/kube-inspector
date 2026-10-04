@@ -95,6 +95,7 @@ export default tseslint.config(
                         'data-.*', 'aria-hidden', 'shadowRgb', 'shadowOpacity',
                         'scrollHeight', 'headerClassName', 'itemTemplate', 'optionLabel',
                         'optionValue', 'language', 'defaultLanguage', 'path',
+                        'rowGroupMode', 'groupRowsBy',
                     ],
                 },
                 words: {

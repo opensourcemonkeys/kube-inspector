@@ -393,11 +393,11 @@
     "firstSeen": "首次出现"
   },
   "limitRange": {
-    "viewLimits": "查看限制",
     "min": "最小",
     "max": "最大",
     "defaultRequest": "默认请求",
-    "defaultLimit": "默认上限"
+    "defaultLimit": "默认上限",
+    "maxRatio": "最大 Limit/Request 比率"
   },
   "policy": {
     "affectedPods": "受影响的 Pod",

@@ -28,14 +28,7 @@ func GetResourceQuotas(k8sClient *kubernetes.Clientset) ([]models.NamespacedReso
 			Entries:   []models.ResourceQuotaEntry{},
 		}
 		for resourceName, hardQty := range rq.Status.Hard {
-			usedQty := rq.Status.Used[resourceName]
-			info.Entries = append(info.Entries, models.ResourceQuotaEntry{
-				Resource: string(resourceName),
-				Hard:     hardQty.String(),
-				Used:     usedQty.String(),
-				HardNum:  quantityToComparableNum(string(resourceName), hardQty),
-				UsedNum:  quantityToComparableNum(string(resourceName), usedQty),
-			})
+			info.Entries = append(info.Entries, newQuotaEntry(string(resourceName), hardQty, rq.Status.Used[resourceName]))
 		}
 		sort.Slice(info.Entries, func(i, j int) bool {
 			return info.Entries[i].Resource < info.Entries[j].Resource

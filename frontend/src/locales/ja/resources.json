@@ -21,7 +21,6 @@
     "controller": "コントローラー",
     "count": "件数",
     "cpu": "CPU",
-    "cpuDefaultMax": "CPU（既定 / 上限）",
     "created": "作成日時",
     "currentAvailable": "現在 / 利用可能",
     "dataKeys": "データキー",
@@ -30,6 +29,7 @@
     "egress": "Egress",
     "externalIp": "外部 IP",
     "fixed": "修正版",
+    "hard": "上限",
     "hosts": "ホスト",
     "image": "イメージ",
     "ingress": "Ingress",
@@ -41,7 +41,6 @@
     "limit": "上限",
     "match": "一致内容",
     "memory": "メモリ",
-    "memoryDefaultMax": "メモリ（既定 / 上限）",
     "message": "メッセージ",
     "name": "名前",
     "namespace": "Namespace",
@@ -61,6 +60,7 @@
     "ready": "準備完了",
     "reason": "理由",
     "reclaimPolicy": "再利用ポリシー",
+    "remaining": "残り",
     "replicas": "レプリカ",
     "request": "要求量",
     "resolution": "対処方法",
@@ -84,6 +84,8 @@
     "type": "種別",
     "types": "種別",
     "updated": "更新日時",
+    "usage": "使用率",
+    "used": "使用量",
     "value": "値",
     "verbs": "動詞",
     "volume": "ボリューム",
@@ -221,9 +223,12 @@
   },
   "resourcequota": {
     "title": "リソースクォータ",
-    "filterNamespace": "Namespace で絞り込み",
-    "clearFilter": "フィルターをクリア",
-    "noMatch": "一致する Namespace はありません。",
-    "empty": "どの Namespace にもリソースクォータが定義されていません。"
+    "empty": "どの Namespace にもリソースクォータが定義されていません。",
+    "status": {
+      "ok": "正常",
+      "warning": "警告",
+      "critical": "危険",
+      "full": "上限到達"
+    }
   }
 }

@@ -405,11 +405,11 @@
     "firstSeen": "Первое событие"
   },
   "limitRange": {
-    "viewLimits": "Показать лимиты",
     "min": "Мин.",
     "max": "Макс.",
     "defaultRequest": "Запрос по умолчанию",
-    "defaultLimit": "Лимит по умолчанию"
+    "defaultLimit": "Лимит по умолчанию",
+    "maxRatio": "Макс. отношение Limit/Request"
   },
   "policy": {
     "affectedPods": "Затронутые поды",

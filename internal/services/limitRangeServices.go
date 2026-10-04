@@ -63,11 +63,12 @@ func limitRangeToInfo(lr corev1.LimitRange) models.LimitRangeInfo {
 	limits := make([]models.LimitRangeItemInfo, 0, len(lr.Spec.Limits))
 	for _, item := range lr.Spec.Limits {
 		limits = append(limits, models.LimitRangeItemInfo{
-			Type:           string(item.Type),
-			Max:            resourceListToMap(item.Max),
-			Min:            resourceListToMap(item.Min),
-			Default:        resourceListToMap(item.Default),
-			DefaultRequest: resourceListToMap(item.DefaultRequest),
+			Type:                 string(item.Type),
+			Max:                  resourceListToMap(item.Max),
+			Min:                  resourceListToMap(item.Min),
+			Default:              resourceListToMap(item.Default),
+			DefaultRequest:       resourceListToMap(item.DefaultRequest),
+			MaxLimitRequestRatio: resourceListToMap(item.MaxLimitRequestRatio),
 		})
 	}
 

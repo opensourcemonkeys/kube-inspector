@@ -397,11 +397,11 @@
     "firstSeen": "Zuerst gesehen"
   },
   "limitRange": {
-    "viewLimits": "Limits anzeigen",
     "min": "Min.",
     "max": "Max.",
     "defaultRequest": "Standard-Anforderung",
-    "defaultLimit": "Standard-Limit"
+    "defaultLimit": "Standard-Limit",
+    "maxRatio": "Max. Limit/Request-Verhältnis"
   },
   "policy": {
     "affectedPods": "Betroffene Pods",

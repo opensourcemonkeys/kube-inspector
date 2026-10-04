@@ -8,7 +8,9 @@
     "more": "Weitere Aktionen",
     "describe": "Describe",
     "portForward": "Port-Weiterleitung",
-    "retry": "Erneut versuchen"
+    "retry": "Erneut versuchen",
+    "expandAll": "Alle aufklappen",
+    "collapseAll": "Alle zuklappen"
   },
   "filter": {
     "all": "Alle"

@@ -21,7 +21,6 @@
     "controller": "Controller",
     "count": "Count",
     "cpu": "CPU",
-    "cpuDefaultMax": "CPU (default / max)",
     "created": "Created",
     "currentAvailable": "Current / Available",
     "dataKeys": "Data Keys",
@@ -30,6 +29,7 @@
     "egress": "Egress",
     "externalIp": "External IP",
     "fixed": "Fixed",
+    "hard": "Hard",
     "hosts": "Hosts",
     "image": "Image",
     "ingress": "Ingress",
@@ -41,7 +41,6 @@
     "limit": "Limit",
     "match": "Match",
     "memory": "Memory",
-    "memoryDefaultMax": "Memory (default / max)",
     "message": "Message",
     "name": "Name",
     "namespace": "Namespace",
@@ -61,6 +60,7 @@
     "ready": "Ready",
     "reason": "Reason",
     "reclaimPolicy": "Reclaim Policy",
+    "remaining": "Remaining",
     "replicas": "Replicas",
     "request": "Request",
     "resolution": "Resolution",
@@ -84,6 +84,8 @@
     "type": "Type",
     "types": "Types",
     "updated": "Updated",
+    "usage": "Usage",
+    "used": "Used",
     "value": "Value",
     "verbs": "Verbs",
     "volume": "Volume",
@@ -221,9 +223,12 @@
   },
   "resourcequota": {
     "title": "Resource Quotas",
-    "filterNamespace": "Filter namespace",
-    "clearFilter": "Clear filter",
-    "noMatch": "No matching namespaces.",
-    "empty": "No Resource Quotas defined in any namespace."
+    "empty": "No Resource Quotas defined in any namespace.",
+    "status": {
+      "ok": "OK",
+      "warning": "Warning",
+      "critical": "Critical",
+      "full": "Full"
+    }
   }
 }

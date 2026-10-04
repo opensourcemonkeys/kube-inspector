@@ -397,11 +397,11 @@
     "firstSeen": "İlk Görülme"
   },
   "limitRange": {
-    "viewLimits": "Limitleri görüntüle",
     "min": "En az",
     "max": "En çok",
     "defaultRequest": "Varsayılan İstek",
-    "defaultLimit": "Varsayılan Limit"
+    "defaultLimit": "Varsayılan Limit",
+    "maxRatio": "Maks. Limit/Request Oranı"
   },
   "policy": {
     "affectedPods": "Etkilenen Pod'lar",

@@ -8,7 +8,9 @@
     "more": "Другие действия",
     "describe": "Describe",
     "portForward": "Проброс порта",
-    "retry": "Повторить"
+    "retry": "Повторить",
+    "expandAll": "Развернуть все",
+    "collapseAll": "Свернуть все"
   },
   "filter": {
     "all": "Все"

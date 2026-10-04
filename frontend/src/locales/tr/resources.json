@@ -21,7 +21,6 @@
     "controller": "Controller",
     "count": "Adet",
     "cpu": "CPU",
-    "cpuDefaultMax": "CPU (varsayılan / azami)",
     "created": "Oluşturulma",
     "currentAvailable": "Mevcut / Kullanılabilir",
     "dataKeys": "Veri Anahtarları",
@@ -30,6 +29,7 @@
     "egress": "Egress",
     "externalIp": "Harici IP",
     "fixed": "Düzeltilen",
+    "hard": "Sınır",
     "hosts": "Host'lar",
     "image": "İmaj",
     "ingress": "Ingress",
@@ -41,7 +41,6 @@
     "limit": "Limit",
     "match": "Eşleşme",
     "memory": "Bellek",
-    "memoryDefaultMax": "Bellek (varsayılan / azami)",
     "message": "Mesaj",
     "name": "Ad",
     "namespace": "Namespace",
@@ -61,6 +60,7 @@
     "ready": "Hazır",
     "reason": "Sebep",
     "reclaimPolicy": "Geri Kazanım Politikası",
+    "remaining": "Kalan",
     "replicas": "Replika",
     "request": "İstek",
     "resolution": "Çözüm",
@@ -84,6 +84,8 @@
     "type": "Tür",
     "types": "Türler",
     "updated": "Güncellendi",
+    "usage": "Kullanım",
+    "used": "Kullanılan",
     "value": "Değer",
     "verbs": "Fiiller",
     "volume": "Volume",
@@ -221,9 +223,12 @@
   },
   "resourcequota": {
     "title": "Kaynak Kotaları",
-    "filterNamespace": "Namespace filtrele",
-    "clearFilter": "Filtreyi temizle",
-    "noMatch": "Eşleşen namespace yok.",
-    "empty": "Hiçbir namespace'te tanımlı kaynak kotası yok."
+    "empty": "Hiçbir namespace'te tanımlı kaynak kotası yok.",
+    "status": {
+      "ok": "Normal",
+      "warning": "Uyarı",
+      "critical": "Kritik",
+      "full": "Dolu"
+    }
   }
 }

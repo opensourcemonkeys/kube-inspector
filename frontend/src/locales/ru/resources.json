@@ -21,7 +21,6 @@
     "controller": "Контроллер",
     "count": "Количество",
     "cpu": "CPU",
-    "cpuDefaultMax": "CPU (по умолч. / макс.)",
     "created": "Создано",
     "currentAvailable": "Текущие / Доступные",
     "dataKeys": "Ключи данных",
@@ -30,6 +29,7 @@
     "egress": "Egress",
     "externalIp": "Внешний IP",
     "fixed": "Исправлено в",
+    "hard": "Лимит",
     "hosts": "Хосты",
     "image": "Образ",
     "ingress": "Ingress",
@@ -41,7 +41,6 @@
     "limit": "Лимит",
     "match": "Совпадение",
     "memory": "Память",
-    "memoryDefaultMax": "Память (по умолч. / макс.)",
     "message": "Сообщение",
     "name": "Имя",
     "namespace": "Namespace",
@@ -61,6 +60,7 @@
     "ready": "Готово",
     "reason": "Причина",
     "reclaimPolicy": "Политика освобождения",
+    "remaining": "Осталось",
     "replicas": "Реплики",
     "request": "Запрос",
     "resolution": "Решение",
@@ -84,6 +84,8 @@
     "type": "Тип",
     "types": "Типы",
     "updated": "Обновлено",
+    "usage": "Использование",
+    "used": "Использовано",
     "value": "Значение",
     "verbs": "Действия",
     "volume": "Том",
@@ -221,9 +223,12 @@
   },
   "resourcequota": {
     "title": "Квоты ресурсов",
-    "filterNamespace": "Фильтр по namespace",
-    "clearFilter": "Сбросить фильтр",
-    "noMatch": "Подходящих namespaces нет.",
-    "empty": "Ни в одном namespace не заданы квоты ресурсов."
+    "empty": "Ни в одном namespace не заданы квоты ресурсов.",
+    "status": {
+      "ok": "Норма",
+      "warning": "Внимание",
+      "critical": "Критично",
+      "full": "Исчерпано"
+    }
   }
 }

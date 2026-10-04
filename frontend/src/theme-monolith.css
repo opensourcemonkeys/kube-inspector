@@ -254,6 +254,32 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: 
 .p-datatable td.ktable-actions-cell,
 .p-datatable th.ktable-actions-col.p-frozen-column { border-left: 1px solid var(--line2); box-shadow: -6px 0 8px -6px rgba(0,0,0,.45); }
 .p-datatable td.ktable-actions-cell { padding: 0 6px; }
+
+/* Row expansion (ResourceListView `rowExpansion`). The toggler is an icon-only
+   button on a 40px row: keep it small and quiet until hovered. */
+.p-datatable .p-row-toggler { width: 24px; height: 24px; color: var(--ink2); border-radius: 4px; }
+.p-datatable .p-row-toggler:hover { background: var(--hover); color: var(--teal); }
+.p-datatable .p-row-toggler:focus-visible { box-shadow: 0 0 0 1px var(--teal); }
+/* The expansion row is a container, not a data row: no hover highlight, and a
+   recessed panel background so the sub-table reads as belonging to the row
+   above it. */
+.p-datatable .p-datatable-tbody > tr.p-datatable-row-expansion,
+.p-datatable .p-datatable-tbody > tr.p-datatable-row-expansion:hover { background: var(--panel2) !important; }
+.p-datatable .p-datatable-tbody > tr.p-datatable-row-expansion > td { height: auto; padding: 8px 12px 10px 3rem; border-bottom: 1px solid var(--line); }
+/* The nested table under an expanded row (`.rlv-subtable`): compact rows, and the expansion's background
+   showing through instead of the outer table's row colour. */
+.p-datatable .p-datatable.rlv-subtable { border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.p-datatable .p-datatable.rlv-subtable .p-datatable-thead > tr > th { height: 28px; background: var(--panel3); }
+.p-datatable .p-datatable.rlv-subtable .p-datatable-tbody > tr { background: var(--panel2); }
+.p-datatable .p-datatable.rlv-subtable .p-datatable-tbody > tr:hover { background: var(--hover) !important; }
+.p-datatable .p-datatable.rlv-subtable .p-datatable-tbody > tr > td { height: 32px; }
+.p-datatable .p-datatable.rlv-subtable .p-datatable-tbody > tr:last-child > td { border-bottom: none; }
+/* The group column of a rowspan sub-table (limit range Type). Targeted by a
+   class rather than `td[rowspan]` because PrimeReact omits the attribute for
+   a one-row group, which would then render differently from its neighbours.
+   The cell lives in its group's *first* row, so it carries its own bottom
+   border — the row rules above stop at that row. */
+.p-datatable .p-datatable.rlv-subtable .p-datatable-tbody > tr > td.rlv-subtable__group { vertical-align: top; padding-top: 6px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .ktable-actions { display: flex; gap: .15rem; align-items: center; justify-content: center; }
 
 /* Resource-list tables must track their Dockview panel's height.

@@ -8,7 +8,9 @@
     "more": "Diğer işlemler",
     "describe": "Describe",
     "portForward": "Port yönlendir",
-    "retry": "Yeniden dene"
+    "retry": "Yeniden dene",
+    "expandAll": "Tümünü genişlet",
+    "collapseAll": "Tümünü daralt"
   },
   "filter": {
     "all": "Tümü"

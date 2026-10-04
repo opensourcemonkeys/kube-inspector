@@ -8,7 +8,9 @@
     "more": "その他の操作",
     "describe": "Describe",
     "portForward": "ポートフォワード",
-    "retry": "再試行"
+    "retry": "再試行",
+    "expandAll": "すべて展開",
+    "collapseAll": "すべて折りたたむ"
   },
   "filter": {
     "all": "すべて"

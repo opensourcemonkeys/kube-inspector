@@ -49,15 +49,7 @@ func namespaceToInfo(ns corev1.Namespace, k8sClient *kubernetes.Clientset) model
 		}
 
 		for resourceName, hardQty := range rq.Status.Hard {
-			usedQty := rq.Status.Used[resourceName]
-			entry := models.ResourceQuotaEntry{
-				Resource: string(resourceName),
-				Hard:     hardQty.String(),
-				Used:     usedQty.String(),
-				HardNum:  quantityToComparableNum(string(resourceName), hardQty),
-				UsedNum:  quantityToComparableNum(string(resourceName), usedQty),
-			}
-			rqInfo.Entries = append(rqInfo.Entries, entry)
+			rqInfo.Entries = append(rqInfo.Entries, newQuotaEntry(string(resourceName), hardQty, rq.Status.Used[resourceName]))
 		}
 
 		sort.Slice(rqInfo.Entries, func(i, j int) bool {
@@ -92,6 +84,22 @@ func GetNamespaceYaml(name string, k8sClient *kubernetes.Clientset) (string, err
 		return "", err
 	}
 	return toApplyYaml(ns)
+}
+
+// newQuotaEntry builds one quota row. Remaining is computed on the Quantity,
+// not on the comparable numbers, so it keeps the quota's own units ("2500m",
+// "5Gi") instead of a raw milli/byte count the frontend would have to format.
+func newQuotaEntry(resourceName string, hard, used resource.Quantity) models.ResourceQuotaEntry {
+	remaining := hard.DeepCopy()
+	remaining.Sub(used)
+	return models.ResourceQuotaEntry{
+		Resource:  resourceName,
+		Hard:      hard.String(),
+		Used:      used.String(),
+		Remaining: remaining.String(),
+		HardNum:   quantityToComparableNum(resourceName, hard),
+		UsedNum:   quantityToComparableNum(resourceName, used),
+	}
 }
 
 func quantityToComparableNum(resourceName string, qty resource.Quantity) int64 {
