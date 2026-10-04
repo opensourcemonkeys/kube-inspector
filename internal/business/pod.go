@@ -56,3 +56,13 @@ func GetPodDetail(clusterName string, name string, namespace string) (models.Pod
 
 	return services.GetPodDetail(namespace, name, client)
 }
+
+// GetPodContainerUsage is the expanded row's live per-container usage.
+func GetPodContainerUsage(clusterName string, name string, namespace string) ([]models.ContainerUsage, error) {
+	mc, err := repository.NewMetricsClientForCluster(clusterName)
+	if err != nil {
+		return nil, fmt.Errorf("metrics-server unavailable for cluster %q: %w", clusterName, err)
+	}
+
+	return services.GetPodContainerUsage(namespace, name, mc)
+}

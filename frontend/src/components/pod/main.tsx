@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
@@ -14,25 +14,10 @@ import { GetPods, DeletePod } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
-import PodDetail from './PodDetail';
+import PodDetailPanel from './detail/PodDetailPanel';
+import { containerDotColor, fmtCpu, fmtMem, getStatusSeverity } from './podStatus';
 import { humanAge, absTime } from '../../lib/time';
 import { useT } from '../../i18n/useT';
-
-// Waiting reasons that mean "on its way", not "broken". Anything else a
-// container waits on (CrashLoopBackOff, ImagePullBackOff, ...) is a fault.
-const BENIGN_WAITING = new Set(['', 'ContainerCreating', 'PodInitializing']);
-
-// The backend reports kubectl's STATUS (see services.getPodStatus), so the
-// status is a container reason as often as a pod phase.
-const getStatusSeverity = (status: string) => {
-    if (status === 'Running') return 'success';
-    if (status === 'Completed' || status === 'Succeeded') return 'secondary';
-    if (status === 'Pending' || status === 'Terminating' || BENIGN_WAITING.has(status)) return 'warning';
-    // Init:1/3 is progress; Init:CrashLoopBackOff is not.
-    if (/^Init:\d+\/\d+$/.test(status)) return 'warning';
-    if (status === 'Unknown') return 'info';
-    return 'danger';
-};
 
 const getReadySeverity = (ready: number, total: number) => {
     if (total === 0) return 'secondary';
@@ -52,26 +37,12 @@ const getOwnerSeverity = (kind: string) => {
     }
 };
 
-// Per-container status color:
-//   green  ready
-//   amber  running but not (yet) ready — probe failing or still warming up
-//   blue   waiting for a normal reason (ContainerCreating, PodInitializing)
-//   grey   finished cleanly (a completed init container or job)
-//   red    waiting on a fault (CrashLoopBackOff, ImagePullBackOff, ...) or exited with an error
-const containerDotColor = (c: models.ContainerStatusInfo) => {
-    if (c.ready) return 'var(--green)';
-    if (c.state === 'Terminated') return c.reason === 'Completed' ? 'var(--ink3)' : 'var(--red)';
-    if (c.state === 'Running') return 'var(--amber)';
-    if (c.state === 'Waiting' && BENIGN_WAITING.has(c.reason)) return 'var(--blue)';
-    return 'var(--red)';
-};
-
 const MONO = '"JetBrains Mono", "Cascadia Code", monospace';
 
-// Live usage formatting, mirroring the Monitoring dashboard.
-// usage < 0 means metrics-server is unavailable.
-const fmtCpu = (m: number) => (m < 0 ? '—' : m >= 1000 ? `${(m / 1000).toFixed(2)} cores` : `${m} m`);
-const fmtMem = (mi: number) => (mi < 0 ? '—' : mi >= 1024 ? `${(mi / 1024).toFixed(1)} GiB` : `${mi} MiB`);
+const DETAIL_WIDTH_KEY = 'kube-ins:pod-detail-width';
+const DEFAULT_DETAIL_WIDTH = 620;
+// Neither the list nor the detail may be dragged narrower than this.
+const MIN_PANE = 360;
 
 const defaultFilters: DataTableFilterMeta = {
     name:       { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -110,13 +81,47 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
     const warningTooltipRef = useRef<Tooltip>(null);
     const [execMenuItems, setExecMenuItems] = useState<MenuItem[]>([]);
 
+    // The detail panel: which pod it shows, and how wide it is. The width is a
+    // per-user preference, so it lives in localStorage and survives restarts.
+    const [selected, setSelected] = useState<{ name: string; namespace: string } | null>(null);
+    const splitRef = useRef<HTMLDivElement>(null);
+    const [detailWidth, setDetailWidth] = useState<number>(() => {
+        try {
+            const saved = Number(localStorage.getItem(DETAIL_WIDTH_KEY));
+            if (saved > 0) return saved;
+        } catch { /* storage unavailable */ }
+        return DEFAULT_DETAIL_WIDTH;
+    });
+    const closeDetail = useCallback(() => setSelected(null), []);
+
+    const startResize = (e: React.PointerEvent<HTMLDivElement>) => {
+        const box = splitRef.current?.getBoundingClientRect();
+        if (!box) return;
+        e.preventDefault();
+        const handle = e.currentTarget;
+        handle.setPointerCapture(e.pointerId);
+        let width = detailWidth;
+        const move = (ev: PointerEvent) => {
+            width = Math.round(Math.min(Math.max(box.right - ev.clientX, MIN_PANE), box.width - MIN_PANE));
+            setDetailWidth(width);
+        };
+        const up = () => {
+            handle.removeEventListener('pointermove', move);
+            handle.removeEventListener('pointerup', up);
+            try { localStorage.setItem(DETAIL_WIDTH_KEY, String(width)); } catch { /* storage unavailable */ }
+        };
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', up);
+    };
+
     return (
-      <>
+      <div className="pod-split" ref={splitRef}>
         <Menu model={execMenuItems} popup ref={execMenuRef} className="exec-container-menu" />
         {/* One tooltip for every warning icon; each icon carries its text in data-pr-tooltip.
             The Tooltip only looks up its targets when it renders, and the rows arrive later
             from the poll, so each icon registers itself through updateTargetEvents. */}
         <Tooltip ref={warningTooltipRef} target=".pod-warning" position="right" className="pod-warning-tooltip" />
+        <div className="pod-split__list">
         <ResourceListView<models.PodInfo>
             title={t('resources:pod.title')}
             clusterName={clusterName}
@@ -128,14 +133,8 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
             pollInterval={2000}
             describeResource="pods"
             portForward={{ kind: 'pod' }}
-            rowExpansion={{
-                template: (row) => <PodDetail clusterName={clusterName} pod={row} referencePanel={referencePanel} />,
-                // Expanding turns the virtual scroller off, and a pod list is
-                // the one that can run to thousands of rows.
-                pageSize: 50,
-                // Each expanded row fetches its own detail.
-                expandAll: false,
-            }}
+            onRowClick={(pod) => setSelected({ name: pod.name, namespace: pod.namespace })}
+            activeRowKey={selected ? `${selected.namespace}/${selected.name}` : undefined}
             defaultFilters={defaultFilters}
             emptyMessage={t('resources:pod.empty')}
             onRowDoubleClick={(pod) => openYamlPanel({ clusterName, resourceKind: 'pod', name: pod.name, namespace: pod.namespace, referencePanel })}
@@ -279,6 +278,23 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                 </>
             )}
         />
-      </>
+        </div>
+        {selected && (
+            <>
+                <div className="pod-split__handle" role="separator" aria-orientation="vertical" onPointerDown={startResize} />
+                <div className="pod-split__detail" style={{ width: detailWidth }}>
+                    <PodDetailPanel
+                        key={`${selected.namespace}/${selected.name}`}
+                        clusterName={clusterName}
+                        name={selected.name}
+                        namespace={selected.namespace}
+                        referencePanel={referencePanel}
+                        api={api}
+                        onClose={closeDetail}
+                    />
+                </div>
+            </>
+        )}
+      </div>
     );
 }

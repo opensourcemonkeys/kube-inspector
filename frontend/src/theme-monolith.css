@@ -282,38 +282,107 @@ html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: 
 .p-datatable .p-datatable.rlv-subtable .p-datatable-tbody > tr > td.rlv-subtable__group { vertical-align: top; padding-top: 6px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .ktable-actions { display: flex; gap: .15rem; align-items: center; justify-content: center; }
 
-/* The pod list's expanded row (components/pod/PodDetail.tsx): a relations strip
-   of clickable references above the containers / volumes / env sub-tables. */
-/* Sticky + fit-content: the expansion cell spans the outer table's full scroll
-   width, so a 100%-wide sub-table pushed its last columns off screen. */
-.pod-detail { display: flex; flex-direction: column; gap: 10px; position: sticky; left: 3rem; width: fit-content; max-width: 100%; }
-.pod-detail .p-datatable.rlv-subtable { width: fit-content; }
-.pod-detail .p-datatable.rlv-subtable .p-datatable-tbody > tr > td { padding-right: 18px; }
-.pod-detail__loading { display: flex; align-items: center; gap: 8px; color: var(--ink3); font-size: 12px; padding: 4px 0; }
-.pod-detail__relations { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; }
-.pod-detail__relation { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.pod-detail__refresh.p-button { width: 24px; height: 24px; padding: 0; }
-.pod-detail__label,
-.pod-detail__heading { font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink3); }
-.pod-detail__heading { margin: 0 0 5px; }
-.pod-detail__arrow { color: var(--ink3); }
-.pod-detail__arrow::before { content: '←'; }
-.pod-detail__muted { color: var(--ink3); }
-.pod-detail__refs { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.pod-detail__mono-ellipsis { display: block; max-width: 28rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: "JetBrains Mono", "Cascadia Code", monospace; font-size: .78rem; }
-/* A reference chip: the name opens the YAML panel, the trailing icon Describe. */
-.pod-detail__ref { display: inline-flex; align-items: stretch; border: 1px solid var(--line2, var(--line)); border-radius: 4px; background: var(--panel3); overflow: hidden; }
-.pod-detail__ref--static { padding: 1px 7px; gap: 5px; align-items: center; }
-.pod-detail__ref > button { all: unset; cursor: pointer; display: inline-flex; align-items: center; }
-/* Same specificity as the reset above and after it, or `all: unset` wins. */
-.pod-detail__ref > .pod-detail__ref-open { gap: 5px; padding: 1px 7px; }
-.pod-detail__ref > .pod-detail__ref-describe { padding: 0 5px; color: var(--ink3); border-left: 1px solid var(--line); }
-.pod-detail__ref-open:hover,
-.pod-detail__ref-describe:hover { background: var(--hover); color: var(--ink); }
-.pod-detail__ref-open:hover .pod-detail__ref-name { color: var(--teal); text-decoration: underline; }
-.pod-detail__ref button:focus-visible { outline: 1px solid var(--teal); outline-offset: -1px; }
-.pod-detail__ref-kind { font-size: 10px; color: var(--ink3); }
-.pod-detail__ref-name { font-family: "JetBrains Mono", "Cascadia Code", monospace; font-size: .78rem; color: var(--ink); }
+/* Pod list + detail panel (components/pod/main.tsx, components/pod/detail/),
+   after Lens: the list on the left, the selected pod's detail on the right,
+   a draggable handle between them. */
+.pod-split { display: flex; height: 100%; min-height: 0; }
+.pod-split__list { flex: 1; min-width: 0; height: 100%; }
+/* Built like Dockview's own splitter, from the same variables, so the two look
+   alike: a 1px separator line, under a 4px sash centred on it that is
+   transparent until hovered or dragged. The sash is the hit area. */
+.pod-split__handle { position: relative; z-index: 1; flex: 0 0 1px; cursor: col-resize; touch-action: none; background: var(--dv-separator-border, var(--line2)); }
+.pod-split__handle::before { content: ''; position: absolute; top: 0; bottom: 0; left: -2px; width: 4px; background-color: var(--dv-sash-color, transparent); }
+.pod-split__handle:hover::before,
+.pod-split__handle:active::before { background-color: var(--dv-active-sash-color, rgba(92,103,121,.5));
+  transition: background-color var(--dv-active-sash-transition-duration, .15s) ease-in-out var(--dv-active-sash-transition-delay, .1s); }
+/* The saved width may not fit a smaller window: the list keeps 360px. */
+.pod-split__detail { flex: 0 0 auto; min-width: 0; max-width: calc(100% - 361px); height: 100%; }
+/* Opaque, and on the row: the frozen action cell inherits the row's background,
+   and a translucent one let the scrolled cells show through it. */
+.p-datatable .p-datatable-tbody > tr.rlv-row--active,
+.p-datatable .p-datatable-tbody > tr.rlv-row--active:hover { background: color-mix(in srgb, var(--teal) 10%, var(--app)); }
+.p-datatable .p-datatable-tbody > tr.rlv-row--active > td:first-child { box-shadow: inset 3px 0 0 var(--teal); }
+
+.pd-panel { display: flex; flex-direction: column; height: 100%; min-width: 0; background: var(--panel); }
+.pd-header { display: flex; align-items: center; gap: 8px; flex-shrink: 0; height: 46px; padding: 0 8px 0 18px; background: var(--panel3); border-top: 1px solid var(--dv-separator-border, var(--line2)); border-bottom: 1px solid var(--line); }
+.pd-header__title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 600; color: var(--ink); }
+.pd-header__kind { color: var(--teal); }
+.pd-header__actions { display: flex; gap: 2px; }
+.pd-header__actions .p-button.p-button-icon-only { width: 30px; height: 30px; }
+.pd-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding: 16px 20px 28px; }
+.pd-loading { flex-direction: row; align-items: center; justify-content: center; gap: 10px; color: var(--ink3); }
+
+/* Usage chart */
+.pd-chart { display: flex; flex-direction: column; gap: 10px; }
+.pd-chart__tabs { display: flex; justify-content: center; gap: 6px; }
+.pd-chart__tab { all: unset; cursor: pointer; padding: 4px 16px; font-size: 12px; color: var(--ink2); border: 1px solid var(--line2); border-radius: 4px; }
+.pd-chart__tab:hover { background: var(--hover); color: var(--ink); }
+.pd-chart__tab--active { background: var(--panel3); color: var(--ink); border-color: var(--teal); }
+.pd-chart__tab:focus-visible { outline: 1px solid var(--teal); outline-offset: 1px; }
+.pd-chart__canvas { height: 170px; }
+.pd-chart__empty { display: grid; place-items: center; height: 120px; font-size: 12px; color: var(--ink3); border: 1px dashed var(--line2); border-radius: 6px; }
+
+/* Label/value list */
+.pd-list { display: flex; flex-direction: column; }
+.pd-item { display: grid; grid-template-columns: minmax(8rem, 30%) minmax(0, 1fr); gap: 14px; padding: 8px 0; font-size: 13px; line-height: 1.5; border-bottom: 1px solid var(--line); }
+.pd-item__label { color: var(--ink2); }
+.pd-item__value { min-width: 0; color: var(--ink); overflow-wrap: anywhere; }
+.pd-muted { color: var(--ink3); }
+.pd-note { margin-top: 2px; font-size: 12px; color: var(--ink3); }
+.pd-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; }
+.pd-line { display: inline-flex; flex-wrap: wrap; align-items: baseline; gap: 6px; min-width: 0; }
+.pd-paren { margin-left: 6px; }
+.pd-paren::before { content: '('; color: var(--ink3); }
+.pd-paren::after { content: ')'; color: var(--ink3); }
+.pd-arrow::before { content: '←'; color: var(--ink3); }
+.pd-env-name { color: var(--ink); }
+.pd-env-value { color: var(--ink2); }
+.pd-mount { display: flex; flex-direction: column; gap: 1px; }
+
+/* key=value badges; click a truncated one to read it whole */
+.pd-badges { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; }
+.pd-badge { all: unset; box-sizing: border-box; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 1px 8px; font-size: 12px; color: var(--ink); background: var(--panel3); border: 1px solid var(--line2); border-radius: 4px; cursor: pointer; }
+.pd-badge--open { white-space: normal; overflow-wrap: anywhere; }
+.pd-badge--static { cursor: default; }
+.pd-badge--warn { color: var(--amber); border-color: color-mix(in srgb, var(--amber) 35%, transparent); background: color-mix(in srgb, var(--amber) 10%, transparent); }
+.pd-badge:focus-visible { outline: 1px solid var(--teal); outline-offset: 1px; }
+
+/* Show / Hide blocks (tolerations, affinities) */
+.pd-expand__head { display: flex; align-items: center; justify-content: space-between; }
+.pd-expand__toggle { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--teal); }
+.pd-expand__toggle:hover { text-decoration: underline; }
+.pd-expand__toggle:focus-visible { outline: 1px solid var(--teal); outline-offset: 2px; }
+.pd-expand__caret { width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 5px solid currentColor; transition: transform .15s; }
+.pd-expand__caret--open { transform: rotate(180deg); }
+.pd-expand__body { margin-top: 8px; }
+.pd-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.pd-table th { padding: 4px 10px 4px 0; text-align: left; font-size: 10px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; color: var(--ink3); border-bottom: 1px solid var(--line2); }
+.pd-table td { padding: 4px 10px 4px 0; overflow-wrap: anywhere; border-bottom: 1px solid var(--line); }
+/* The one fixed-width block: YAML, whose indentation must line up. */
+.pd-pre { max-height: 260px; overflow: auto; margin: 0; padding: 8px 10px; font-family: var(--font-family-mono); font-size: 11.5px; white-space: pre; color: var(--ink2); background: var(--panel2); border: 1px solid var(--line); border-radius: 4px; }
+
+/* Links to other objects; the describe icon shows on hover */
+.pd-ref { display: inline-flex; align-items: baseline; gap: 5px; min-width: 0; max-width: 100%; }
+.pd-ref__kind { color: var(--ink2); }
+.pd-ref > button { all: unset; cursor: pointer; }
+.pd-ref > .pd-ref__name { color: var(--teal); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--teal) 45%, transparent); text-underline-offset: 2px; overflow-wrap: anywhere; }
+.pd-ref > .pd-ref__name:hover { text-decoration-color: var(--teal); }
+/* Takes no room until hovered, so a link inside brackets closes up tight. */
+.pd-ref > .pd-ref__describe { display: none; align-self: center; font-size: 12px; color: var(--ink3); }
+.pd-ref:hover > .pd-ref__describe,
+.pd-ref:focus-within > .pd-ref__describe { display: inline-flex; }
+.pd-ref > .pd-ref__describe:hover { color: var(--ink); }
+.pd-ref > button:focus-visible { outline: 1px solid var(--teal); outline-offset: 1px; }
+
+/* Sections: Init Containers / Containers / Volumes */
+.pd-section { display: flex; flex-direction: column; gap: 10px; }
+.pd-section__title { margin: 0 -20px; padding: 9px 20px; font-size: 13px; font-weight: 600; color: var(--ink); background: var(--panel3); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.pd-container { display: flex; flex-direction: column; }
+.pd-container + .pd-container { margin-top: 16px; }
+.pd-container__title { display: flex; align-items: center; gap: 8px; padding: 2px 0 6px; }
+.pd-container__name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.pd-dot { flex-shrink: 0; width: 9px; height: 9px; border-radius: 50%; }
+.pd-dot--square { border-radius: 2px; }
 
 /* Resource-list tables must track their Dockview panel's height.
    PrimeReact's VirtualScroller latches the height it measured at its first init

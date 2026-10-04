@@ -91,6 +91,8 @@ function tagLastForActions(data: React.ReactNode[]): React.ReactNode[] {
 // Must match the fixed row height enforced by theme-monolith.css
 // (.p-datatable-tbody > tr > td { height: 40px }).
 const ROW_HEIGHT = 40;
+// Elements inside a row whose clicks belong to themselves, not to `onRowClick`.
+const ROW_CONTROLS = 'button, a, input, .p-checkbox, .p-row-toggler';
 
 export interface ColumnsContext<T extends ResourceRow> {
     items: T[];
@@ -164,20 +166,20 @@ export interface ResourceListViewProps<T extends ResourceRow> {
      * toolbar. Rows a `canExpand` rejects get no toggler. Turning this on
      * also turns the virtual scroller off — it lays rows out at a fixed
      * `itemSize`, which an expanded row of arbitrary height breaks — so keep
-     * it to lists that stay short, or set `pageSize` for one that does not.
+     * it to lists that stay short.
      */
     rowExpansion?: {
         template: (row: T) => React.ReactNode;
         canExpand?: (row: T) => boolean;
-        /** Pages the table instead, so a long list does not render every row at once. */
-        pageSize?: number;
-        /**
-         * Show Expand all / Collapse all (default true). Turn it off when the
-         * template fetches on mount: expanding every row would fire one
-         * request per row.
-         */
-        expandAll?: boolean;
     };
+    /**
+     * Single click on a row (pods open their detail panel with it). Setting it
+     * switches selection to checkbox-only, so a click opens without also
+     * ticking the row for deletion.
+     */
+    onRowClick?: (row: T) => void;
+    /** `dataKey` value of the row to highlight, e.g. the one a detail panel shows. */
+    activeRowKey?: string;
 }
 
 export default function ResourceListView<T extends ResourceRow>(props: ResourceListViewProps<T>) {
@@ -198,6 +200,8 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
         pollInterval,
         emptyMessage,
         onRowDoubleClick,
+        onRowClick,
+        activeRowKey,
         toolbarExtra,
         columns,
         rowExpansion,
@@ -252,9 +256,6 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
               expandedRows,
               onRowToggle: (e: DataTableRowToggleEvent) => setExpandedRows(e.data as DataTableExpandedRows),
               rowExpansionTemplate: (row: T) => rowExpansion.template(row),
-              ...(rowExpansion.pageSize
-                  ? { paginator: true, rows: rowExpansion.pageSize, rowsPerPageOptions: [25, 50, 100] }
-                  : {}),
           }
         : { virtualScrollerOptions: { itemSize: ROW_HEIGHT } };
 
@@ -416,7 +417,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
     // `'multiple' | undefined` (which fails overload resolution).
     const selectionProps: any = deletable
         ? {
-              selectionMode: 'multiple',
+              selectionMode: onRowClick ? 'checkbox' : 'multiple',
               selection: selected,
               onSelectionChange: (e: any) => setSelected(Array.isArray(e.value) ? e.value : []),
           }
@@ -454,7 +455,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                 <h3 className="rlv-toolbar__title" style={{ margin: 0 }} title={title}>{title}</h3>
                 <div className="rlv-toolbar__actions" style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                     {toolbarExtra?.({ reload })}
-                    {rowExpansion && rowExpansion.expandAll !== false && (
+                    {rowExpansion && (
                         <>
                             <Button
                                 icon={<VscExpandAll size={16} />}
@@ -544,6 +545,13 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                     {...selectionProps}
                     {...expansionProps}
                     onRowDoubleClick={onRowDoubleClick ? (e: any) => onRowDoubleClick(e.data as T) : undefined}
+                    // A click on a control inside the row (Logs, the ⋮ menu, the checkbox)
+                    // is that control's, not a request to open the row.
+                    onRowClick={onRowClick ? (e: any) => {
+                        if ((e.originalEvent?.target as HTMLElement | null)?.closest(ROW_CONTROLS)) return;
+                        onRowClick(e.data as T);
+                    } : undefined}
+                    rowClassName={activeRowKey ? (row: T) => ({ 'rlv-row--active': String((row as Record<string, unknown>)[dataKey]) === activeRowKey }) : undefined}
                     filters={filters}
                     onFilter={(e) => setFilters(e.filters)}
                     filterDisplay="row"
