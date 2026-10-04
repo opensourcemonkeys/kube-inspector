@@ -74,8 +74,7 @@ const LimitItemsTable = React.memo(function LimitItemsTable({ limits }: { limits
             rowGroupMode="rowspan" groupRowsBy="_group">
             <Column field="_group" header={t('resources:column.type')} bodyClassName="rlv-subtable__group" style={{ minWidth: '10rem' }}
                 body={(row: LimitRow) => <Tag value={row.type} severity="info" />} />
-            <Column field="resource" header={t('resources:column.resource')} style={{ minWidth: '10rem' }}
-                body={(row: LimitRow) => <code style={{ fontSize: '12px' }}>{row.resource}</code>} />
+            <Column field="resource" header={t('resources:column.resource')} style={{ minWidth: '10rem' }} />
             <Column field="min" header={t('panels:limitRange.min')} body={valueBody} style={{ minWidth: '6rem' }} />
             <Column field="max" header={t('panels:limitRange.max')} body={valueBody} style={{ minWidth: '6rem' }} />
             <Column field="defaultRequest" header={t('panels:limitRange.defaultRequest')} body={valueBody} style={{ minWidth: '8rem' }} />

@@ -46,8 +46,8 @@ export default function CrdTree(props: CrdTreeProps) {
                             onClick={() => onToggleGroup(group)}
                             title={groupLabel(group)}
                         >
-                            {expanded ? <VscChevronDown size={14} /> : <VscChevronRight size={14} />}
-                            <VscSymbolNamespace size={14} className="crd-tree__group-icon" />
+                            {expanded ? <VscChevronDown size={15} /> : <VscChevronRight size={15} />}
+                            <VscSymbolNamespace size={15} className="crd-tree__group-icon" />
                             <span className="crd-tree__group-name">{groupLabel(group)}</span>
                             {/* Inline rather than right-aligned: the right edge
                                 is where instance counts live, and a kind count
