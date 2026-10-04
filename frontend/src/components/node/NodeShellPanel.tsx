@@ -7,6 +7,8 @@ export interface NodeShellPanelParams {
     clusterName: string;
     sessionId: string;
     nodeName: string;
+    /** Moved here from another window — see lib/terminalHandoff.ts. */
+    handoff?: boolean;
 }
 
 /**
@@ -34,6 +36,7 @@ export default function NodeShellPanel({ params }: IDockviewPanelProps<NodeShell
             banner={`Opening a host shell on node ${nodeName}...`}
             connect={connect}
             close={close}
+            handoff={params.handoff}
             saveName={`node-shell-${nodeName}`}
         />
     );

@@ -9,6 +9,8 @@ export interface PodExecPanelParams {
     name: string;
     namespace: string;
     container: string;
+    /** Moved here from another window — see lib/terminalHandoff.ts. */
+    handoff?: boolean;
 }
 
 export default function PodExecPanel({ params }: IDockviewPanelProps<PodExecPanelParams>) {
@@ -27,6 +29,7 @@ export default function PodExecPanel({ params }: IDockviewPanelProps<PodExecPane
             banner={`Connecting to ${namespace}/${name}${container ? ` [${container}]` : ''}...`}
             connect={connect}
             close={close}
+            handoff={params.handoff}
             saveName={`exec-${namespace}-${name}`}
         />
     );

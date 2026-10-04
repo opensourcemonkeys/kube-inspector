@@ -20,6 +20,10 @@ type podExecSession struct {
 	stdinWriter *io.PipeWriter
 	sizeQueue   *execSizeQueue
 	cancel      context.CancelFunc
+	// history is replayed by a panel that took this session over from another
+	// window (execHandoffServices.go). A node shell shares one with its
+	// nodeShellSession, so the startup progress is part of it.
+	history *terminalHistory
 }
 
 type execSizeQueue struct {
@@ -71,8 +75,9 @@ func releaseExecSession(id string, want *podExecSession) bool {
 // CreatePodExecSession opens an interactive shell in a pod container. onClosed
 // fires when the session ends on its own — the remote shell exiting, the pod
 // going away, the stream breaking — but not when the caller closed it, so the
-// frontend can tell a dead terminal from one it shut down itself.
-func CreatePodExecSession(id, namespace, podName, container string, onOutput func(string), onClosed func(), client *kubernetes.Clientset, config *rest.Config) error {
+// frontend can tell a dead terminal from one it shut down itself. onOutput
+// receives each chunk with the stream offset it ends at (see terminalHistory).
+func CreatePodExecSession(id, namespace, podName, container string, onOutput func(data string, end int64), onClosed func(), client *kubernetes.Clientset, config *rest.Config) error {
 	if container == "" {
 		pod, err := client.CoreV1().Pods(namespace).Get(context.TODO(), podName, metav1.GetOptions{})
 		if err != nil {
@@ -82,7 +87,7 @@ func CreatePodExecSession(id, namespace, podName, container string, onOutput fun
 			container = pod.Spec.Containers[0].Name
 		}
 	}
-	return startExecSession(id, namespace, podName, container, []string{"/bin/sh"}, onOutput, onClosed, client, config)
+	return startExecSession(id, namespace, podName, container, []string{"/bin/sh"}, newTerminalHistory(), onOutput, onClosed, client, config)
 }
 
 // startExecSession is the exec machinery shared by a pod shell and a node shell
@@ -90,7 +95,7 @@ func CreatePodExecSession(id, namespace, podName, container string, onOutput fun
 // The two differ only in the command run inside the container — "/bin/sh" for a
 // pod, nsenter into PID 1's namespaces for a node — so `command` is the seam
 // rather than a second copy of everything below.
-func startExecSession(id, namespace, podName, container string, command []string, onOutput func(string), onClosed func(), client *kubernetes.Clientset, config *rest.Config) error {
+func startExecSession(id, namespace, podName, container string, command []string, history *terminalHistory, onOutput func(string, int64), onClosed func(), client *kubernetes.Clientset, config *rest.Config) error {
 	releaseExecSession(id, nil)
 
 	req := client.CoreV1().RESTClient().Post().
@@ -123,6 +128,7 @@ func startExecSession(id, namespace, podName, container string, command []string
 		stdinWriter: stdinWriter,
 		sizeQueue:   sq,
 		cancel:      cancel,
+		history:     history,
 	}
 
 	execMu.Lock()
@@ -154,7 +160,7 @@ func startExecSession(id, namespace, podName, container string, command []string
 		for {
 			n, err := stdoutReader.Read(buf)
 			if n > 0 {
-				onOutput(string(buf[:n]))
+				history.record(string(buf[:n]), onOutput)
 			}
 			if err != nil {
 				break

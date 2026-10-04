@@ -7,7 +7,7 @@ import (
 
 // CreateNodeShellSession opens a root shell on a node by way of a privileged
 // helper pod. Blocks until the pod is running and the shell is attached.
-func CreateNodeShellSession(clusterName string, id, nodeName string, onOutput func(string), onClosed func()) error {
+func CreateNodeShellSession(clusterName string, id, nodeName string, onOutput func(data string, end int64), onClosed func()) error {
 	// Streaming client: like a pod exec, the SPDY session must outlive the
 	// shared request timeout — and so must the pod-startup wait.
 	client, config, err := repository.NewK8sClientAndConfigForClusterStreaming(clusterName)

@@ -639,6 +639,31 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
         api.addPanel(addOptions);
     }, [t]);
 
+    // Terminal, pod exec and node shell panels only ever arrive from another
+    // window of this process (FloatableTab keeps them off the instance list),
+    // so their session is still running in our shared backend: keep its id and
+    // let the panel attach rather than open a new one. The panel id is rebuilt
+    // the way the open* functions build it, so it still de-duplicates.
+    const openReceivedSession = useCallback((
+        panelId: string,
+        component: string,
+        defaultTitleKey: string,
+        p: Record<string, any>,
+        extra: Record<string, unknown>,
+    ) => {
+        const api = apiRef.current;
+        if (!api || !p.sessionId) return;
+        const existing = api.getPanel(panelId);
+        if (existing) { existing.api.setActive(); return; }
+        const titleParams = { titleKey: p.titleKey ?? defaultTitleKey, titleVars: p.titleVars };
+        api.addPanel({
+            id: panelId,
+            component,
+            title: renderPanelTitle(t, titleParams),
+            params: { ...titleParams, ...extra, sessionId: p.sessionId, clusterName: p.clusterName ?? '', handoff: !!p.handoff },
+        });
+    }, [t]);
+
     const openReceivedPanel = useCallback((panel: ReceivedPanel) => {
         const p = panel.params ?? {};
         const cn: string = p.clusterName ?? '';
@@ -684,6 +709,17 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
             case 'applyYaml':
                 openApplyYaml(cn);
                 break;
+            case 'terminal':
+                openReceivedSession(p.sessionId, 'terminal', 'panels:title.terminal', p, {});
+                break;
+            case 'podExec':
+                openReceivedSession(`exec:${cn}:${p.namespace}/${p.name}:${p.container}`, 'podExec', 'panels:title.exec', p,
+                    { name: p.name, namespace: p.namespace, container: p.container });
+                break;
+            case 'nodeShell':
+                openReceivedSession(`nodeshell:${cn}:${p.nodeName}`, 'nodeShell', 'panels:title.nodeShell', p,
+                    { nodeName: p.nodeName });
+                break;
             case 'portforwards':
                 // Same rule as diagnostics: moving it shows THAT process's
                 // tunnels, which is the only thing it could truthfully show.
@@ -695,7 +731,7 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
                 openDiagnostics();
                 break;
         }
-    }, [openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openApplyYaml, openDiagnostics, openPortForwards]);
+    }, [openReceivedSession, openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openApplyYaml, openDiagnostics, openPortForwards]);
 
     return (
         <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openNodeShellPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openDiagnostics, openPortForwards, openReceivedPanel }}>

@@ -210,10 +210,34 @@ func (a *App) GetPodYaml(clusterName string, name string, namespace string) (str
 }
 
 func (a *App) CreatePodExecSession(clusterName string, sessionId string, namespace string, podName string, container string) error {
-	return bussiness.CreatePodExecSession(clusterName, sessionId, namespace, podName, container,
-		func(data string) { a.emit("exec:output:"+sessionId, data) },
+	return a.reportExecFailure(sessionId, bussiness.CreatePodExecSession(clusterName, sessionId, namespace, podName, container,
+		func(data string, end int64) { a.emit("exec:output:"+sessionId, data, end) },
 		func() { a.emit("exec:closed:" + sessionId) },
-	)
+	))
+}
+
+// reportExecFailure also publishes a failed connect as an event. The error is
+// returned to the window that called Create — but a node shell takes long
+// enough to start that its panel may have moved to another window by then, and
+// only an event reaches the panel that is actually showing the session.
+func (a *App) reportExecFailure(sessionId string, err error) error {
+	if err != nil {
+		a.emit("exec:failed:"+sessionId, err.Error())
+	}
+	return err
+}
+
+// DetachPodExecSession is called by the window a pod exec or node shell tab is
+// leaving, before it sends the panel on. The session stays up until the
+// receiving window attaches, and is closed if none does.
+func (a *App) DetachPodExecSession(sessionId string) error {
+	return bussiness.DetachPodExecSession(sessionId)
+}
+
+// AttachPodExecSession is called by the window a pod exec or node shell tab
+// arrived in, and returns the output the old panel was showing.
+func (a *App) AttachPodExecSession(sessionId string) (models.TerminalSnapshot, error) {
+	return bussiness.AttachPodExecSession(sessionId)
 }
 
 func (a *App) WriteToPodExecSession(sessionId string, data string) error {
@@ -233,10 +257,10 @@ func (a *App) ClosePodExecSession(sessionId string) error {
 // session, so the frontend needs no second set of output/closed listeners and no
 // second Write/Resize pair.
 func (a *App) CreateNodeShellSession(clusterName string, sessionId string, nodeName string) error {
-	return bussiness.CreateNodeShellSession(clusterName, sessionId, nodeName,
-		func(data string) { a.emit("exec:output:"+sessionId, data) },
+	return a.reportExecFailure(sessionId, bussiness.CreateNodeShellSession(clusterName, sessionId, nodeName,
+		func(data string, end int64) { a.emit("exec:output:"+sessionId, data, end) },
 		func() { a.emit("exec:closed:" + sessionId) },
-	)
+	))
 }
 
 func (a *App) CloseNodeShellSession(sessionId string) error {
@@ -519,9 +543,24 @@ func (a *App) UpdateRoleBinding(clusterName string, name string, namespace strin
 
 func (a *App) CreateTerminalSession(id string, clusterName string) error {
 	return bussiness.CreateTerminalSession(id, clusterName,
-		func(data string) { a.emit("terminal:output:"+id, data) },
+		// The end offset rides along as a second argument, which listeners
+		// that only take `data` simply ignore.
+		func(data string, end int64) { a.emit("terminal:output:"+id, data, end) },
 		func() { a.emit("terminal:exit:" + id) },
 	)
+}
+
+// DetachTerminalSession is called by the window a terminal tab is leaving,
+// before it sends the panel on: the shell stays up until the receiving window
+// attaches, and is closed if none does.
+func (a *App) DetachTerminalSession(id string) error {
+	return bussiness.DetachTerminalSession(id)
+}
+
+// AttachTerminalSession is called by the window a terminal tab arrived in. It
+// returns the output the old panel was showing, so the move keeps history.
+func (a *App) AttachTerminalSession(id string) (models.TerminalSnapshot, error) {
+	return bussiness.AttachTerminalSession(id)
 }
 
 // SetTerminalSessionCluster points a running terminal at another cluster's

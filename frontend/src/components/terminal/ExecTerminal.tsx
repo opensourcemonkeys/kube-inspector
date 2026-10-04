@@ -4,7 +4,8 @@ import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { useXtermTheme, xtermOptions } from '../../lib/xtermTheme';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
-import { WriteToPodExecSession, ResizePodExecSession } from '../../../wailsjs/go/controller_app/App';
+import { WriteToPodExecSession, ResizePodExecSession, AttachPodExecSession } from '../../../wailsjs/go/controller_app/App';
+import { consumeHandoff, createOutputGate } from '../../lib/terminalHandoff';
 import { useTerminalActions } from './useTerminalActions';
 
 export interface ExecTerminalProps {
@@ -18,6 +19,11 @@ export interface ExecTerminalProps {
     close: () => Promise<unknown>;
     /** Base filename offered when the user saves the buffer. */
     saveName: string;
+    /**
+     * Moved here from another window: attach to the session that is still
+     * running in the shared backend instead of connecting a new one.
+     */
+    handoff?: boolean;
 }
 
 /**
@@ -29,7 +35,7 @@ export interface ExecTerminalProps {
  * `exec:output:${id}` / `exec:closed:${id}`. Only opening and closing the
  * session differ, hence the `connect`/`close` injection.
  */
-export default function ExecTerminal({ sessionId, banner, connect, close, saveName }: ExecTerminalProps) {
+export default function ExecTerminal({ sessionId, banner, connect, close, saveName, handoff }: ExecTerminalProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     // Held so a theme switch can repaint the live terminal — see useXtermTheme.
     const termRef = useRef<Terminal | null>(null);
@@ -51,8 +57,8 @@ export default function ExecTerminal({ sessionId, banner, connect, close, saveNa
     // every render.
     const actionsRef = useRef(actions);
     actionsRef.current = actions;
-    const lifecycleRef = useRef({ banner, connect, close });
-    lifecycleRef.current = { banner, connect, close };
+    const lifecycleRef = useRef({ banner, connect, close, handoff });
+    lifecycleRef.current = { banner, connect, close, handoff };
 
     useEffect(() => {
         if (!containerRef.current) return;
@@ -72,7 +78,31 @@ export default function ExecTerminal({ sessionId, banner, connect, close, saveNa
             ResizePodExecSession(sessionId, term.cols, term.rows).catch(() => {});
         }, 50);
 
-        term.write(`${lifecycleRef.current.banner}\r\n`);
+        // A panel moved in from another window attaches to the session that is
+        // still running in the shared backend (lib/terminalHandoff.ts); its
+        // history — node shell startup progress included — is replayed, so the
+        // banner is not repeated.
+        const attaching = !!lifecycleRef.current.handoff;
+        if (!attaching) term.write(`${lifecycleRef.current.banner}\r\n`);
+        const gate = createOutputGate((data) => term.write(data), attaching);
+
+        // The backend fires this when the session ends on its own — the remote
+        // shell exiting, the pod going away, the stream breaking. Without it the
+        // panel just stopped responding, which is indistinguishable from a hang.
+        let closed = false;
+        let disposed = false;
+
+        // A failed connect arrives twice in the window that connected — as the
+        // rejected promise and as `exec:failed` — and only as the event in a
+        // window the panel moved to while a node shell was still starting.
+        let failed = false;
+        const reportFailure = (err: unknown) => {
+            if (failed || disposed) return;
+            failed = true;
+            closed = true;
+            term.write(`\r\nFailed to connect: ${err}\r\n`);
+            term.options.cursorBlink = false;
+        };
 
         // Opening the session is deferred by one macrotask, and torn down only
         // if it actually started. StrictMode mounts, unmounts and remounts this
@@ -81,23 +111,28 @@ export default function ExecTerminal({ sessionId, banner, connect, close, saveNa
         // session whose progress output then lands in the surviving terminal.
         // For a node shell that also meant creating a privileged pod just to
         // cancel it. Deferring lets the discarded mount's timer be cleared
-        // before it ever reaches the backend.
+        // before it ever reaches the backend. The same holds for an attach.
         let started = false;
         const startTimer = setTimeout(() => {
             started = true;
-            lifecycleRef.current.connect().catch((err: unknown) => {
-                term.write(`\r\nFailed to connect: ${err}\r\n`);
-            });
+            if (attaching) {
+                AttachPodExecSession(sessionId)
+                    .then((snap) => gate.replay(snap))
+                    .catch(() => {
+                        gate.replay(null);
+                        if (disposed) return;
+                        closed = true;
+                        term.write('[session no longer available]\r\n');
+                        term.options.cursorBlink = false;
+                    });
+                return;
+            }
+            lifecycleRef.current.connect().catch(reportFailure);
         }, 0);
 
-        const offOutput = EventsOn(`exec:output:${sessionId}`, (data: string) => {
-            term.write(data);
-        });
+        const offOutput = EventsOn(`exec:output:${sessionId}`, gate.onOutput);
+        const offFailed = EventsOn(`exec:failed:${sessionId}`, reportFailure);
 
-        // The backend fires this when the session ends on its own — the remote
-        // shell exiting, the pod going away, the stream breaking. Without it the
-        // panel just stopped responding, which is indistinguishable from a hang.
-        let closed = false;
         const offClosed = EventsOn(`exec:closed:${sessionId}`, () => {
             if (closed) return;
             closed = true;
@@ -118,13 +153,17 @@ export default function ExecTerminal({ sessionId, banner, connect, close, saveNa
 
         return () => {
             clearTimeout(fitTimer);
+            disposed = true;
             offOutput();
+            offFailed();
             offClosed();
             onData.dispose();
             observer.disconnect();
             detachActions();
             clearTimeout(startTimer);
-            if (started) lifecycleRef.current.close().catch(() => {});
+            // A panel closing because it moved to another window leaves the
+            // session to the panel that is taking it over there.
+            if (!consumeHandoff(sessionId) && started) lifecycleRef.current.close().catch(() => {});
             if (fitRef.current === fitAddon) fitRef.current = null;
             if (termRef.current === term) termRef.current = null;
             term.dispose();

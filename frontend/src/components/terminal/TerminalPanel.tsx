@@ -13,7 +13,9 @@ import {
     WriteToTerminalSession,
     ResizeTerminalSession,
     CloseTerminalSession,
+    AttachTerminalSession,
 } from '../../../wailsjs/go/controller_app/App';
+import { consumeHandoff, createOutputGate } from '../../lib/terminalHandoff';
 import { useClusterContext } from '../../contexts/ClusterContext';
 import { useTerminalActions } from './useTerminalActions';
 import { renderPanelTitle } from '../../contexts/TabContext';
@@ -24,6 +26,8 @@ export interface TerminalPanelParams {
     clusterName?: string;
     titleKey?: string;
     titleVars?: Record<string, string | number | undefined>;
+    /** Moved here from another window: attach to the running shell instead of starting one. */
+    handoff?: boolean;
 }
 
 export default function TerminalPanel({ api, params }: IDockviewPanelProps<TerminalPanelParams>) {
@@ -93,17 +97,43 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
             ResizeTerminalSession(sessionId, term.cols, term.rows).catch(() => {});
         }, 50);
 
-        CreateTerminalSession(sessionId, clusterRef.current).catch((err: unknown) => {
-            term.write(`\r\nSession error: ${err}\r\n`);
-        });
-
-        const offOutput = EventsOn(`terminal:output:${sessionId}`, (data: string) => {
-            term.write(data);
-        });
-
         // Fired when the shell exits on its own (the user typing `exit`). The
         // pty is gone at that point, so keystrokes have nowhere to go.
         let exited = false;
+
+        // A panel moved in from another window attaches to the shell that is
+        // still running in the shared backend (lib/terminalHandoff.ts), and
+        // the gate keeps the replayed history and the live stream in order.
+        //
+        // Deferred by one macrotask, like ExecTerminal's connect: StrictMode
+        // and the drop placement (DockviewContainer.placeDrop) can mount and
+        // discard this effect at once, and the discarded mount must neither
+        // attach nor close a session the surviving one is about to take over.
+        const attaching = !!params.handoff;
+        const gate = createOutputGate((data) => term.write(data), attaching);
+        let started = !attaching;
+        const startTimer = attaching
+            ? setTimeout(() => {
+                started = true;
+                AttachTerminalSession(sessionId)
+                    .then((snap) => gate.replay(snap))
+                    .catch(() => {
+                        gate.replay(null);
+                        exited = true;
+                        term.write('[session no longer available]\r\n');
+                        term.options.cursorBlink = false;
+                    });
+            }, 0)
+            : undefined;
+
+        if (!attaching) {
+            CreateTerminalSession(sessionId, clusterRef.current).catch((err: unknown) => {
+                term.write(`\r\nSession error: ${err}\r\n`);
+            });
+        }
+
+        const offOutput = EventsOn(`terminal:output:${sessionId}`, gate.onOutput);
+
         const offExit = EventsOn(`terminal:exit:${sessionId}`, () => {
             if (exited) return;
             exited = true;
@@ -124,12 +154,17 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
 
         return () => {
             clearTimeout(fitTimer);
+            clearTimeout(startTimer);
             offOutput();
             offExit();
             onData.dispose();
             observer.disconnect();
             detachActions();
-            CloseTerminalSession(sessionId).catch(() => {});
+            // A panel closing because it moved to another window leaves the
+            // shell to the panel that is taking it over there.
+            if (!consumeHandoff(sessionId) && started) {
+                CloseTerminalSession(sessionId).catch(() => {});
+            }
             if (fitRef.current === fitAddon) fitRef.current = null;
             if (termRef.current === term) termRef.current = null;
             term.dispose();

@@ -240,8 +240,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/pod/PodExecPanel.tsx": {
-    "mtime": 1790536578.9490695,
-    "ast_hash": "3f4448a1d6b248081525b22b86e5e908",
+    "mtime": 1791138789.7022614,
+    "ast_hash": "ff9ec7535be5c31ed4946cc38dc44032",
     "semantic_hash": ""
   },
   "frontend/src/components/pod/main.tsx": {
@@ -325,8 +325,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/terminal/TerminalPanel.tsx": {
-    "mtime": 1790534170.998332,
-    "ast_hash": "fe37554e4a8e0170e8c9afbc0b080bba",
+    "mtime": 1791138766.3086274,
+    "ast_hash": "7e67ac673e730aa946cf8cff942fcd92",
     "semantic_hash": ""
   },
   "frontend/src/components/titlebar/TitleBar.tsx": {
@@ -355,8 +355,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/workspace/FloatableTab.tsx": {
-    "mtime": 1790536594.8228426,
-    "ast_hash": "e3a09f9af95ce079c88909c0f902b8ce",
+    "mtime": 1791138805.091182,
+    "ast_hash": "01453dabfd8b224556c33367f95f427e",
     "semantic_hash": ""
   },
   "frontend/src/components/workspace/ObjectYamlPanel.tsx": {
@@ -390,8 +390,8 @@
     "semantic_hash": ""
   },
   "frontend/src/contexts/TabContext.tsx": {
-    "mtime": 1790536641.3881116,
-    "ast_hash": "2e155e0caf3e4a7723406d173d9ebbf7",
+    "mtime": 1791138805.0917103,
+    "ast_hash": "50dc086f329ac66427fd0a1129c99928",
     "semantic_hash": ""
   },
   "frontend/src/lib/k8sYamlIntellisense.ts": {
@@ -665,8 +665,8 @@
     "semantic_hash": ""
   },
   "internal/business/podExec.go": {
-    "mtime": 1786201909.8575733,
-    "ast_hash": "eaa351939d1dacb08e4b66166f0bb15e",
+    "mtime": 1791138713.792345,
+    "ast_hash": "5e0b0610eda15d94c34a8443d8892113",
     "semantic_hash": ""
   },
   "internal/business/replicaSet.go": {
@@ -730,8 +730,8 @@
     "semantic_hash": ""
   },
   "internal/business/terminal.go": {
-    "mtime": 1786201902.5736613,
-    "ast_hash": "3d20f33be99e1dd0e04dd02cb5827e58",
+    "mtime": 1791138713.7921581,
+    "ast_hash": "a28bf0f7b4bf9f709362c8a220aa1ab5",
     "semantic_hash": ""
   },
   "internal/business/trivy.go": {
@@ -760,8 +760,8 @@
     "semantic_hash": "10ef7b66452ca6c79904cb99d2b183d6"
   },
   "internal/controller/functionBuilder.go": {
-    "mtime": 1791137753.729507,
-    "ast_hash": "bfb6f8faf37d454e28d4dc56f2e45816",
+    "mtime": 1791138713.7926877,
+    "ast_hash": "04eb629aff136ddd6628798043296cda",
     "semantic_hash": ""
   },
   "internal/controller/rpcserver.go": {
@@ -1080,8 +1080,8 @@
     "semantic_hash": ""
   },
   "internal/services/podExecServices.go": {
-    "mtime": 1790536264.9961002,
-    "ast_hash": "0cf8db1aa0c8a5c86baaa73dd605b308",
+    "mtime": 1791138681.4085908,
+    "ast_hash": "bed2b4f8976975f0b876ee512591dafd",
     "semantic_hash": ""
   },
   "internal/services/podServices.go": {
@@ -1145,8 +1145,8 @@
     "semantic_hash": ""
   },
   "internal/services/terminalServices.go": {
-    "mtime": 1786213781.3092227,
-    "ast_hash": "268b46bdb3deb9ca5f56a7d73ef3a11f",
+    "mtime": 1791138681.4083622,
+    "ast_hash": "4ba88917942e40b44066d3d58931a396",
     "semantic_hash": ""
   },
   "internal/services/trivyServices.go": {
@@ -1185,8 +1185,8 @@
     "semantic_hash": "b6c301fcd99f801921265885769b80b7"
   },
   "internal/tui/exec.go": {
-    "mtime": 1786201929.4023376,
-    "ast_hash": "c264d62dc3a1c418ae43ef52fd1c712d",
+    "mtime": 1791138720.8166091,
+    "ast_hash": "2c6773acb9803cd6647c58d8d01315b0",
     "semantic_hash": ""
   },
   "internal/tui/help.go": {
@@ -1270,8 +1270,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1791137760.8602421,
-    "ast_hash": "2c245be7de54de33325230e7fb11fb03",
+    "mtime": 1791138863.267435,
+    "ast_hash": "eb08afb2f41b401187fe9f9115c68ee5",
     "semantic_hash": ""
   },
   "README.md": {
@@ -1720,8 +1720,8 @@
     "semantic_hash": ""
   },
   "internal/services/terminalServices_test.go": {
-    "mtime": 1786213739.4854105,
-    "ast_hash": "501d90da333385214d3f936d8156d386",
+    "mtime": 1791138107.0798187,
+    "ast_hash": "501393f0f7818166fa1953bdee2709f8",
     "semantic_hash": ""
   },
   "electron/logfile.cjs": {
@@ -2470,23 +2470,23 @@
     "semantic_hash": ""
   },
   "frontend/src/components/node/NodeShellPanel.tsx": {
-    "mtime": 1790536578.9500694,
-    "ast_hash": "2610908069a2a536ad58652c5cc20186",
+    "mtime": 1791138789.7103126,
+    "ast_hash": "cabd7474100d60ffba1a0f29b6e8db3d",
     "semantic_hash": ""
   },
   "frontend/src/components/terminal/ExecTerminal.tsx": {
-    "mtime": 1790538283.5566952,
-    "ast_hash": "967b4e71f25873d3482d848bcbd11bba",
+    "mtime": 1791138789.6932862,
+    "ast_hash": "57a7593bf781f02c3661d89f180e09ee",
     "semantic_hash": ""
   },
   "internal/business/nodeShell.go": {
-    "mtime": 1790536377.3417487,
-    "ast_hash": "5ef5710db8aacefd99368ff0fb817731",
+    "mtime": 1791138713.7924206,
+    "ast_hash": "9a6338699d4f7f7bb566bb1faf1b8c5d",
     "semantic_hash": ""
   },
   "internal/services/nodeShellServices.go": {
-    "mtime": 1790538245.9731545,
-    "ast_hash": "19f99f553180d890d0d296e630d7a0b1",
+    "mtime": 1791138681.412384,
+    "ast_hash": "1a8a3d31f90a4601f1ad338f84acb93a",
     "semantic_hash": ""
   },
   "internal/services/nodeShellServices_test.go": {
@@ -2507,6 +2507,31 @@
   "frontend/src/lib/LiveChart.tsx": {
     "mtime": 1791137620.5833004,
     "ast_hash": "f71500d41fd559875fc82c600113a73e",
+    "semantic_hash": ""
+  },
+  "frontend/src/lib/terminalHandoff.test.ts": {
+    "mtime": 1791138833.2623222,
+    "ast_hash": "9dbccf86aa5d01f0d43da90529776c52",
+    "semantic_hash": ""
+  },
+  "frontend/src/lib/terminalHandoff.ts": {
+    "mtime": 1791138756.0824733,
+    "ast_hash": "105e877ff40328108b0821fd3c6e0cb5",
+    "semantic_hash": ""
+  },
+  "internal/models/terminalInfo.go": {
+    "mtime": 1791138266.5707314,
+    "ast_hash": "2e513357ec37f1195757996830e878f6",
+    "semantic_hash": ""
+  },
+  "internal/services/execHandoffServices.go": {
+    "mtime": 1791138681.415285,
+    "ast_hash": "a7277a7ce8fff7627854f81b5a346704",
+    "semantic_hash": ""
+  },
+  "internal/services/execHandoffServices_test.go": {
+    "mtime": 1791138654.4246566,
+    "ast_hash": "09e589b82c4669ba0dbcde8e9456335b",
     "semantic_hash": ""
   }
 }

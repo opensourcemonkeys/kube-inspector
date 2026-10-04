@@ -65,6 +65,10 @@ type nodeShellSession struct {
 	client  kubernetes.Interface
 	podName string
 	cancel  context.CancelFunc
+	// history holds the startup progress and, once connected, the shell's
+	// output — the exec session is handed the same one. It is what lets the
+	// panel move to another window while the helper pod is still starting.
+	history *terminalHistory
 }
 
 var (
@@ -122,12 +126,13 @@ func deleteNodeShellPod(client kubernetes.Interface, podName string) {
 // through onOutput so the terminal shows what it is waiting on rather than
 // nothing. Once connected the session lives in the ordinary exec registry, so
 // WriteToPodExecSession / ResizePodExecSession work on it unchanged.
-func CreateNodeShellSession(id, nodeName string, onOutput func(string), onClosed func(), client *kubernetes.Clientset, config *rest.Config) error {
+func CreateNodeShellSession(id, nodeName string, onOutput func(data string, end int64), onClosed func(), client *kubernetes.Clientset, config *rest.Config) error {
 	releaseNodeShell(id, nil)
 
+	history := newTerminalHistory()
 	say := func(format string, args ...any) {
 		if onOutput != nil {
-			onOutput(fmt.Sprintf(format, args...) + "\r\n")
+			history.record(fmt.Sprintf(format, args...)+"\r\n", onOutput)
 		}
 	}
 
@@ -138,7 +143,7 @@ func CreateNodeShellSession(id, nodeName string, onOutput func(string), onClosed
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	sess := &nodeShellSession{client: client, cancel: cancel}
+	sess := &nodeShellSession{client: client, cancel: cancel, history: history}
 
 	// Registered before the pod exists. A panel closed during the wait below has
 	// to have something to cancel, and an entry that only appears once the pod
@@ -178,7 +183,7 @@ func CreateNodeShellSession(id, nodeName string, onOutput func(string), onClosed
 	}
 
 	say("Entering host namespaces on %s...", nodeName)
-	err = startExecSession(id, nodeShellNamespace, created.Name, nodeShellContainer, nodeShellCommand, onOutput,
+	err = startExecSession(id, nodeShellNamespace, created.Name, nodeShellContainer, nodeShellCommand, history, onOutput,
 		func() {
 			// The stream ended on its own. Drop the pod before telling the
 			// frontend, so a user who reopens the tab immediately does not race

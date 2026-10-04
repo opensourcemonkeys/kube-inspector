@@ -16,10 +16,8 @@ import {
     undockPanel,
     windowAtCursor,
 } from '../../lib/shellWindows';
+import { isWindowOnly, prepareWindowHandoff } from '../../lib/terminalHandoff';
 
-// Live PTY sessions are bound to the process that opened them, and moving a
-// panel re-creates it rather than reparenting the DOM — so these cannot travel.
-const NON_TRANSFERABLE = new Set(['terminal', 'podExec', 'nodeShell']);
 
 // How far the pointer must travel before a press counts as a drag rather than
 // a click. Matches dockview's own default threshold.
@@ -108,8 +106,13 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
             paintedRef.current = null;
         };
     }, [api, containerApi, paintAccent]);
-    const canTransfer = !NON_TRANSFERABLE.has(componentType);
-    const otherInstances = instances.filter(i => i.id !== selfInfo?.id);
+    // Terminal, pod exec and node shell sessions live in this process's
+    // backend. They can move between its windows, which all share it — the
+    // session stays put and the new panel re-attaches (lib/terminalHandoff.ts)
+    // — but another instance is another process, so never there.
+    const windowOnly = isWindowOnly(componentType);
+    const canTransfer = !windowOnly || supportsWindows();
+    const otherInstances = windowOnly ? [] : instances.filter(i => i.id !== selfInfo?.id);
 
     const serialize = useCallback((): PanelPayload => {
         const panel = containerApi.getPanel(api.id);
@@ -191,21 +194,20 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
             // dockview handles in-window rearranging; only an outside release is ours.
             if (!movedFar || !outside) { endGhost(); return; }
 
-            const panel = serialize();
             const targetWindow = await windowAtCursor();
-            if (targetWindow !== null) {
-                // Moving onto an existing window is allowed even for the last
-                // tab — it consolidates rather than spawning a window. Send the
-                // panel BEFORE ending the ghost: the target places it using the
-                // live overlay, which the ghost-end tears down.
-                sendPanelToWindow(targetWindow, panel);
-                api.close();
-            } else if (containerApi.totalPanels > 1) {
-                // Undocking the only tab would just relocate the same window,
-                // leaving nothing behind — so it is a no-op here.
-                undockPanel(panel);
-                api.close();
-            }
+            // Moving onto an existing window is allowed even for the last tab —
+            // it consolidates rather than spawning a window. Undocking the only
+            // tab would just relocate the same window, leaving nothing behind,
+            // so that is a no-op. Decided before the hand-off below, which must
+            // only run for a panel that really leaves.
+            if (targetWindow === null && containerApi.totalPanels <= 1) { endGhost(); return; }
+
+            const panel = await prepareWindowHandoff(serialize());
+            // Send the panel BEFORE ending the ghost: the target places it
+            // using the live overlay, which the ghost-end tears down.
+            if (targetWindow !== null) sendPanelToWindow(targetWindow, panel);
+            else undockPanel(panel);
+            api.close();
             endGhost();
         };
 
@@ -256,7 +258,7 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
     };
 
     const handleSelect = async (target: TabTarget) => {
-        const panel = serialize();
+        const panel = target.kind === 'instance' ? serialize() : await prepareWindowHandoff(serialize());
         switch (target.kind) {
             case 'undock':
                 undockPanel(panel);
