@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.18.0-beta] - 2026-10-04
+
+A pod-inspection release. Clicking a pod now opens a detail panel beside the list that answers the questions which used to mean reading its YAML — what owns it, what it mounts, which Secrets and ConfigMaps it reads, why a container keeps restarting — with every object it names one click away. The update dialog now says what an update brings before you install it, and terminals can be moved to another window without losing their session.
+
+### Added
+- **A pod detail panel.** A single click on a row of the Pods screen opens the pod's detail to the right of the list; double-click still opens its YAML. At the top, a CPU / Memory chart of the pod's usage, sampled every five seconds while the panel is open, with the pod's limit drawn as a dashed line when every container sets one. Below it, the pod's properties: age, labels and annotations, the controller that owns it (with the top of the chain — a ReplicaSet's Deployment, a Job's CronJob), status, node, pod IP, service account, priority and QoS class, conditions (any that are not `True` are marked amber), tolerations and affinities behind a **Show** toggle, the Services whose selector matches the pod, and every Secret, ConfigMap and PersistentVolumeClaim it references anywhere — in a volume, an env var, `envFrom` or `imagePullSecrets`. Then a section per init and regular container: state with the waiting reason and back-off message, the last termination with its exit code, image and pull policy, ports, environment, mounts, probes with their timings, command and arguments, requests and limits, and live usage; and finally the volumes. Every name in the panel is a link to that object's YAML, with a describe button on hover. The header has Exec, Logs, Edit YAML, Delete (with a confirmation) and Close; the divider can be dragged to resize the panel, and its width is remembered. The panel refreshes every five seconds while its tab is on screen and stops when it is not. Environment values are shown as they appear in the pod spec; a Secret's value is never read, only its name and key.
+- **"What's new" in the update dialog.** When an update is available, the dialog lists the release notes of every version it brings — including releases skipped in between — newest first, with older ones folded. Developer notes (the **Internal** section) are left out. The notes come from the website; if they cannot be fetched, the dialog links to the changelog page instead.
+- **Terminals can move between windows.** A Terminal, pod Exec or node shell tab can now be dragged out to a new window, or into another window of the app, and it keeps running: the session stays alive and the new window replays its output before carrying on. Terminals still cannot move to a different Kube Inspector instance, since the session lives in this one. A terminal that no window picks up is closed after 30 seconds — for a node shell, that deletes its helper pod.
+- **Resource quotas expand to their full breakdown.** Each quota row opens to a table of every resource it limits, with used, hard and **remaining** amounts and a usage percentage, tagged as it reaches 60, 80 and 100%. Remaining keeps the quota's own units (`2500m`, `5Gi`) and goes negative when a quota has been lowered below what is already in use.
+- **Limit ranges expand to their full spec.** Each row opens to one line per type and resource with its min, max, default and default request — and now also `maxLimitRequestRatio`, which was not shown before.
+
+### Changed
+- **Clicking a pod row no longer ticks its checkbox.** Selecting pods for deletion is done with the checkboxes only, so opening the detail panel never marks a pod for deletion as a side effect. Clicks on a row's own buttons (Logs, Exec, the ⋮ menu) do not open the panel either.
+- **The Monitoring charts no longer blink on every refresh.** They were rebuilt from scratch each time the dashboard re-rendered, which left the canvas empty for a frame or two on every poll; they are now created once and updated in place.
+- **The CRD tree uses the app's standard text size**, matching the sidebar and the other lists.
+
+### Removed
+- **The Monitoring dashboard's "Take snapshot" button**, together with the `html-to-image` dependency it relied on.
+
+### Internal
+- The documentation build now also publishes `changelog.json` — every released version of `CHANGELOG.md` as structured data — beside `version.json`; the update dialog reads it through the new `GetChangelog` call, overridable with `KUBE_INS_CHANGELOG_URL` for local testing. Release notes are rendered by a small inline-Markdown renderer that never produces HTML, since the text comes from the network.
+- New `GetPodDetail` and `GetPodContainerUsage` backend calls. Only reading the pod itself is fatal; if RBAC forbids reading its ReplicaSet or the namespace's Services, those parts of the panel are simply left empty.
+- `ResourceListView` gained `onRowClick` / `activeRowKey` (used by the pod panel) and row expansion (used by resource quotas and limit ranges).
+- Moving a terminal is built on new detach / attach session calls that keep the backend session alive across the move and hand the new window the output history with a stream offset, so no output is shown twice or lost.
+- Unit tests cover the pod detail builder (including RBAC-forbidden lookups), the changelog version filter, the inline-Markdown parser, terminal session handoff, quota remaining amounts and the limit-range ratio.
+
+---
+
 ## [v0.17.0-beta] - 2026-09-27
 
 A terminal release. Every terminal in the app — the shell panel, a pod's Exec tab, CLI Mode — gained the interactions a terminal is expected to have: copy and paste that work, find, save the output, resizable text. And there is a new terminal to use them in, a root shell on a node, opened from the Nodes screen.
