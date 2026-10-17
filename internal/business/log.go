@@ -1,6 +1,7 @@
 package business
 
 import (
+	"kube-ins/internal/models"
 	repository "kube-ins/internal/repository"
 	services "kube-ins/internal/services"
 )
@@ -11,6 +12,14 @@ func GetPodContainers(clusterName string, name, namespace string) ([]string, err
 		return nil, err
 	}
 	return services.GetPodContainers(namespace, name, client)
+}
+
+func GetPodLogContainers(clusterName string, name, namespace string) ([]models.LogContainerInfo, error) {
+	client, err := repository.NewK8sClientForCluster(clusterName)
+	if err != nil {
+		return nil, err
+	}
+	return services.GetPodLogContainers(namespace, name, client)
 }
 
 func GetDeploymentPods(clusterName string, name, namespace string) ([]string, error) {
@@ -61,13 +70,15 @@ func GetCronJobPods(clusterName string, name, namespace string) ([]string, error
 	return services.GetCronJobPods(namespace, name, client)
 }
 
-func StartLogStream(clusterName string, sessionId, podName, namespace, container string, onData func(string)) error {
+// StartLogStream follows one container's log. onClose fires only when the
+// stream ends on its own; see services.StartLogStream.
+func StartLogStream(clusterName string, sessionId, podName, namespace, container string, opts models.LogStreamOptions, onData func(string), onClose func(reason string)) error {
 	// Streaming client: a followed log stream must outlive the shared request timeout.
 	client, err := repository.NewK8sClientForClusterStreaming(clusterName)
 	if err != nil {
 		return err
 	}
-	return services.StartLogStream(sessionId, namespace, podName, container, client, onData)
+	return services.StartLogStream(sessionId, namespace, podName, container, opts, client, onData, onClose)
 }
 
 func StopLogStream(sessionId string) {

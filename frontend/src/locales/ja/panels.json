@@ -289,7 +289,48 @@
     "label": "ログ",
     "selectPod": "Pod を選択",
     "container": "コンテナ",
-    "truncated": "最新の {{lines}} 行のみ表示しています"
+    "truncated": "最新の {{lines}} 行のみ表示しています",
+    "allPods": "すべての Pod ({{n}})",
+    "allContainers": "すべてのコンテナ",
+    "kind": {
+      "init": "init",
+      "ephemeral": "ephemeral"
+    },
+    "tail": {
+      "tooltip": "読み込む行数",
+      "lines": "{{n}} 行",
+      "all": "すべての行"
+    },
+    "since": {
+      "tooltip": "期間",
+      "s0": "全期間",
+      "s300": "過去 5 分",
+      "s900": "過去 15 分",
+      "s3600": "過去 1 時間",
+      "s21600": "過去 6 時間",
+      "s86400": "過去 24 時間"
+    },
+    "follow": "追従（自動スクロール）",
+    "wrap": "行を折り返す",
+    "timestamps": "タイムスタンプ",
+    "previous": "前回のコンテナ（最後に終了したインスタンス）",
+    "levelColors": "ログレベルを強調表示",
+    "reconnect": "再接続",
+    "clear": "クリア",
+    "copy": "すべてコピー",
+    "save": "ファイルに保存",
+    "toast": {
+      "copied": "ログをコピーしました",
+      "copyFailed": "コピーに失敗しました",
+      "nothingToCopy": "まだログがありません",
+      "saved": "ログを保存しました",
+      "saveFailed": "ログを保存できませんでした"
+    },
+    "notice": {
+      "ended": "── ストリーム終了 ──",
+      "error": "[エラー] {{reason}}",
+      "noContainer": "[{{pod}}] に {{container}} という名前のコンテナはありません"
+    }
   },
   "terminal": {
     "label": "ターミナル",

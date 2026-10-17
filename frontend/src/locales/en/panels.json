@@ -290,7 +290,48 @@
     "label": "Logs",
     "selectPod": "Select Pod",
     "container": "Container",
-    "truncated": "Showing the last {{lines}} lines"
+    "truncated": "Showing the last {{lines}} lines",
+    "allPods": "All pods ({{n}})",
+    "allContainers": "All containers",
+    "kind": {
+      "init": "init",
+      "ephemeral": "ephemeral"
+    },
+    "tail": {
+      "tooltip": "Lines to load",
+      "lines": "{{n}} lines",
+      "all": "All lines"
+    },
+    "since": {
+      "tooltip": "Time range",
+      "s0": "Any time",
+      "s300": "Last 5 min",
+      "s900": "Last 15 min",
+      "s3600": "Last 1 hour",
+      "s21600": "Last 6 hours",
+      "s86400": "Last 24 hours"
+    },
+    "follow": "Follow (auto-scroll)",
+    "wrap": "Wrap lines",
+    "timestamps": "Timestamps",
+    "previous": "Previous container (last terminated instance)",
+    "levelColors": "Highlight log levels",
+    "reconnect": "Reconnect",
+    "clear": "Clear",
+    "copy": "Copy all",
+    "save": "Save to file",
+    "toast": {
+      "copied": "Logs copied",
+      "copyFailed": "Copy failed",
+      "nothingToCopy": "No logs yet",
+      "saved": "Logs saved",
+      "saveFailed": "Could not save logs"
+    },
+    "notice": {
+      "ended": "── stream ended ──",
+      "error": "[error] {{reason}}",
+      "noContainer": "[{{pod}}] has no container named {{container}}"
+    }
   },
   "terminal": {
     "label": "Terminal",

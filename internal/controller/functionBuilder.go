@@ -950,6 +950,10 @@ func (a *App) GetPodContainers(clusterName string, name string, namespace string
 	return bussiness.GetPodContainers(clusterName, name, namespace)
 }
 
+func (a *App) GetPodLogContainers(clusterName string, name string, namespace string) ([]models.LogContainerInfo, error) {
+	return bussiness.GetPodLogContainers(clusterName, name, namespace)
+}
+
 func (a *App) GetDeploymentPods(clusterName string, name string, namespace string) ([]string, error) {
 	return bussiness.GetDeploymentPods(clusterName, name, namespace)
 }
@@ -978,9 +982,13 @@ func (a *App) GetCronJobPods(clusterName string, name string, namespace string) 
 // Logs Screen
 // ============================================================================
 
-func (a *App) StartLogStream(clusterName string, sessionId string, podName string, namespace string, container string) error {
-	return bussiness.StartLogStream(clusterName, sessionId, podName, namespace, container, func(data string) {
+// StartLogStream emits log:output:{id} with each chunk and log:closed:{id}
+// (payload: "" or the read error) when the stream ends without StopLogStream.
+func (a *App) StartLogStream(clusterName string, sessionId string, podName string, namespace string, container string, opts models.LogStreamOptions) error {
+	return bussiness.StartLogStream(clusterName, sessionId, podName, namespace, container, opts, func(data string) {
 		a.emit("log:output:"+sessionId, data)
+	}, func(reason string) {
+		a.emit("log:closed:"+sessionId, reason)
 	})
 }
 

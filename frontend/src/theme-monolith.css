@@ -1207,20 +1207,40 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .monaco-editor .current-line { background: var(--panel2) !important; border: none !important; }
 
 .log-viewer-panel { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--app); }
-.log-viewer-toolbar { display: flex; align-items: center; gap: 8px; padding: 0 10px; height: 36px; flex-shrink: 0; background: var(--panel); border-bottom: 1px solid var(--line); color: var(--ink2); font-size: 13px; }
-.log-viewer-toolbar__label { margin-right: 4px; }
+/* Wraps onto a second row in a narrow panel rather than clipping its controls,
+   hence min-height and row-gap instead of the fixed 36px it used to have. */
+.log-viewer-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; padding: 5px 10px; min-height: 36px; flex-shrink: 0; background: var(--panel); border-bottom: 1px solid var(--line); color: var(--ink2); font-size: 13px; }
+.log-viewer-toolbar__group { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.log-viewer-toolbar__group--end { margin-left: auto; }
 /* Ring-buffer notice: the viewer keeps only the newest MAX_LOG_LINES lines. */
-.log-viewer-toolbar__note { margin-left: auto; color: var(--ink3); font-size: 12px; }
+.log-viewer-toolbar__note { color: var(--ink3); font-size: 12px; white-space: nowrap; }
 .log-viewer-dropdown.p-dropdown { height: 26px !important; font-size: 12px; border-radius: 4px !important; }
 .log-viewer-dropdown .p-dropdown-label { padding: 0 8px; font-size: 12px; line-height: 24px; }
+.log-viewer-dropdown--pod.p-dropdown { max-width: 280px; }
+
+/* Toggles and actions: 26px squares matching the dropdown height. A toggle
+   that is on is filled, not just tinted, so the state reads at a glance. */
+.log-viewer-toggle.p-button, .log-viewer-action.p-button { width: 26px; height: 26px; padding: 0; border-radius: 4px; color: var(--ink2); }
+.log-viewer-toggle.p-button:enabled:hover, .log-viewer-action.p-button:enabled:hover { background: var(--hover); color: var(--ink); }
+.log-viewer-toggle.p-button.is-on { background: color-mix(in srgb, var(--teal) 16%, transparent); color: var(--teal); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--teal) 45%, transparent); }
+.log-viewer-toggle.p-button.is-on:enabled:hover { background: color-mix(in srgb, var(--teal) 24%, transparent); color: var(--teal); }
+
 .log-viewer-body { flex: 1; overflow: hidden; min-height: 0; height: 100%; }
 
 /* LazyLog theme overrides — component injects its own CSS module with hardcoded colors */
-.react-lazylog { background-color: #080b11 !important; color: #e7eaf0 !important; }
+.react-lazylog { background-color: var(--app) !important; color: var(--ink) !important; }
 .react-lazylog [class*="_line__"]:hover { background-color: var(--hover) !important; }
 .react-lazylog [class*="_lineHighlight__"] { background-color: var(--panel3) !important; }
 .react-lazylog [class*="_lineNumber__"] { color: var(--ink3) !important; }
 .react-lazylog [class*="_lineGutter__"] { color: var(--ink3) !important; }
+/* Log-level token (lib/logLevel.tsx). Only the word is coloured; the line
+   keeps the log colour so a wall of INFO stays readable. */
+.react-lazylog .log-lvl { font-weight: 600; }
+.react-lazylog .log-lvl--fatal { color: var(--app); background: var(--red); border-radius: 2px; padding: 0 2px; }
+.react-lazylog .log-lvl--error { color: var(--red); }
+.react-lazylog .log-lvl--warn  { color: var(--amber); }
+.react-lazylog .log-lvl--info  { color: var(--blue); }
+.react-lazylog .log-lvl--debug { color: var(--ink3); font-weight: 500; }
 
 /* LazyLog searchbar overrides */
 .react-lazylog-searchbar { background-color: var(--panel) !important; color: var(--ink2) !important; border-bottom: 1px solid var(--line) !important; padding: 6px 10px !important; font-family: var(--font-family) !important; font-size: 12px !important; }

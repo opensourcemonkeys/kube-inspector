@@ -290,7 +290,48 @@
     "label": "Loglar",
     "selectPod": "Pod Seç",
     "container": "Container",
-    "truncated": "Son {{lines}} satır gösteriliyor"
+    "truncated": "Son {{lines}} satır gösteriliyor",
+    "allPods": "Tüm pod'lar ({{n}})",
+    "allContainers": "Tüm container'lar",
+    "kind": {
+      "init": "init",
+      "ephemeral": "ephemeral"
+    },
+    "tail": {
+      "tooltip": "Yüklenecek satır",
+      "lines": "{{n}} satır",
+      "all": "Tüm satırlar"
+    },
+    "since": {
+      "tooltip": "Zaman aralığı",
+      "s0": "Tüm zamanlar",
+      "s300": "Son 5 dk",
+      "s900": "Son 15 dk",
+      "s3600": "Son 1 saat",
+      "s21600": "Son 6 saat",
+      "s86400": "Son 24 saat"
+    },
+    "follow": "Takip et (otomatik kaydır)",
+    "wrap": "Satırları kaydır",
+    "timestamps": "Zaman damgaları",
+    "previous": "Önceki container (son sonlanan örnek)",
+    "levelColors": "Log seviyelerini renklendir",
+    "reconnect": "Yeniden bağlan",
+    "clear": "Temizle",
+    "copy": "Tümünü kopyala",
+    "save": "Dosyaya kaydet",
+    "toast": {
+      "copied": "Loglar kopyalandı",
+      "copyFailed": "Kopyalanamadı",
+      "nothingToCopy": "Henüz log yok",
+      "saved": "Loglar kaydedildi",
+      "saveFailed": "Loglar kaydedilemedi"
+    },
+    "notice": {
+      "ended": "── akış sona erdi ──",
+      "error": "[hata] {{reason}}",
+      "noContainer": "[{{pod}}] içinde {{container}} adlı container yok"
+    }
   },
   "terminal": {
     "label": "Terminal",

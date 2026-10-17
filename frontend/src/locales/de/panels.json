@@ -290,7 +290,48 @@
     "label": "Logs",
     "selectPod": "Pod auswählen",
     "container": "Container",
-    "truncated": "Zeigt die letzten {{lines}} Zeilen"
+    "truncated": "Zeigt die letzten {{lines}} Zeilen",
+    "allPods": "Alle Pods ({{n}})",
+    "allContainers": "Alle Container",
+    "kind": {
+      "init": "init",
+      "ephemeral": "ephemeral"
+    },
+    "tail": {
+      "tooltip": "Zu ladende Zeilen",
+      "lines": "{{n}} Zeilen",
+      "all": "Alle Zeilen"
+    },
+    "since": {
+      "tooltip": "Zeitraum",
+      "s0": "Gesamter Zeitraum",
+      "s300": "Letzte 5 Min.",
+      "s900": "Letzte 15 Min.",
+      "s3600": "Letzte Stunde",
+      "s21600": "Letzte 6 Stunden",
+      "s86400": "Letzte 24 Stunden"
+    },
+    "follow": "Folgen (automatisch scrollen)",
+    "wrap": "Zeilen umbrechen",
+    "timestamps": "Zeitstempel",
+    "previous": "Vorheriger Container (zuletzt beendete Instanz)",
+    "levelColors": "Log-Level hervorheben",
+    "reconnect": "Neu verbinden",
+    "clear": "Leeren",
+    "copy": "Alles kopieren",
+    "save": "In Datei speichern",
+    "toast": {
+      "copied": "Logs kopiert",
+      "copyFailed": "Kopieren fehlgeschlagen",
+      "nothingToCopy": "Noch keine Logs",
+      "saved": "Logs gespeichert",
+      "saveFailed": "Logs konnten nicht gespeichert werden"
+    },
+    "notice": {
+      "ended": "── Stream beendet ──",
+      "error": "[Fehler] {{reason}}",
+      "noContainer": "[{{pod}}] hat keinen Container namens {{container}}"
+    }
   },
   "terminal": {
     "label": "Terminal",

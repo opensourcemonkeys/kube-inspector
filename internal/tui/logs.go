@@ -8,6 +8,7 @@ import (
 	"github.com/rivo/tview"
 
 	"kube-ins/internal/business"
+	"kube-ins/internal/models"
 )
 
 // showLogs streams a pod container's logs into a TextView. It picks the
@@ -103,7 +104,7 @@ func (a *App) startLogs(row rowData, container string) {
 			}
 		})
 	}
-	if err := business.StartLogStream(a.cluster, sessionID, row.name, row.namespace, container, onData); err != nil {
+	if err := business.StartLogStream(a.cluster, sessionID, row.name, row.namespace, container, models.LogStreamOptions{TailLines: 1000}, onData, nil); err != nil {
 		a.flash("Error", err.Error(), colDanger)
 		stop()
 	}

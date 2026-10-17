@@ -289,7 +289,48 @@
     "label": "日志",
     "selectPod": "选择 Pod",
     "container": "容器",
-    "truncated": "仅显示最后 {{lines}} 行"
+    "truncated": "仅显示最后 {{lines}} 行",
+    "allPods": "所有 Pod ({{n}})",
+    "allContainers": "所有容器",
+    "kind": {
+      "init": "init",
+      "ephemeral": "ephemeral"
+    },
+    "tail": {
+      "tooltip": "加载行数",
+      "lines": "{{n}} 行",
+      "all": "全部行"
+    },
+    "since": {
+      "tooltip": "时间范围",
+      "s0": "全部时间",
+      "s300": "最近 5 分钟",
+      "s900": "最近 15 分钟",
+      "s3600": "最近 1 小时",
+      "s21600": "最近 6 小时",
+      "s86400": "最近 24 小时"
+    },
+    "follow": "跟随（自动滚动）",
+    "wrap": "自动换行",
+    "timestamps": "时间戳",
+    "previous": "上一个容器（最近终止的实例）",
+    "levelColors": "高亮日志级别",
+    "reconnect": "重新连接",
+    "clear": "清空",
+    "copy": "全部复制",
+    "save": "保存到文件",
+    "toast": {
+      "copied": "日志已复制",
+      "copyFailed": "复制失败",
+      "nothingToCopy": "暂无日志",
+      "saved": "日志已保存",
+      "saveFailed": "无法保存日志"
+    },
+    "notice": {
+      "ended": "── 流已结束 ──",
+      "error": "[错误] {{reason}}",
+      "noContainer": "[{{pod}}] 中没有名为 {{container}} 的容器"
+    }
   },
   "terminal": {
     "label": "终端",
