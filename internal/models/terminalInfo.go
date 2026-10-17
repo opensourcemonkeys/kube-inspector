@@ -8,3 +8,13 @@ type TerminalSnapshot struct {
 	Data   string `json:"data"`
 	Offset int64  `json:"offset"`
 }
+
+// ShellInfo is one shell the terminal panel can start. The panel sends ID back
+// to pick a shell; the backend resolves it against its own discovered list and
+// never runs a path the frontend supplied.
+type ShellInfo struct {
+	ID      string `json:"id"`
+	Name    string `json:"name"`
+	Path    string `json:"path"`
+	Default bool   `json:"default"`
+}

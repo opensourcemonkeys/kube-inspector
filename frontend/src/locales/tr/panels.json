@@ -337,6 +337,8 @@
     "label": "Terminal",
     "selectCluster": "Küme seç",
     "clusterAria": "Kubeconfig kümesi",
+    "selectShell": "Shell seç",
+    "shellAria": "Shell",
     "ctx": {
       "copy": "Kopyala",
       "paste": "Yapıştır",

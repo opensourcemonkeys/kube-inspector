@@ -554,8 +554,16 @@ func (a *App) UpdateRoleBinding(clusterName string, name string, namespace strin
 // Terminal Screen
 // ============================================================================
 
-func (a *App) CreateTerminalSession(id string, clusterName string) error {
-	return bussiness.CreateTerminalSession(id, clusterName,
+// GetAvailableShells lists the shells installed on this machine for the
+// terminal panel's shell picker, default first.
+func (a *App) GetAvailableShells() []models.ShellInfo {
+	return bussiness.GetAvailableShells()
+}
+
+// CreateTerminalSession starts a shell for a terminal panel. shellId is one of
+// GetAvailableShells' IDs; empty or unknown starts the default shell.
+func (a *App) CreateTerminalSession(id string, clusterName string, shellId string) error {
+	return bussiness.CreateTerminalSession(id, clusterName, shellId,
 		// The end offset rides along as a second argument, which listeners
 		// that only take `data` simply ignore.
 		func(data string, end int64) { a.emit("terminal:output:"+id, data, end) },

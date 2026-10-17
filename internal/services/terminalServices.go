@@ -4,20 +4,16 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/creack/pty"
-
 	"kube-ins/internal/safego"
 )
 
 type terminalSession struct {
-	ptmx *os.File
-	cmd  *exec.Cmd
+	proc ptyProcess
 	// kubeconfigPath is this session's private kubeconfig. The shell's env
 	// cannot be changed once it is running, so retargeting a terminal to
 	// another cluster rewrites the *contents* of this file instead.
@@ -179,11 +175,12 @@ func terminalKubeconfigEnv(sessionPath string) string {
 	return "KUBECONFIG=" + strings.Join(paths, string(os.PathListSeparator))
 }
 
-// CreateTerminalSession starts a shell in a pty. onExit fires when the shell
+// CreateTerminalSession starts a shell in a pty. shellID picks one of
+// DiscoverShells' entries; empty or unknown means the platform default. onExit fires when the shell
 // goes away on its own — the user typing `exit`, or the process being killed —
 // so the frontend can tell a dead terminal from a quiet one. onOutput receives
 // each chunk with the stream offset it ends at (see terminalHistory).
-func CreateTerminalSession(id string, kubeconfigContent string, onOutput func(data string, end int64), onExit func()) error {
+func CreateTerminalSession(id string, kubeconfigContent string, shellID string, onOutput func(data string, end int64), onExit func()) error {
 	termMu.Lock()
 	defer termMu.Unlock()
 
@@ -202,29 +199,35 @@ func CreateTerminalSession(id string, kubeconfigContent string, onOutput func(da
 		return fmt.Errorf("failed to write terminal kubeconfig: %w", err)
 	}
 
-	shell := os.Getenv("SHELL")
-	if shell == "" {
-		shell = "/bin/bash"
-	}
-
-	cmd := exec.Command(shell)
-	// os/exec keeps the last occurrence of a duplicated key, so this overrides
-	// any KUBECONFIG inherited from the environment.
-	cmd.Env = append(os.Environ(), "TERM=xterm-256color", terminalKubeconfigEnv(kubeconfigPath))
-
-	ptmx, err := pty.Start(cmd)
+	shell, err := resolveShell(discoverShells(os.Getenv), shellID)
 	if err != nil {
 		_ = os.Remove(kubeconfigPath)
-		return fmt.Errorf("failed to start pty: %w", err)
+		return err
+	}
+
+	// The last occurrence of a duplicated key wins (os/exec on Unix, envBlock
+	// on Windows), so this overrides any KUBECONFIG inherited from the
+	// environment.
+	env := append(os.Environ(), "TERM=xterm-256color", terminalKubeconfigEnv(kubeconfigPath))
+	env = append(env, shell.env...)
+
+	// Start in the home directory rather than wherever the app was launched
+	// from (the install directory, under Electron).
+	home, _ := os.UserHomeDir()
+
+	proc, err := startPty(shell.Path, shell.args, env, home)
+	if err != nil {
+		_ = os.Remove(kubeconfigPath)
+		return fmt.Errorf("failed to start %s: %w", shell.Name, err)
 	}
 
 	history := newTerminalHistory()
-	termSessions[id] = &terminalSession{ptmx: ptmx, cmd: cmd, kubeconfigPath: kubeconfigPath, history: history}
+	termSessions[id] = &terminalSession{proc: proc, kubeconfigPath: kubeconfigPath, history: history}
 
 	safego.Go("services.terminal.reader", func() {
 		buf := make([]byte, 4096)
 		for {
-			n, err := ptmx.Read(buf)
+			n, err := proc.Read(buf)
 			if n > 0 {
 				history.record(string(buf[:n]), onOutput)
 			}
@@ -234,7 +237,7 @@ func CreateTerminalSession(id string, kubeconfigContent string, onOutput func(da
 		}
 
 		// The pty is done: either the shell exited by itself or Close killed
-		// it. Reap the child here and only here — without cmd.Wait every
+		// it. Reap the child here and only here — without Wait every
 		// closed terminal panel leaves a zombie — and drop the registry entry,
 		// which CloseTerminalSession alone would never do for a shell that
 		// exited on its own.
@@ -246,13 +249,16 @@ func CreateTerminalSession(id string, kubeconfigContent string, onOutput func(da
 		// every mount (create → close → create).
 		termMu.Lock()
 		owned := false
-		if s, ok := termSessions[id]; ok && s.ptmx == ptmx {
+		if s, ok := termSessions[id]; ok && s.proc == proc {
 			delete(termSessions, id)
 			s.cancelDetach()
 			owned = true
 		}
 		termMu.Unlock()
-		_ = cmd.Wait()
+		_ = proc.Wait()
+		// Close is idempotent; this releases the pty for a shell that exited
+		// on its own, which never goes through stop().
+		_ = proc.Close()
 		if owned {
 			// Also gated on ownership: the path is derived from the id, so a
 			// replacement session is using this exact file by now — Close and
@@ -292,7 +298,7 @@ func WriteToTerminalSession(id string, data string) error {
 		return fmt.Errorf("terminal session %s not found", id)
 	}
 
-	_, err := session.ptmx.WriteString(data)
+	_, err := session.proc.Write([]byte(data))
 	return err
 }
 
@@ -305,7 +311,7 @@ func ResizeTerminalSession(id string, cols uint16, rows uint16) error {
 		return fmt.Errorf("terminal session %s not found", id)
 	}
 
-	return pty.Setsize(session.ptmx, &pty.Winsize{Cols: cols, Rows: rows})
+	return session.proc.Resize(cols, rows)
 }
 
 func CloseTerminalSession(id string) error {
@@ -335,11 +341,11 @@ func releaseTerminalSession(id string, want *terminalSession) {
 
 // stop tears the session down. The caller must already have removed it from
 // the registry. Killing the shell ends the pty, which wakes the reader
-// goroutine — that is where cmd.Wait happens, so the child is reaped exactly
+// goroutine — that is where Wait happens, so the child is reaped exactly
 // once whichever side ended the session.
 func (s *terminalSession) stop() {
-	_ = s.cmd.Process.Kill()
-	_ = s.ptmx.Close()
+	_ = s.proc.Kill()
+	_ = s.proc.Close()
 	_ = os.Remove(s.kubeconfigPath)
 }
 

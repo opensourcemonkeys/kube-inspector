@@ -14,7 +14,9 @@ import {
     ResizeTerminalSession,
     CloseTerminalSession,
     AttachTerminalSession,
+    GetAvailableShells,
 } from '../../../wailsjs/go/controller_app/App';
+import { models } from '../../../wailsjs/go/models';
 import { consumeHandoff, createOutputGate } from '../../lib/terminalHandoff';
 import { useClusterContext } from '../../contexts/ClusterContext';
 import { useTerminalActions } from './useTerminalActions';
@@ -28,6 +30,33 @@ export interface TerminalPanelParams {
     titleVars?: Record<string, string | number | undefined>;
     /** Moved here from another window: attach to the running shell instead of starting one. */
     handoff?: boolean;
+    /** Shell ID from GetAvailableShells; empty means the platform default. */
+    shell?: string;
+}
+
+// The installed shells belong to the process, not to a panel, so every
+// terminal shares one lookup. A failed lookup is not cached.
+let shellsPromise: Promise<models.ShellInfo[]> | null = null;
+function loadShells(): Promise<models.ShellInfo[]> {
+    if (!shellsPromise) {
+        shellsPromise = GetAvailableShells()
+            .then((list) => list ?? [])
+            .catch(() => {
+                shellsPromise = null;
+                return [];
+            });
+    }
+    return shellsPromise;
+}
+
+// The last shell picked, so the next terminal opens in it. Only a default: the
+// backend falls back to the platform default for an ID it does not know.
+const SHELL_KEY = 'kube-ins-terminal-shell';
+function readStoredShell(): string {
+    try { return localStorage.getItem(SHELL_KEY) ?? ''; } catch { return ''; }
+}
+function storeShell(id: string) {
+    try { localStorage.setItem(SHELL_KEY, id); } catch { /* storage unavailable */ }
 }
 
 export default function TerminalPanel({ api, params }: IDockviewPanelProps<TerminalPanelParams>) {
@@ -49,6 +78,31 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
     const clusterRef = useRef(cluster);
     clusterRef.current = cluster;
 
+    const [shells, setShells] = useState<models.ShellInfo[]>([]);
+    const [shell, setShell] = useState(() => params.shell || readStoredShell());
+    // Read by the session effect for the same reason as clusterRef.
+    const shellRef = useRef(shell);
+    shellRef.current = shell;
+    // Set when the shell is gone (it exited, or a moved session could not be
+    // found). A ref rather than an effect local so a shell switch can revive
+    // the panel.
+    const exitedRef = useRef(false);
+
+    useEffect(() => {
+        let cancelled = false;
+        loadShells().then((list) => {
+            if (cancelled) return;
+            setShells(list);
+            // An ID this machine does not have (a panel moved from another OS,
+            // or an uninstalled shell) has already fallen back to the default
+            // in the backend — show that.
+            if (list.length && !list.some((s) => s.id === shellRef.current)) {
+                setShell(list.find((s) => s.default)?.id ?? list[0].id);
+            }
+        });
+        return () => { cancelled = true; };
+    }, []);
+
     // Selection, clipboard, shortcuts, right-click menu and find. Shared with
     // PodExecPanel; the panel only supplies the three things that differ.
     const fitRef = useRef<FitAddon | null>(null);
@@ -66,6 +120,29 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
     // sessionId alone — anything unstable in its deps recreates the pty.
     const actionsRef = useRef(actions);
     actionsRef.current = actions;
+
+    // A running shell cannot be swapped, so a switch starts a new one under
+    // the same session id. No CloseTerminalSession first: Create replaces the
+    // old session atomically, while a Close followed by a Create are two RPCs
+    // that can arrive in either order — and a late Close kills the new shell.
+    const handleShellChange = (next: string) => {
+        if (!next || next === shell) return;
+        setShell(next);
+        shellRef.current = next;
+        storeShell(next);
+        api.updateParameters({ shell: next });
+
+        const term = termRef.current;
+        if (!term) return;
+        exitedRef.current = false;
+        term.reset();
+        term.options.cursorBlink = xtermOptions().cursorBlink;
+        CreateTerminalSession(sessionId, clusterRef.current, next)
+            .then(() => ResizeTerminalSession(sessionId, term.cols, term.rows))
+            .catch((err: unknown) => {
+                term.write(`\r\nSession error: ${err}\r\n`);
+            });
+    };
 
     const handleClusterChange = (next: string) => {
         setCluster(next);
@@ -99,7 +176,7 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
 
         // Fired when the shell exits on its own (the user typing `exit`). The
         // pty is gone at that point, so keystrokes have nowhere to go.
-        let exited = false;
+        exitedRef.current = false;
 
         // A panel moved in from another window attaches to the shell that is
         // still running in the shared backend (lib/terminalHandoff.ts), and
@@ -119,7 +196,7 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
                     .then((snap) => gate.replay(snap))
                     .catch(() => {
                         gate.replay(null);
-                        exited = true;
+                        exitedRef.current = true;
                         term.write('[session no longer available]\r\n');
                         term.options.cursorBlink = false;
                     });
@@ -127,22 +204,26 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
             : undefined;
 
         if (!attaching) {
-            CreateTerminalSession(sessionId, clusterRef.current).catch((err: unknown) => {
-                term.write(`\r\nSession error: ${err}\r\n`);
-            });
+            CreateTerminalSession(sessionId, clusterRef.current, shellRef.current)
+                // The fit timer's resize can land before the session exists;
+                // size it again once it does, or it keeps the pty's default size.
+                .then(() => ResizeTerminalSession(sessionId, term.cols, term.rows))
+                .catch((err: unknown) => {
+                    term.write(`\r\nSession error: ${err}\r\n`);
+                });
         }
 
         const offOutput = EventsOn(`terminal:output:${sessionId}`, gate.onOutput);
 
         const offExit = EventsOn(`terminal:exit:${sessionId}`, () => {
-            if (exited) return;
-            exited = true;
+            if (exitedRef.current) return;
+            exitedRef.current = true;
             term.write('\r\n[shell exited]\r\n');
             term.options.cursorBlink = false;
         });
 
         const onData = term.onData((data) => {
-            if (exited) return;
+            if (exitedRef.current) return;
             WriteToTerminalSession(sessionId, data).catch(() => {});
         });
 
@@ -181,15 +262,30 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
                 <span className="yaml-editor-toolbar__label flex align-items-center gap-1">
                     <VscTerminal size={14} /> {t('panels:terminal.label')}
                 </span>
-                <Dropdown
-                    value={cluster || null}
-                    options={clusters}
-                    onChange={(e) => handleClusterChange(e.value ?? '')}
-                    placeholder={t('panels:terminal.selectCluster')}
-                    className="yaml-editor-toolbar__cluster"
-                    style={{ minWidth: '11rem' }}
-                    aria-label={t('panels:terminal.clusterAria')}
-                />
+                <div className="flex align-items-center gap-2">
+                    {shells.length > 1 && (
+                        <Dropdown
+                            value={shell || null}
+                            options={shells}
+                            optionLabel="name"
+                            optionValue="id"
+                            onChange={(e) => handleShellChange(e.value ?? '')}
+                            placeholder={t('panels:terminal.selectShell')}
+                            className="yaml-editor-toolbar__cluster"
+                            style={{ minWidth: '9rem' }}
+                            aria-label={t('panels:terminal.shellAria')}
+                        />
+                    )}
+                    <Dropdown
+                        value={cluster || null}
+                        options={clusters}
+                        onChange={(e) => handleClusterChange(e.value ?? '')}
+                        placeholder={t('panels:terminal.selectCluster')}
+                        className="yaml-editor-toolbar__cluster"
+                        style={{ minWidth: '11rem' }}
+                        aria-label={t('panels:terminal.clusterAria')}
+                    />
+                </div>
             </div>
 
             <div

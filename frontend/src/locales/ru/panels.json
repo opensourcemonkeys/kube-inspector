@@ -339,6 +339,8 @@
     "label": "Терминал",
     "selectCluster": "Выберите кластер",
     "clusterAria": "Кластер kubeconfig",
+    "selectShell": "Выберите оболочку",
+    "shellAria": "Оболочка",
     "ctx": {
       "copy": "Копировать",
       "paste": "Вставить",

@@ -336,6 +336,8 @@
     "label": "终端",
     "selectCluster": "选择集群",
     "clusterAria": "Kubeconfig 集群",
+    "selectShell": "选择 Shell",
+    "shellAria": "Shell",
     "ctx": {
       "copy": "复制",
       "paste": "粘贴",

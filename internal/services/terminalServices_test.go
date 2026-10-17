@@ -11,7 +11,7 @@ import (
 func skipWithoutPty(t *testing.T) {
 	t.Helper()
 	if runtime.GOOS == "windows" {
-		t.Skip("creack/pty cannot start a shell on Windows")
+		t.Skip("these tests drive a POSIX sh")
 	}
 	t.Setenv("SHELL", "/bin/sh")
 }
@@ -28,13 +28,13 @@ func TestTerminalExitIsSilentForAReplacedSession(t *testing.T) {
 	exits := make(chan struct{}, 4)
 	onExit := func() { exits <- struct{}{} }
 
-	if err := CreateTerminalSession(id, "", func(string, int64) {}, onExit); err != nil {
+	if err := CreateTerminalSession(id, "", "", func(string, int64) {}, onExit); err != nil {
 		t.Fatalf("first session: %v", err)
 	}
 	if err := CloseTerminalSession(id); err != nil {
 		t.Fatalf("close: %v", err)
 	}
-	if err := CreateTerminalSession(id, "", func(string, int64) {}, onExit); err != nil {
+	if err := CreateTerminalSession(id, "", "", func(string, int64) {}, onExit); err != nil {
 		t.Fatalf("second session: %v", err)
 	}
 	t.Cleanup(func() { _ = CloseTerminalSession(id) })
@@ -59,7 +59,7 @@ func TestTerminalExitFiresWhenTheShellExits(t *testing.T) {
 	const id = "self-exit"
 	exits := make(chan struct{}, 1)
 
-	if err := CreateTerminalSession(id, "", func(string, int64) {}, func() { exits <- struct{}{} }); err != nil {
+	if err := CreateTerminalSession(id, "", "", func(string, int64) {}, func() { exits <- struct{}{} }); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	t.Cleanup(func() { _ = CloseTerminalSession(id) })
@@ -126,7 +126,7 @@ func TestTerminalAttachReplaysHistoryWithStreamOffsets(t *testing.T) {
 
 	const id = "attach-history"
 	var out outputLog
-	if err := CreateTerminalSession(id, "", out.record, nil); err != nil {
+	if err := CreateTerminalSession(id, "", "", out.record, nil); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	t.Cleanup(func() { _ = CloseTerminalSession(id) })
@@ -158,7 +158,7 @@ func TestTerminalDetachedSessionClosesWithoutAttach(t *testing.T) {
 	skipWithoutPty(t)
 
 	const id = "detach-orphan"
-	if err := CreateTerminalSession(id, "", func(string, int64) {}, nil); err != nil {
+	if err := CreateTerminalSession(id, "", "", func(string, int64) {}, nil); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	t.Cleanup(func() { _ = CloseTerminalSession(id) })
@@ -183,7 +183,7 @@ func TestTerminalAttachCancelsDetachGrace(t *testing.T) {
 	skipWithoutPty(t)
 
 	const id = "detach-attach"
-	if err := CreateTerminalSession(id, "", func(string, int64) {}, nil); err != nil {
+	if err := CreateTerminalSession(id, "", "", func(string, int64) {}, nil); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	t.Cleanup(func() { _ = CloseTerminalSession(id) })
@@ -207,13 +207,13 @@ func TestTerminalDetachGraceSparesAReplacement(t *testing.T) {
 	skipWithoutPty(t)
 
 	const id = "detach-replaced"
-	if err := CreateTerminalSession(id, "", func(string, int64) {}, nil); err != nil {
+	if err := CreateTerminalSession(id, "", "", func(string, int64) {}, nil); err != nil {
 		t.Fatalf("create: %v", err)
 	}
 	if err := DetachTerminalSession(id, 100*time.Millisecond); err != nil {
 		t.Fatalf("detach: %v", err)
 	}
-	if err := CreateTerminalSession(id, "", func(string, int64) {}, nil); err != nil {
+	if err := CreateTerminalSession(id, "", "", func(string, int64) {}, nil); err != nil {
 		t.Fatalf("re-create: %v", err)
 	}
 	t.Cleanup(func() { _ = CloseTerminalSession(id) })

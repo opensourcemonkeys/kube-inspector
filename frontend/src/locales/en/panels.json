@@ -337,6 +337,8 @@
     "label": "Terminal",
     "selectCluster": "Select cluster",
     "clusterAria": "Kubeconfig cluster",
+    "selectShell": "Select shell",
+    "shellAria": "Shell",
     "ctx": {
       "copy": "Copy",
       "paste": "Paste",

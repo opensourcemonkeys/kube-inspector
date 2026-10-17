@@ -336,6 +336,8 @@
     "label": "ターミナル",
     "selectCluster": "クラスターを選択",
     "clusterAria": "Kubeconfig のクラスター",
+    "selectShell": "シェルを選択",
+    "shellAria": "シェル",
     "ctx": {
       "copy": "コピー",
       "paste": "貼り付け",

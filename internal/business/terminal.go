@@ -27,8 +27,14 @@ func terminalKubeconfig(clusterName string) string {
 	return content
 }
 
-func CreateTerminalSession(id string, clusterName string, onOutput func(data string, end int64), onExit func()) error {
-	return services.CreateTerminalSession(id, terminalKubeconfig(clusterName), onOutput, onExit)
+func CreateTerminalSession(id string, clusterName string, shellID string, onOutput func(data string, end int64), onExit func()) error {
+	return services.CreateTerminalSession(id, terminalKubeconfig(clusterName), shellID, onOutput, onExit)
+}
+
+// GetAvailableShells lists the shells a terminal panel can start on this
+// machine, default first.
+func GetAvailableShells() []models.ShellInfo {
+	return services.DiscoverShells()
 }
 
 // SetTerminalSessionCluster retargets a running terminal without restarting its
