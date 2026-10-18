@@ -90,10 +90,10 @@ describe('ResourceListView first load', () => {
 
         renderList(fetcher);
 
-        // While the first fetch is in flight the spinner is shown — but the
-        // measurable wrapper must already be mounted, which is what lets the
-        // table mount at its final height.
-        expect(document.querySelector('.p-progress-spinner')).not.toBeNull();
+        // While the first fetch is in flight the skeleton rows are shown — but
+        // the measurable wrapper must already be mounted, which is what lets
+        // the table mount at its final height.
+        expect(document.querySelector('.skeleton')).not.toBeNull();
         expect(datatableEl()).toBeNull();
         expect(document.querySelector('.ktable-fill')).not.toBeNull();
 

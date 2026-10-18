@@ -1,7 +1,7 @@
 import type { DockviewPanelApi } from 'dockview';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
+import StatusLamp from '../shared/StatusLamp';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { GetPersistentVolumeClaims, DeletePersistentVolumeClaim } from '../../../wailsjs/go/controller_app/App';
@@ -59,7 +59,7 @@ export default function PersistentVolumeClaimListComponent({ clusterName, api }:
                             <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column field="status" header={t('resources:column.status')} sortable filter filterField="status" showFilterMenu={false} style={{ minWidth: '8rem' }}
-                        body={(row: models.PersistentVolumeClaimInfo) => <Tag value={row.status} severity={getStatusSeverity(row.status)} />}
+                        body={(row: models.PersistentVolumeClaimInfo) => <StatusLamp label={row.status} severity={getStatusSeverity(row.status)} />}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('status')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />

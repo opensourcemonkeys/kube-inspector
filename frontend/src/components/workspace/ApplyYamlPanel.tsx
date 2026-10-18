@@ -10,11 +10,13 @@ import { VscCloudUpload, VscTrash, VscOutput, VscClose } from 'react-icons/vsc';
 import { Toast } from 'primereact/toast';
 import type * as monaco from 'monaco-editor';
 import { ApplyYaml } from '../../../wailsjs/go/controller_app/App';
-import { MONOLITH_THEME } from '../../lib/monacoTheme';
+import { MONACO_BASE_OPTIONS, MONACO_THEME, defineMonacoTheme, useMonacoTheme } from '../../lib/monacoTheme';
 import { ensureK8sYamlIntellisense, k8sYamlSuggestOptions } from '../../lib/k8sYamlIntellisense';
 import { useClusterContext } from '../../contexts/ClusterContext';
 import { renderPanelTitle } from '../../contexts/TabContext';
 import { useT } from '../../i18n/useT';
+import RowAction from '../shared/RowAction';
+import StatusLamp from '../shared/StatusLamp';
 
 interface ApplyYamlPanelParams {
     clusterName?: string;
@@ -23,12 +25,16 @@ interface ApplyYamlPanelParams {
 }
 
 export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<ApplyYamlPanelParams>) {
+    useMonacoTheme();
     const t = useT();
     const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const toast = useRef<Toast | null>(null);
     const [applying, setApplying] = useState(false);
     const [output, setOutput] = useState('');
+    // The output is a result, so it is read in the result's tone: kubectl's
+    // "configured" lines are not a warning.
+    const [outputFailed, setOutputFailed] = useState(false);
     const [outputHeight, setOutputHeight] = useState(200);
 
     const { clusters, activeCluster } = useClusterContext();
@@ -61,8 +67,8 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
         if (!yaml.trim()) {
             toast.current?.show({
                 severity: 'warn',
-                summary: 'Empty',
-                detail: 'Nothing to apply — editor is empty.',
+                summary: t('panels:applyYaml.emptyTitle'),
+                detail: t('panels:applyYaml.emptyDetail'),
                 life: 2500,
             });
             return;
@@ -71,8 +77,8 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
         if (!cluster) {
             toast.current?.show({
                 severity: 'warn',
-                summary: 'No cluster',
-                detail: 'Pick a target cluster before applying.',
+                summary: t('panels:applyYaml.noClusterTitle'),
+                detail: t('panels:applyYaml.noClusterDetail'),
                 life: 2500,
             });
             return;
@@ -83,18 +89,20 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
         try {
             const result = await ApplyYaml(cluster, yaml);
             setOutput(result);
+            setOutputFailed(false);
             toast.current?.show({
                 severity: 'success',
-                summary: 'Applied',
-                detail: `Applied to ${cluster}.`,
+                summary: t('panels:applyYaml.applied'),
+                detail: t('panels:applyYaml.appliedDetail', { cluster }),
                 life: 2500,
             });
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : String(err);
             setOutput(msg);
+            setOutputFailed(true);
             toast.current?.show({
                 severity: 'error',
-                summary: 'Apply failed',
+                summary: t('panels:applyYaml.failed'),
                 detail: msg,
                 life: 4000,
             });
@@ -133,20 +141,19 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
         <div className="yaml-editor-panel flex flex-column h-full">
             <Toast ref={toast} position="bottom-right" />
 
-            <div className="yaml-editor-toolbar flex align-items-center justify-content-between">
-                <span className="yaml-editor-toolbar__label flex align-items-center gap-1">
-                    <VscCloudUpload size={14} />{' '}
+            <div className="panel-toolbar">
+                <span className="panel-toolbar__label">
+                    <VscCloudUpload size={14} aria-hidden />
                     {t('panels:applyYaml.label')}
                 </span>
-                <div className="flex align-items-center gap-2 flex-shrink-0">
+                <div className="panel-toolbar__actions">
                     <Dropdown
                         value={cluster || null}
                         options={clusters}
                         onChange={(e) => handleClusterChange(e.value ?? '')}
                         placeholder={t('panels:applyYaml.selectCluster')}
                         disabled={applying}
-                        className="yaml-editor-toolbar__cluster"
-                        style={{ minWidth: '11rem' }}
+                        className="yaml-editor-toolbar__cluster apply-yaml__cluster"
                         aria-label={t('panels:applyYaml.clusterAria')}
                     />
                     <Button
@@ -169,18 +176,19 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
             </div>
 
             <div ref={containerRef} className="flex flex-column flex-1 overflow-hidden min-h-0">
-                <div style={{ flex: 1, minHeight: 0 }}>
+                <div className="apply-yaml__editor">
                     <Editor
                         height="100%"
                         defaultLanguage="yaml"
                         language="yaml"
                         defaultValue=""
-                        theme={MONOLITH_THEME}
+                        theme={MONACO_THEME}
+                        beforeMount={defineMonacoTheme}
                         onMount={handleMount}
                         options={{
+                            ...MONACO_BASE_OPTIONS,
                             ...k8sYamlSuggestOptions,
                             minimap: { enabled: false },
-                            fontSize: 13,
                             scrollBeyondLastLine: false,
                             wordWrap: 'on',
                             automaticLayout: true,
@@ -193,65 +201,26 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
                 {output && (
                     <>
                         <div
+                            className="graph-divider"
+                            role="separator"
+                            aria-orientation="horizontal"
+                            aria-label={t('panels:applyYaml.resizeOutput')}
                             onMouseDown={handleResizeMouseDown}
-                            style={{
-                                height: '5px',
-                                flexShrink: 0,
-                                cursor: 'ns-resize',
-                                background: 'var(--surface-border)',
-                                transition: 'background 0.15s',
-                            }}
-                            onMouseEnter={e => (e.currentTarget.style.background = 'var(--primary-color)')}
-                            onMouseLeave={e => (e.currentTarget.style.background = 'var(--surface-border)')}
-                        />
-
-                        <div
-                            style={{
-                                height: `${outputHeight}px`,
-                                flexShrink: 0,
-                                display: 'flex',
-                                flexDirection: 'column',
-                                background: 'var(--panel)',
-                                overflow: 'hidden',
-                            }}
                         >
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'space-between',
-                                    padding: '2px 10px 2px 14px',
-                                    borderBottom: '1px solid var(--line)',
-                                    flexShrink: 0,
-                                }}
-                            >
-                                <span style={{ fontSize: '0.72rem', color: 'var(--text-color-secondary)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-                                    {t('panels:applyYaml.output')}
-                                </span>
-                                <Button
-                                    icon={<VscClose size={14} />}
-                                    text
-                                    size="small"
-                                    severity="secondary"
-                                    style={{ padding: '0.15rem' }}
-                                    onClick={() => setOutput('')}
-                                />
-                            </div>
+                            <span className="graph-divider__grip" />
+                        </div>
 
-                            <pre
-                                style={{
-                                    flex: 1,
-                                    margin: 0,
-                                    padding: '10px 14px',
-                                    fontFamily: 'var(--font-family-mono)',
-                                    fontSize: 12,
-                                    color: 'var(--amber)',
-                                    whiteSpace: 'pre-wrap',
-                                    overflowY: 'auto',
-                                }}
-                            >
-                                {output}
-                            </pre>
+                        <div className="apply-yaml__output" style={{ height: outputHeight }}>
+                            <div className="panel-toolbar apply-yaml__output-bar">
+                                <span className="panel-toolbar__label">
+                                    <StatusLamp
+                                        label={t('panels:applyYaml.output')}
+                                        tone={outputFailed ? 'err' : 'ok'}
+                                    />
+                                </span>
+                                <RowAction icon={<VscClose size={14} />} label={t('panels:applyYaml.closeOutput')} onClick={() => setOutput('')} />
+                            </div>
+                            <pre className={`apply-yaml__text dark-display${outputFailed ? ' apply-yaml__text--err' : ''}`}>{output}</pre>
                         </div>
                     </>
                 )}

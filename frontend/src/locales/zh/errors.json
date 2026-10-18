@@ -15,5 +15,8 @@
     "copied": "已复制",
     "copyDiagnostics": "复制诊断信息",
     "hint": "应用的其余部分仍在正常运行。堆栈信息位于诊断报告中。"
+  },
+  "block": {
+    "title": "无法从 {{cluster}} 加载"
   }
 }

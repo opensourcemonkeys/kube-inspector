@@ -111,11 +111,11 @@ export default function ScaleDialog({
         <Dialog
             header={t('panels:scale.title', { kind })}
             visible={visible}
-            style={{ width: '28rem' }}
+            className="scale-dialog"
             modal
             onHide={close}
             footer={
-                <div className="flex justify-content-end gap-2">
+                <div className="dlg-actions">
                     <Button label={t('action.cancel')} icon={<VscClose size={16} />} text onClick={close} disabled={busy} />
                     <Button
                         label={t('panels:scale.confirm')}
@@ -127,25 +127,22 @@ export default function ScaleDialog({
                 </div>
             }
         >
-            <div className="flex flex-column gap-3">
-                <span style={{ fontSize: '0.85rem', color: 'var(--ink2)', wordBreak: 'break-all' }}>
-                    {namespace}/{name}
-                </span>
+            <div className="dlg-form">
+                <p className="dlg-subject">{namespace}/{name}</p>
 
                 {/* Slider for the common case (a handful of replicas), number
                     input for exact or large values the slider cannot reach. */}
-                <div className="flex flex-column gap-2">
-                    <label htmlFor="scale-replicas" style={{ fontSize: '0.8rem', color: 'var(--ink2)' }}>
+                <div className="dlg-field">
+                    <label htmlFor="scale-replicas" className="dlg-label">
                         {t('panels:scale.replicas')}{' '}
-                        <span style={{ opacity: 0.7 }}>{t('panels:scale.currently', { count: currentReplicas })}</span>
+                        <span className="dlg-label__hint">{t('panels:scale.currently', { count: currentReplicas })}</span>
                     </label>
-                    <div className="flex align-items-center gap-3">
+                    <div className="scale-dialog__row">
                         <Slider
                             value={replicas}
                             min={0}
                             max={sliderMax}
                             onChange={(e) => setReplicaCount(typeof e.value === 'number' ? e.value : e.value[0])}
-                            style={{ flex: 1 }}
                             aria-label={t('panels:scale.replicas')}
                         />
                         <InputNumber
@@ -153,38 +150,33 @@ export default function ScaleDialog({
                             value={replicas}
                             min={0}
                             autoFocus
-                            inputStyle={{ width: '4rem', textAlign: 'center' }}
                             onValueChange={(e) => setReplicaCount(e.value ?? 0)}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !busy) submit();
                             }}
                         />
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.7rem', color: 'var(--ink3)' }}>
+                    <div className="scale-dialog__ends">
                         <span>0</span>
                         <span>{sliderMax}</span>
                     </div>
                 </div>
 
                 {hpa && (
-                    <span style={{ color: 'var(--amber)', fontSize: '0.8rem' }}>
+                    <p className="dlg-note dlg-note--warn">
                         {t('panels:scale.hpaWarning', {
                             name: hpa.name,
                             min: hpa.min_replicas,
                             max: hpa.max_replicas,
                         })}
-                    </span>
+                    </p>
                 )}
 
                 {replicas === 0 && (
-                    <span style={{ color: 'var(--amber)', fontSize: '0.8rem' }}>
-                        {t('panels:scale.zeroWarning')}
-                    </span>
+                    <p className="dlg-note dlg-note--warn">{t('panels:scale.zeroWarning')}</p>
                 )}
 
-                {error && (
-                    <span style={{ color: 'var(--red)', fontSize: '0.8rem', wordBreak: 'break-word' }}>{error}</span>
-                )}
+                {error && <p className="dlg-error">{error}</p>}
             </div>
         </Dialog>
     );

@@ -3,6 +3,7 @@ import { loader } from '@monaco-editor/react';
 // why. The YAML grammar is not part of the core entry, so it is asked for here.
 import * as monacoEditor from 'monaco-editor';
 import 'monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution';
+import { monoFontReady } from './fonts';
 
 /**
  * Wires `@monaco-editor/react` to the bundled `monaco-editor` instead of
@@ -20,6 +21,11 @@ import 'monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution';
  * evaluation happens once, so repeated imports are free.
  */
 loader.config({ monaco: monacoEditor });
+
+// Monaco sizes its character grid from whatever face is loaded when an editor
+// opens; if Plex Mono arrived later, the cursor and selection drift off the
+// glyphs. Re-measure once it is in.
+void monoFontReady.then(() => monacoEditor.editor.remeasureFonts());
 
 /**
  * Monaco wants a Worker; the WebKitGTK webview blocks them. A no-op stub keeps

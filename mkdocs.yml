@@ -15,19 +15,19 @@ edit_uri: edit/main/docs/
 theme:
   name: material
   custom_dir: overrides
-  logo: assets/logo.png
+  logo: assets/mark.svg
   favicon: assets/logo.png
   icon:
     repo: fontawesome/brands/github
   palette:
-    # Dark only — matches the desktop app's "monolith" theme (no light toggle)
+    # Dark only — matches the desktop app's default "graphite" theme (no light toggle)
     scheme: slate
     primary: custom
     accent: custom
 
   font:
-    text: Inter
-    code: JetBrains Mono
+    text: IBM Plex Sans
+    code: IBM Plex Mono
   features:
     - navigation.tabs
     - navigation.sections
@@ -56,9 +56,9 @@ plugins:
   - social:
       enabled: !ENV [CI, false]
       cards_layout_options:
-        background_color: "#080b11"
-        color: "#e7eaf0"
-        font_family: Inter
+        background_color: "#17191b"
+        color: "#ece6d9"
+        font_family: IBM Plex Sans
 
 markdown_extensions:
   - admonition

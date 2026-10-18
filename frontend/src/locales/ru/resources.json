@@ -106,7 +106,8 @@
       "successDetail": "{{target}} удалён",
       "failSummary": "Не удалось удалить",
       "failDetail": "Не удалось удалить {{target}}"
-    }
+    },
+    "more": "и ещё {{count}}"
   },
   "namespace": {
     "createTitle": "Создать Namespace",
@@ -128,7 +129,9 @@
   },
   "cronjob": {
     "title": "Список CronJobs",
-    "empty": "CronJobs не найдены"
+    "empty": "CronJobs не найдены",
+    "stateActive": "Активен",
+    "stateSuspended": "Приостановлен"
   },
   "daemonset": {
     "title": "Список DaemonSets",
@@ -245,7 +248,8 @@
         "liveness": "Проверка живучести",
         "readiness": "Проверка готовности"
       }
-    }
+    },
+    "execPick": "Выберите контейнер ({{count}})"
   },
   "replicaset": {
     "title": "Список ReplicaSets",
@@ -288,5 +292,9 @@
       "critical": "Критично",
       "full": "Исчерпано"
     }
+  },
+  "list": {
+    "filteredCount": "{{shown}} из {{total}}",
+    "noMatch": "Ничего не соответствует текущим фильтрам"
   }
 }

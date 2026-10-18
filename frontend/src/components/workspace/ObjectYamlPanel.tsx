@@ -6,7 +6,7 @@ import Editor, { OnMount } from '@monaco-editor/react';
 import '../../lib/monacoBootstrap';
 import { VscNote, VscDiscard, VscCheck } from 'react-icons/vsc';
 import type * as monacoEditor from 'monaco-editor';
-import { MONOLITH_THEME } from '../../lib/monacoTheme';
+import { MONACO_BASE_OPTIONS, MONACO_THEME, defineMonacoTheme, useMonacoTheme } from '../../lib/monacoTheme';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { GetObjectYaml, UpdateObjectYaml } from '../../../wailsjs/go/controller_app/App';
@@ -26,6 +26,7 @@ interface ObjectYamlPanelParams {
 // (group, resource, namespace, name). Backed by the dynamic-client
 // GetObjectYaml / UpdateObjectYaml RPCs.
 export default function ObjectYamlPanel({ params }: IDockviewPanelProps<ObjectYamlPanelParams>) {
+    useMonacoTheme();
     const t = useT();
     const { clusterName, kind, group, resource, name, namespace } = params;
     // Held at null until the document arrives: the editor must be *created*
@@ -104,12 +105,13 @@ export default function ObjectYamlPanel({ params }: IDockviewPanelProps<ObjectYa
                     defaultLanguage="yaml"
                     language="yaml"
                     value={yaml}
-                    theme={MONOLITH_THEME}
+                    theme={MONACO_THEME}
+                    beforeMount={defineMonacoTheme}
                     onMount={handleMount}
                     onChange={handleChange}
                     options={{
+                        ...MONACO_BASE_OPTIONS,
                         minimap: { enabled: true },
-                        fontSize: 13,
                         scrollBeyondLastLine: false,
                         wordWrap: 'on',
                         automaticLayout: true,

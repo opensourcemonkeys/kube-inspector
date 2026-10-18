@@ -254,9 +254,8 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
 
     return (
         <div
-            className="flex flex-column h-full"
             // relative: the find bar is absolutely positioned over the terminal.
-            style={{ background: 'var(--panel2)', position: 'relative' }}
+            className="flex flex-column h-full relative"
         >
             <div className="yaml-editor-toolbar flex align-items-center justify-content-between">
                 <span className="yaml-editor-toolbar__label flex align-items-center gap-1">
@@ -290,14 +289,8 @@ export default function TerminalPanel({ api, params }: IDockviewPanelProps<Termi
 
             <div
                 ref={containerRef}
+                className="term-host term-host--grow dark-display"
                 onContextMenu={actions.onContextMenu}
-                style={{
-                    flex: 1,
-                    minHeight: 0,
-                    padding: '4px',
-                    boxSizing: 'border-box',
-                    overflow: 'hidden',
-                }}
             />
 
             {actions.overlays}

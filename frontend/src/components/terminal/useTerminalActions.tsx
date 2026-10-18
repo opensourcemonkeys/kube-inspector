@@ -205,8 +205,8 @@ export function useTerminalActions(opts: TerminalActionsOptions): TerminalAction
         // Resolved per call rather than cached, so a theme switch is picked up
         // without reloading the addon. All four fields are required by
         // ISearchDecorationOptions; the ruler ones need opaque colours.
-        const accent = themeColor('--blue') ?? '#6ea8e6';
-        const amber = themeColor('--amber') ?? '#e2a85a';
+        const accent = themeColor('--info');
+        const amber = themeColor('--warn');
         const options = {
             decorations: {
                 matchBackground: accent,

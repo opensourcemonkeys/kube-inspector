@@ -14,6 +14,7 @@ import { Toast } from 'primereact/toast';
 import { GetConfigMapData, UpdateConfigMapData } from '../../../wailsjs/go/controller_app/App';
 import { useT } from '../../i18n/useT';
 import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
+import RowAction from '../shared/RowAction';
 
 interface ConfigMapEditorPanelParams {
     clusterName: string;
@@ -117,7 +118,7 @@ export default function ConfigMapEditorPanel({ params }: IDockviewPanelProps<Con
         <InputText
             value={options.value}
             onChange={(e) => options.editorCallback!(e.target.value)}
-            style={{ fontFamily: 'monospace', fontSize: '0.85rem', width: '100%' }}
+            className="kv-input"
             autoFocus
         />
     );
@@ -126,46 +127,37 @@ export default function ConfigMapEditorPanel({ params }: IDockviewPanelProps<Con
         <InputTextarea
             value={options.value}
             onChange={(e) => options.editorCallback!(e.target.value)}
-            style={{ fontFamily: 'monospace', fontSize: '0.85rem', width: '100%', minHeight: '72px' }}
+            className="kv-input kv-input--area"
             autoResize
             rows={3}
         />
     );
 
     const valueBody = (rowData: KeyValueRow) => (
-        <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.85rem',
-            whiteSpace: 'pre',
-            display: 'block',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            maxHeight: '4.5rem',
-            color: 'var(--text-color-secondary)',
-        }}>
+        <span className="kv-value">
             {rowData.value}
         </span>
     );
 
     const actionsBody = (rowData: KeyValueRow) => (
-        <Button
-            icon={<VscClose size={16} />}
-            text
-            severity="danger"
-            size="small"
-            onClick={() => removeRow(rowData.id)}
-            disabled={saving}
-            style={{ padding: '0.2rem' }}
-        />
+        <RowAction icon={<VscClose size={15} />} label={t('action.remove')} severity="danger"
+            onClick={() => removeRow(rowData.id)} disabled={saving} />
+    );
+
+    const emptyState = (
+        <div className="rlv-empty">
+            <span>{t('panels:configMapEditor.empty')}</span>
+            <Button label={t('panels:configMapEditor.addKey')} icon={<VscAdd size={14} />} outlined size="small" onClick={addRow} disabled={saving} />
+        </div>
     );
 
     const tableHeader = (
-        <div className="flex justify-content-between align-items-center gap-2">
-            <span className="yaml-editor-toolbar__label flex align-items-center gap-1" style={{ fontSize: '0.85rem' }}>
-                <VscSettings size={14} />
-                {namespace}/{name}
+        <div className="panel-toolbar">
+            <span className="panel-toolbar__label">
+                <VscSettings size={14} aria-hidden />
+                <span className="cell-clip">{namespace}/{name}</span>
             </span>
-            <div className="flex align-items-center gap-1">
+            <div className="panel-toolbar__actions">
                 <Button label={t('panels:configMapEditor.addKey')} icon={<VscAdd size={16} />} text size="small" onClick={addRow} disabled={saving} />
                 <Button label={t('panels:yaml.revert')} icon={<VscDiscard size={16} />} text size="small" disabled={!dirty || saving} onClick={handleRevert} />
                 <Button label={t('panels:yaml.save')} icon={<VscCheck size={16} />} size="small" loading={saving} disabled={!dirty} onClick={handleSave} />
@@ -174,27 +166,25 @@ export default function ConfigMapEditorPanel({ params }: IDockviewPanelProps<Con
     );
 
     return (
-        <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="kv-editor">
             <Toast ref={toast} position="bottom-right" />
+            {tableHeader}
 
             <DataTable
                 value={rows}
                 dataKey="id"
                 editMode="cell"
-                header={tableHeader}
                 scrollable
                 scrollHeight="flex"
-                showGridlines
-                stripedRows
-                emptyMessage={t('panels:configMapEditor.empty')}
-                style={{ flex: 1 }}
+                emptyMessage={emptyState}
+                className="kv-editor__table"
             >
                 <Column
                     field="key"
                     header={t('resources:column.key')}
                     editor={keyEditor}
                     onCellEditComplete={onCellEditComplete}
-                    style={{ width: '30%', minWidth: '10rem', fontFamily: 'monospace', fontSize: '0.85rem' }}
+                    className="cell-mono" style={{ width: '30%', minWidth: '10rem' }}
                 />
                 <Column
                     field="value"
@@ -202,13 +192,13 @@ export default function ConfigMapEditorPanel({ params }: IDockviewPanelProps<Con
                     editor={valueEditor}
                     onCellEditComplete={onCellEditComplete}
                     body={valueBody}
-                    style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
+                    className="cell-mono"
                 />
                 <Column
                     header=""
                     {...ACTION_COLUMN_PROPS}
                     body={actionsBody}
-                    style={{ width: '3.5rem', textAlign: 'center' }}
+                    style={{ width: '3.5rem' }}
                 />
             </DataTable>
         </div>

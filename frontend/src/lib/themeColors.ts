@@ -2,17 +2,20 @@ import { useThemeStore } from '../stores/themeStore';
 
 /**
  * Palette variable names, as defined in theme-monolith.css. Every alternate
- * theme (`last-samurai`, `god-of-war`) re-binds exactly these,
+ * theme (`last-samurai`, `god-of-war`, `daylight`) re-binds these,
  * which is what makes reading them enough to re-skin anything.
  */
 export type ThemeVar =
-    | '--app' | '--panel' | '--panel2' | '--panel3' | '--hover' | '--line' | '--line2'
-    | '--ink' | '--ink2' | '--ink3'
-    | '--teal' | '--green' | '--amber' | '--red' | '--blue' | '--violet'
-    | '--on-accent';
+    | '--screen' | '--screen-2' | '--screen-dark' | '--well'
+    | '--bezel' | '--bezel-raised' | '--bezel-high' | '--line' | '--line-strong'
+    | '--ink' | '--ink-2' | '--ink-3'
+    | '--accent' | '--ok' | '--warn' | '--err' | '--info' | '--violet'
+    | '--on-accent'
+    | '--ansi-red' | '--ansi-green' | '--ansi-yellow' | '--ansi-blue' | '--ansi-magenta' | '--ansi-cyan'
+    | '--cat-1' | '--cat-2' | '--cat-3' | '--cat-4' | '--cat-5' | '--cat-6';
 
 /**
- * The default (`monolith`) palette, mirrored from `:root` in
+ * The default (Graphite) palette, mirrored from `:root` in
  * theme-monolith.css.
  *
  * Used only as the fallback when a variable cannot be read — a non-browser
@@ -21,12 +24,17 @@ export type ThemeVar =
  * because the alternative fallback is an unreadable black-on-black.
  */
 const PALETTE_FALLBACK: Record<ThemeVar, string> = {
-    '--app': '#080b11', '--panel': '#0c1017', '--panel2': '#11161f',
-    '--panel3': '#151b26', '--hover': '#151b26', '--line': '#1a212e', '--line2': '#252e3f',
-    '--ink': '#e7eaf0', '--ink2': '#98a1b3', '--ink3': '#5c6779',
-    '--teal': '#3fc8b4', '--green': '#5fc98a', '--amber': '#e2a85a',
-    '--red': '#e07d6e', '--blue': '#6ea8e6', '--violet': '#a78bd6',
-    '--on-accent': '#06121a',
+    '--screen': '#17191b', '--screen-2': '#1e2124', '--screen-dark': '#121416', '--well': '#121416',
+    '--bezel': '#24282c', '--bezel-raised': '#2d3237', '--bezel-high': '#353a40',
+    '--line': '#2c3034', '--line-strong': '#3a4045',
+    '--ink': '#ece6d9', '--ink-2': '#b8b3a7', '--ink-3': '#9e9a92',
+    '--accent': '#58bde8', '--ok': '#7fb685', '--warn': '#e3c84b',
+    '--err': '#e9786a', '--info': '#9ea6ec', '--violet': '#a891c9',
+    '--on-accent': '#06151d',
+    '--ansi-red': '#e9786a', '--ansi-green': '#7fb685', '--ansi-yellow': '#e3c84b',
+    '--ansi-blue': '#9ea6ec', '--ansi-magenta': '#a891c9', '--ansi-cyan': '#6fb3b8',
+    '--cat-1': '#7c9fc4', '--cat-2': '#a48fc9', '--cat-3': '#6eb0b0',
+    '--cat-4': '#c3a46a', '--cat-5': '#c98ba6', '--cat-6': '#a3ad6b',
 };
 
 /**
@@ -43,6 +51,30 @@ const PALETTE_FALLBACK: Record<ThemeVar, string> = {
 export function themeColor(name: ThemeVar, fallback = PALETTE_FALLBACK[name]): string {
     if (typeof document === 'undefined') return fallback;
     const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    return value || fallback;
+}
+
+let displayProbe: HTMLElement | null = null;
+
+/**
+ * Reads a palette variable as it is inside a dark display — the code, log and
+ * terminal surfaces that stay dark in the light theme.
+ *
+ * theme-monolith.css re-binds the whole palette under `.dark-display` when the
+ * daylight theme is active, so a hidden element carrying that class resolves
+ * the display's values; in every dark theme it simply inherits the root's.
+ * Monaco and xterm paint themselves and must take every colour from here:
+ * mixing in one root value would put daylight's graphite ink on a dark editor.
+ */
+export function displayColor(name: ThemeVar, fallback = PALETTE_FALLBACK[name]): string {
+    if (typeof document === 'undefined' || !document.body) return fallback;
+    if (!displayProbe || !displayProbe.isConnected) {
+        displayProbe = document.createElement('div');
+        displayProbe.className = 'dark-display';
+        displayProbe.hidden = true;
+        document.body.appendChild(displayProbe);
+    }
+    const value = getComputedStyle(displayProbe).getPropertyValue(name).trim();
     return value || fallback;
 }
 
@@ -63,7 +95,7 @@ export function useThemeVersion(): string {
  * A palette color at partial opacity, as `rgba(...)`.
  *
  * For canvas fills (chart.js area series). CSS could do this with
- * `color-mix(in srgb, var(--teal) 15%, transparent)`, but chart.js hands the
+ * `color-mix(in srgb, var(--accent) 15%, transparent)`, but chart.js hands the
  * string to the 2D context, which does not understand `color-mix` or `var`.
  * Handles the `#rgb` and `#rrggbb` forms the palettes use; anything else is
  * returned untouched, so a future `oklch()` palette degrades to opaque rather

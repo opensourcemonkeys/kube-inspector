@@ -1,15 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import React from 'react';
-import { CircularProgress } from '@mui/material';
-import { VscAccount, VscLink, VscLock, VscShield, VscDatabase, VscFile, VscRefresh, VscWarning, VscTypeHierarchySub } from 'react-icons/vsc';
+import { VscAccount, VscLink, VscLock, VscShield, VscDatabase, VscFile, VscRefresh, VscTypeHierarchySub, VscClose, VscInfo, VscEdit } from 'react-icons/vsc';
 import ReactFlow, {
-    Background,
-    Controls,
-    MiniMap,
     Node,
     Edge,
     MarkerType,
-    BackgroundVariant,
     Handle,
     Position,
     NodeProps,
@@ -20,11 +15,16 @@ import dagre from '@dagrejs/dagre';
 import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
+import { InputText } from 'primereact/inputtext';
 import { useTabContext } from '../../contexts/TabContext';
 import { GetSecurityGraph } from '../../../wailsjs/go/controller_app/App';
 import { useT } from '../../i18n/useT';
-import { themeAlpha, themeColor, useThemeVersion } from '../../lib/themeColors';
+import { themeColor, useThemeVersion } from '../../lib/themeColors';
 import type { ThemeVar } from '../../lib/themeColors';
+import ErrorBanner from '../shared/ErrorBanner';
+import GraphChrome from '../shared/GraphChrome';
+import RowAction from '../shared/RowAction';
+import Spinner from '../shared/Spinner';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -49,12 +49,14 @@ const KIND_CONFIG: Record<string, { color: ThemeVar; Icon: React.ComponentType<{
     // Palette variables, not colors: the minimap and the edge markers put these
     // in SVG attributes, where `var(--x)` never resolves — they are passed
     // through `themeColor` at the point of use.
-    ServiceAccount: { color: '--blue',   Icon: VscAccount },
-    RoleBinding:    { color: '--amber',  Icon: VscLink },
-    Role:           { color: '--green',  Icon: VscLock },
-    ClusterRole:    { color: '--violet', Icon: VscShield },
-    Resource:       { color: '--teal',   Icon: VscDatabase },
-    Object:         { color: '--ink2',   Icon: VscFile },
+    // Categories, not statuses: a Role is not "ok" and a RoleBinding is not a
+    // warning, which is what --ok and --warn said here before.
+    ServiceAccount: { color: '--cat-1', Icon: VscAccount },
+    RoleBinding:    { color: '--cat-4', Icon: VscLink },
+    Role:           { color: '--cat-3', Icon: VscLock },
+    ClusterRole:    { color: '--cat-2', Icon: VscShield },
+    Resource:       { color: '--cat-5', Icon: VscDatabase },
+    Object:         { color: '--ink-2', Icon: VscFile },
 };
 
 const NODE_W = 210;
@@ -62,72 +64,34 @@ const NODE_H = 64;
 
 // ── Edge styling per relationship kind ─────────────────────────────────────────
 
-const UNKNOWN_KIND = { color: '--ink3' as ThemeVar, Icon: VscTypeHierarchySub };
+const UNKNOWN_KIND = { color: '--ink-3' as ThemeVar, Icon: VscTypeHierarchySub };
 
 const EDGE_STYLE: Record<string, { stroke: ThemeVar; dashed: boolean }> = {
-    subject:  { stroke: '--blue',  dashed: false },
-    roleref:  { stroke: '--amber', dashed: false },
-    grants:   { stroke: '--teal',  dashed: false },
-    instance: { stroke: '--ink3',  dashed: false },
+    subject:  { stroke: '--cat-1', dashed: false },
+    roleref:  { stroke: '--cat-4', dashed: false },
+    grants:   { stroke: '--cat-5', dashed: false },
+    instance: { stroke: '--ink-3', dashed: false },
 };
 
 // ── Custom node ─────────────────────────────────────────────────────────────────
 
 function SecNode({ data }: NodeProps<SecurityNodeData>) {
     const cfg = KIND_CONFIG[data.kind] ?? UNKNOWN_KIND;
-    const kindColor = themeColor(cfg.color);
-
+    // The kind colour rides a custom property; everything else is in CSS
+    // (.graph-node). The box fills the size dagre laid out, so the handles —
+    // anchored at its vertical centre — keep role→resource arrows straight.
     return (
-        <div style={{
-            border: `2px solid ${kindColor}`,
-            borderRadius: 8,
-            background: 'var(--panel2)',
-            padding: '6px 11px',
-            width: '100%',
-            // Fill the wrapper's pinned height so the box's vertical centre — where
-            // ReactFlow anchors the left/right handles — matches the centre dagre
-            // laid out at. Otherwise verb chips grow the box and arrows go diagonal.
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center',
-            fontFamily: 'var(--font-family)',
-            boxSizing: 'border-box',
-            overflow: 'hidden',
-        }}>
-            <Handle type="target" position={Position.Left}
-                style={{ background: kindColor, width: 8, height: 8 }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 3 }}>
-                <cfg.Icon style={{ color: kindColor, fontSize: 11 }} />
-                <span style={{ color: kindColor, fontSize: 9, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {data.kind}
-                </span>
-            </div>
-            <div style={{ color: 'var(--ink)', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {data.name}
-            </div>
-            {data.namespace && (
-                <div style={{ color: 'var(--ink3)', fontSize: 11, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {data.namespace}
-                </div>
-            )}
+        <div className="graph-node" style={{ ['--kind' as string]: `var(${cfg.color})` }}>
+            <Handle type="target" position={Position.Left} />
+            <div className="graph-node__kind"><cfg.Icon /> {data.kind}</div>
+            <div className="graph-node__name" title={data.name}>{data.name}</div>
+            {data.namespace && <div className="graph-node__sub">{data.namespace}</div>}
             {data.verbs && (
-                <div style={{ marginTop: 5, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                    {data.verbs.split(', ').map(v => (
-                        <span key={v} style={{
-                            fontSize: 9, lineHeight: 1.4, padding: '0 5px', borderRadius: 4,
-                            background: themeAlpha('--teal', 0.16), color: 'var(--teal)',
-                            fontFamily: 'var(--font-family-mono)',
-                        }}>
-                            {v}
-                        </span>
-                    ))}
+                <div className="graph-node__chips">
+                    {data.verbs.split(', ').map(v => <span key={v} className="graph-node__chip">{v}</span>)}
                 </div>
             )}
-
-            <Handle type="source" position={Position.Right}
-                style={{ background: kindColor, width: 8, height: 8 }} />
+            <Handle type="source" position={Position.Right} />
         </div>
     );
 }
@@ -194,7 +158,7 @@ function buildFlow(graph: SecurityGraph): { nodes: Node[]; edges: Edge[] } {
     });
 
     const edges: Edge[] = layoutEdges.map(e => {
-        const st = EDGE_STYLE[e.kind] ?? { stroke: '--ink3' as ThemeVar, dashed: false };
+        const st = EDGE_STYLE[e.kind] ?? { stroke: '--ink-3' as ThemeVar, dashed: false };
         return {
             id: e.id,
             source: e.source,
@@ -203,8 +167,8 @@ function buildFlow(graph: SecurityGraph): { nodes: Node[]; edges: Edge[] } {
             type: 'smoothstep',
             markerEnd: { type: MarkerType.ArrowClosed, color: themeColor(st.stroke) },
             style: { stroke: themeColor(st.stroke), strokeWidth: 1.5, strokeDasharray: st.dashed ? '5 4' : undefined },
-            labelStyle: { fill: themeColor('--ink2'), fontSize: 10, fontFamily: 'var(--font-family-mono)' },
-            labelBgStyle: { fill: themeColor('--panel'), fillOpacity: 0.85 },
+            labelStyle: { fill: themeColor('--ink-2'), fontSize: 10, fontFamily: 'var(--font-family-mono)' },
+            labelBgStyle: { fill: themeColor('--bezel'), fillOpacity: 0.85 },
             labelBgPadding: [4, 2] as [number, number],
         };
     });
@@ -425,28 +389,20 @@ export default function SecurityRoleMap({ clusterName }: { clusterName: string }
     const displayEdges = useMemo<Edge[]>(() => {
         if (!highlightEdges) return edges;
         return edges.map(e => highlightEdges.has(e.id)
-            ? { ...e, animated: true, zIndex: 1000, style: { ...e.style, strokeWidth: 2.5, opacity: 1, filter: `drop-shadow(0 0 4px ${e.style?.stroke ?? themeColor('--ink')})` } }
-            : { ...e, animated: false, style: { ...e.style, opacity: 0.07 } });
+            // Thicker, not animated: a marching dash is a loop that never stops.
+            ? { ...e, zIndex: 1000, style: { ...e.style, strokeWidth: 2.25, opacity: 1 } }
+            : { ...e, style: { ...e.style, opacity: 0.1 } });
     }, [edges, highlightEdges]);
 
     const displayNodes = useMemo<Node[]>(() => {
         if (!highlightNodes) return nodes;
         return nodes.map(n => {
             if (!highlightNodes.has(n.id)) {
-                return { ...n, style: { ...n.style, opacity: 0.18 } };
+                return { ...n, style: { ...n.style, opacity: 0.22 } };
             }
-            const color = themeColor(KIND_CONFIG[(n.data as SecurityNodeData).kind]?.color ?? '--teal');
-            const clicked = n.id === selectedNodeId;
-            return {
-                ...n,
-                style: {
-                    ...n.style,
-                    opacity: 1,
-                    zIndex: 1000,
-                    borderRadius: 8,
-                    boxShadow: clicked ? `0 0 0 3px ${color}, 0 0 20px ${color}` : `0 0 0 2px ${color}, 0 0 11px ${color}`,
-                },
-            };
+            // A ring in the node's own kind colour (CSS: .is-chain / .is-focus),
+            // not a glow.
+            return { ...n, zIndex: 1000, className: n.id === selectedNodeId ? 'is-focus' : 'is-chain' };
         });
     }, [nodes, highlightNodes, selectedNodeId]);
 
@@ -456,7 +412,7 @@ export default function SecurityRoleMap({ clusterName }: { clusterName: string }
     const optionsByKind = useMemo(() => {
         const mk = (kind: string) => (graph?.nodes ?? [])
             .filter(n => n.kind === kind && (!highlightNodes || highlightNodes.has(n.id)))
-            .map(n => ({ label: n.namespace ? `${n.name} · ${n.namespace}` : n.name, value: n.id }))
+            .map(n => ({ label: n.namespace ? `${n.namespace}/${n.name}` : n.name, value: n.id }))
             .sort((a, b) => a.label.localeCompare(b.label));
         return {
             ServiceAccount: mk('ServiceAccount'),
@@ -476,87 +432,64 @@ export default function SecurityRoleMap({ clusterName }: { clusterName: string }
     const detail = detailNodeId && graph ? computeDetail(graph, detailNodeId) : null;
     const detailCfg = detail ? (KIND_CONFIG[detail.node.kind] ?? UNKNOWN_KIND) : null;
 
-    return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--app)' }}>
+    const objectRow = (it: { label: string; sub?: string }, key: React.Key) => (
+        <div key={key} className="graph-detail__row">
+            <span className="graph-detail__label">{it.label}</span>
+            {it.sub && <span className="graph-detail__sub">{it.sub}</span>}
+        </div>
+    );
 
-            {/* Toolbar */}
-            <div className="yaml-editor-toolbar flex align-items-center justify-content-between" style={{ flexShrink: 0 }}>
-                <span className="yaml-editor-toolbar__label flex align-items-center gap-2">
-                    <VscShield style={{ fontSize: 14 }} />{' '}
-                    {t('panels:roleMap.label')}
-                </span>
-                <div className="flex align-items-center gap-2">
-                    {loading && <CircularProgress size={14} style={{ color: 'var(--text-color-secondary)' }} />}
-                    <button className="cluster-bar__edit-btn" onClick={load} disabled={loading} title={t('panels:roleMap.refresh')}>
-                        <VscRefresh style={{ fontSize: 14 }} />
-                    </button>
+    return (
+        <div className="graph-root">
+            <div className="panel-toolbar">
+                <span className="panel-toolbar__label"><VscShield /> {t('panels:roleMap.label')}</span>
+                <div className="panel-toolbar__actions">
+                    {loading && <Spinner />}
+                    <RowAction icon={<VscRefresh size={15} />} label={t('panels:roleMap.refresh')} onClick={load} disabled={loading} />
                 </div>
             </div>
 
-            {/* Filter bar — pick an object to focus it (and narrow the others) */}
-            <div style={{
-                display: 'flex', gap: 10, padding: '8px 14px', flexShrink: 0,
-                flexWrap: 'wrap', alignItems: 'flex-end',
-                borderBottom: '1px solid var(--surface-border)', background: 'var(--panel)',
-            }}>
+            {/* Pick an object to focus it (and narrow the others to its chain). */}
+            <div className="graph-filters">
                 {FILTER_KINDS.map(kind => {
                     const cfg = KIND_CONFIG[kind];
                     return (
-                        <div key={kind} style={{ display: 'flex', flexDirection: 'column', gap: 3, minWidth: 0, flex: '1 1 180px' }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: `var(${cfg.color})` }}>
-                                <cfg.Icon style={{ fontSize: 11 }} /> {kind}
-                            </span>
+                        <div key={kind} className="graph-filter" style={{ ['--kind' as string]: `var(${cfg.color})` }}>
+                            <span className="graph-filter__label"><span className="graph-swatch" />{kind}</span>
                             <Dropdown
                                 value={valueForKind(kind)}
                                 options={optionsByKind[kind]}
                                 onChange={e => focusNode(e.value ?? null)}
                                 filter
                                 showClear
-                                placeholder={`All ${optionsByKind[kind].length}`}
+                                placeholder={t('panels:roleMap.allOf', { count: optionsByKind[kind].length })}
                                 emptyMessage={t('panels:roleMap.none')}
                                 emptyFilterMessage={t('panels:roleMap.noMatches')}
-                                style={{ width: '100%' }}
-                                className="p-inputtext-sm"
+                                className="graph-filter__field"
                             />
                         </div>
                     );
                 })}
                 {selectedNodeId && (
-                    <Button label={t('panels:roleMap.clearFocus')} icon="pi pi-times" text size="small" onClick={() => setSelectedNodeId(null)} />
+                    <Button label={t('panels:roleMap.clearFocus')} icon={<VscClose size={14} />} text size="small" onClick={() => setSelectedNodeId(null)} />
                 )}
             </div>
 
-            {/* Legend */}
-            <div style={{
-                display: 'flex', gap: 16, padding: '5px 14px', flexShrink: 0,
-                flexWrap: 'wrap', borderBottom: '1px solid var(--surface-border)',
-                background: 'var(--panel2)',
-            }}>
+            <div className="graph-legend">
                 {Object.entries(KIND_CONFIG).filter(([kind]) => kind !== 'Object').map(([kind, cfg]) => (
-                    <span key={kind} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: `var(${cfg.color})` }}>
-                        <cfg.Icon style={{ fontSize: 11 }} />{' '}
-                        {kind}
+                    <span key={kind} className="graph-legend__item" style={{ ['--kind' as string]: `var(${cfg.color})` }}>
+                        <span className="graph-swatch" />{kind}
                     </span>
                 ))}
-                <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 12, fontSize: 11, color: 'var(--ink3)' }}>
-                    <span style={{ fontStyle: 'italic' }}>{t('panels:roleMap.tip')}</span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ width: 24, height: 2, background: 'var(--teal)', display: 'inline-block' }} />{' '}
-                        {t('panels:roleMap.legendGrants')}
-                    </span>
+                <span className="graph-legend__item" style={{ ['--kind' as string]: `var(${EDGE_STYLE.grants.stroke})` }}>
+                    <span className="graph-swatch graph-swatch--line" />{t('panels:roleMap.legendGrants')}
                 </span>
+                <span className="graph-legend__note">{t('panels:roleMap.tip')}</span>
             </div>
 
-            {/* Flow canvas */}
-            <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+            <div className="graph-canvas">
                 {error ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 12, color: 'var(--red)' }}>
-                        <VscWarning style={{ fontSize: 32 }} />
-                        <span style={{ fontSize: 13 }}>{error}</span>
-                        <button className="cluster-bar__edit-btn" onClick={load} style={{ marginTop: 4 }}>
-                            <VscRefresh style={{ fontSize: 14 }} /> {t('action.retry')}
-                        </button>
-                    </div>
+                    <ErrorBanner block message={error} onRetry={load} busy={loading} cluster={clusterName} context={`Security role map (${clusterName})`} />
                 ) : (
                     <ReactFlow
                         nodes={displayNodes}
@@ -572,75 +505,36 @@ export default function SecurityRoleMap({ clusterName }: { clusterName: string }
                         onNodeDoubleClick={(_, node) => openDetail(node.id)}
                         onPaneClick={() => setSelectedNodeId(null)}
                         onInit={inst => { rfRef.current = inst; }}
-                        style={{ background: 'var(--app)' }}
                     >
-                        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={themeColor('--line')} />
-                        <Controls style={{
-                            background: 'var(--panel2)',
-                            border: '1px solid var(--surface-border)',
-                            borderRadius: 8,
-                        }} />
-                        <MiniMap
-                            style={{
-                                background: 'var(--panel2)',
-                                border: '1px solid var(--surface-border)',
-                            }}
-                            nodeColor={n => themeColor(KIND_CONFIG[(n.data as SecurityNodeData)?.kind]?.color ?? UNKNOWN_KIND.color)}
-                        />
+                        <GraphChrome nodeColor={n => KIND_CONFIG[(n.data as SecurityNodeData)?.kind]?.color ?? UNKNOWN_KIND.color} />
                     </ReactFlow>
                 )}
             </div>
 
-            {/* Detail modal (double-click an object) */}
+            {/* Detail (double-click an object) */}
             <Dialog
                 visible={!!detail}
                 onHide={closeDetail}
                 dismissableMask
-                style={{ width: '34rem', maxWidth: '94vw' }}
+                className="graph-detail-dialog"
                 header={detail && detailCfg ? (
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <detailCfg.Icon style={{ color: `var(${detailCfg.color})`, fontSize: 16 }} />
-                        <span style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
-                            <span style={{ color: `var(${detailCfg.color})`, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                {detail.node.kind}
-                            </span>
-                            <span style={{ fontSize: 15, fontWeight: 600 }}>
-                                {detail.node.name}
-                                {detail.node.namespace && (
-                                    <span style={{ color: 'var(--text-color-secondary)', fontWeight: 400 }}>{' '}· {detail.node.namespace}</span>
-                                )}
-                            </span>
+                    <span className="graph-detail__head" style={{ ['--kind' as string]: `var(${detailCfg.color})` }}>
+                        <span className="graph-detail__kind"><detailCfg.Icon /> {detail.node.kind}</span>
+                        <span className="graph-detail__title">
+                            {detail.node.namespace ? `${detail.node.namespace}/${detail.node.name}` : detail.node.name}
                         </span>
                     </span>
                 ) : undefined}
             >
                 {detail && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div className="graph-detail">
                         {detail.sections.map((section, si) => (
-                            <div key={si}>
-                                <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-color-secondary)', marginBottom: 6 }}>
-                                    {section.title}
-                                </div>
-                                {section.items.length === 0 ? (
-                                    <div style={{ fontSize: 13, color: 'var(--text-color-secondary)', fontStyle: 'italic' }}>{t('panels:roleMap.none')}</div>
-                                ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                                        {section.items.map((it, ii) => (
-                                            <div key={ii} style={{
-                                                display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12,
-                                                padding: '5px 9px', background: 'var(--panel2)', border: '1px solid var(--surface-border)', borderRadius: 6,
-                                            }}>
-                                                <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', wordBreak: 'break-all' }}>{it.label}</span>
-                                                {it.sub && (
-                                                    <span style={{ fontSize: 11, color: 'var(--text-color-secondary)', fontFamily: 'var(--font-family-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                                                        {it.sub}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                            <section key={si}>
+                                <h4 className="graph-detail__section">{section.title}</h4>
+                                {section.items.length === 0
+                                    ? <div className="graph-detail__empty">{t('panels:roleMap.none')}</div>
+                                    : <div className="graph-detail__list">{section.items.map(objectRow)}</div>}
+                            </section>
                         ))}
 
                         {/* Accessible objects — filterable list (Resource nodes) */}
@@ -650,65 +544,34 @@ export default function SecurityRoleMap({ clusterName }: { clusterName: string }
                                 ? detail.objects.filter(o => o.label.toLowerCase().includes(q) || (o.sub ?? '').toLowerCase().includes(q))
                                 : detail.objects;
                             return (
-                                <div>
-                                    <div style={{ fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em', color: 'var(--text-color-secondary)', marginBottom: 6 }}>
-                                        {t('panels:roleMap.accessibleObjects', { count: detail.objects.length })}
-                                    </div>
+                                <section>
+                                    <h4 className="graph-detail__section">{t('panels:roleMap.accessibleObjects', { count: detail.objects.length })}</h4>
                                     {detail.objects.length === 0 ? (
-                                        <div style={{ fontSize: 13, color: 'var(--text-color-secondary)', fontStyle: 'italic' }}>{t('panels:roleMap.none')}</div>
+                                        <div className="graph-detail__empty">{t('panels:roleMap.none')}</div>
                                     ) : (
                                         <>
-                                            <input
-                                                type="text"
+                                            <InputText
                                                 value={objFilter}
                                                 onChange={e => setObjFilter(e.target.value)}
                                                 placeholder={t('panels:roleMap.filterObjects')}
-                                                style={{
-                                                    width: '100%', boxSizing: 'border-box', marginBottom: 6,
-                                                    padding: '5px 9px', fontSize: 13, borderRadius: 6,
-                                                    background: 'var(--panel2)', color: 'var(--ink)',
-                                                    border: '1px solid var(--surface-border)', outline: 'none',
-                                                }}
+                                                className="graph-detail__filter"
                                             />
-                                            <div style={{ display: 'flex', flexDirection: 'column', gap: 4, maxHeight: 260, overflowY: 'auto' }}>
-                                                {filtered.length === 0 ? (
-                                                    <div style={{ fontSize: 13, color: 'var(--text-color-secondary)', fontStyle: 'italic' }}>{t('panels:roleMap.noMatches')}</div>
-                                                ) : filtered.map((it, ii) => (
-                                                    <div key={ii} style={{
-                                                        display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12,
-                                                        padding: '5px 9px', background: 'var(--panel2)', border: '1px solid var(--surface-border)', borderRadius: 6,
-                                                    }}>
-                                                        <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--ink)', wordBreak: 'break-all' }}>{it.label}</span>
-                                                        {it.sub && (
-                                                            <span style={{ fontSize: 11, color: 'var(--text-color-secondary)', fontFamily: 'var(--font-family-mono)', whiteSpace: 'nowrap', flexShrink: 0 }}>
-                                                                {it.sub}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                ))}
+                                            <div className="graph-detail__list graph-detail__list--scroll">
+                                                {filtered.length === 0
+                                                    ? <div className="graph-detail__empty">{t('panels:roleMap.noMatches')}</div>
+                                                    : filtered.map(objectRow)}
                                             </div>
                                         </>
                                     )}
-                                </div>
+                                </section>
                             );
                         })()}
 
                         {/* Object actions — only for nodes backed by a real object */}
                         {detail.node.resource && (
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid var(--surface-border)', paddingTop: 12 }}>
-                                <Button
-                                    label={t('panels:roleMap.describe')}
-                                    icon="pi pi-info-circle"
-                                    size="small"
-                                    outlined
-                                    onClick={() => openDescribe(detail.node)}
-                                />
-                                <Button
-                                    label={t('panels:roleMap.viewEditYaml')}
-                                    icon="pi pi-file-edit"
-                                    size="small"
-                                    onClick={() => openYaml(detail.node)}
-                                />
+                            <div className="graph-detail__actions">
+                                <Button label={t('panels:roleMap.describe')} icon={<VscInfo size={14} />} size="small" severity="secondary" onClick={() => openDescribe(detail.node)} />
+                                <Button label={t('panels:roleMap.viewEditYaml')} icon={<VscEdit size={14} />} size="small" onClick={() => openYaml(detail.node)} />
                             </div>
                         )}
                     </div>

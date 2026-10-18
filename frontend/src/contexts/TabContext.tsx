@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useRef, useCallback } from 'react';
 import { DockviewApi } from 'dockview';
-import { NAV_GROUPS } from '../components/menu/menuItems';
+import { NAV_ITEMS } from '../components/menu/menuItems';
+import { useActiveViewStore, viewOfPanel } from '../stores/activeViewStore';
 import { useT, type TFn } from '../i18n/useT';
 
 // A moved panel's params cannot carry its icon — it is a React element, which
 // neither structured clone nor JSON survives — so the receiving side looks it
 // up again by view (see openReceivedPanel).
 const viewIcons: Record<string, React.ReactNode> = Object.fromEntries(
-    NAV_GROUPS.flatMap(g => g.items.map(i => [i.view, i.icon])),
+    NAV_ITEMS.map(i => [i.view, i.icon]),
 );
 
 /**
@@ -190,6 +191,11 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
 
     const registerApi = useCallback((api: DockviewApi) => {
         apiRef.current = api;
+        // Feeds the sidebar's active item (see stores/activeViewStore.ts). The
+        // disposable lives as long as the api, which lives as long as the window.
+        api.onDidActivePanelChange((panel) => {
+            useActiveViewStore.getState().setView(panel ? viewOfPanel(panel.params) : null);
+        });
     }, []);
 
     const getApi = useCallback(() => apiRef.current, []);

@@ -10,9 +10,21 @@
     "portForward": "Port yönlendir",
     "retry": "Yeniden dene",
     "expandAll": "Tümünü genişlet",
-    "collapseAll": "Tümünü daralt"
+    "collapseAll": "Tümünü daralt",
+    "logs": "Loglar",
+    "exec": "Shell aç",
+    "edit": "Düzenle",
+    "deleteCount": "{{count}} öğeyi sil",
+    "remove": "Kaldır"
   },
   "filter": {
     "all": "Tümü"
+  },
+  "status": {
+    "loading": "Yükleniyor…"
+  },
+  "value": {
+    "yes": "Evet",
+    "no": "Hayır"
   }
 }

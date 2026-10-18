@@ -106,7 +106,8 @@
       "successDetail": "{{target}} gelöscht",
       "failSummary": "Löschen fehlgeschlagen",
       "failDetail": "{{target}} konnte nicht gelöscht werden"
-    }
+    },
+    "more": "und {{count}} weitere"
   },
   "namespace": {
     "createTitle": "Namespace anlegen",
@@ -128,7 +129,9 @@
   },
   "cronjob": {
     "title": "CronJob-Liste",
-    "empty": "Keine CronJobs gefunden"
+    "empty": "Keine CronJobs gefunden",
+    "stateActive": "Aktiv",
+    "stateSuspended": "Angehalten"
   },
   "daemonset": {
     "title": "DaemonSet-Liste",
@@ -245,7 +248,8 @@
         "liveness": "Liveness",
         "readiness": "Readiness"
       }
-    }
+    },
+    "execPick": "Container wählen ({{count}})"
   },
   "replicaset": {
     "title": "ReplicaSet-Liste",
@@ -288,5 +292,9 @@
       "critical": "Kritisch",
       "full": "Voll"
     }
+  },
+  "list": {
+    "filteredCount": "{{shown}} von {{total}}",
+    "noMatch": "Nichts entspricht den aktuellen Filtern"
   }
 }

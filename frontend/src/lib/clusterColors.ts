@@ -10,21 +10,24 @@ export interface ClusterColor {
     label: string;
 }
 
-// Mid-tone hues picked to stay readable on the dark panels of every palette,
-// and on a light one should another be added.
+// Mid-tone hues held to one lightness and a moderate chroma, so no cluster
+// shouts louder than another on graphite. They never meet the accent (which
+// marks selection, not identity): a cluster's colour is a stripe on its tab
+// and a dot in the selector, never a fill or a notch. Ids are what is persisted, so hexes can be
+// retuned freely; the order is the hash's, so it must not change.
 export const CLUSTER_PALETTE: ClusterColor[] = [
-    { id: 'teal', hex: '#3fc8b4', label: 'Teal' },
-    { id: 'cyan', hex: '#5fc2d6', label: 'Cyan' },
-    { id: 'blue', hex: '#6ea8e6', label: 'Blue' },
-    { id: 'indigo', hex: '#7f8ce8', label: 'Indigo' },
-    { id: 'violet', hex: '#a78bd6', label: 'Violet' },
-    { id: 'magenta', hex: '#e07db4', label: 'Magenta' },
-    { id: 'rose', hex: '#e8768c', label: 'Rose' },
-    { id: 'red', hex: '#e07d6e', label: 'Red' },
-    { id: 'orange', hex: '#e2a85a', label: 'Orange' },
-    { id: 'amber', hex: '#d7c05a', label: 'Amber' },
-    { id: 'lime', hex: '#9ec95f', label: 'Lime' },
-    { id: 'green', hex: '#5fc98a', label: 'Green' },
+    { id: 'teal', hex: '#4fb3a5', label: 'Teal' },
+    { id: 'cyan', hex: '#5fb0c4', label: 'Cyan' },
+    { id: 'blue', hex: '#6f9fd4', label: 'Blue' },
+    { id: 'indigo', hex: '#8590d6', label: 'Indigo' },
+    { id: 'violet', hex: '#a48bc8', label: 'Violet' },
+    { id: 'magenta', hex: '#c97fae', label: 'Magenta' },
+    { id: 'rose', hex: '#d27788', label: 'Rose' },
+    { id: 'red', hex: '#d4705f', label: 'Red' },
+    { id: 'orange', hex: '#d98b4e', label: 'Orange' },
+    { id: 'amber', hex: '#c9b05a', label: 'Amber' },
+    { id: 'lime', hex: '#9dba62', label: 'Lime' },
+    { id: 'green', hex: '#6fb37f', label: 'Green' },
 ];
 
 // FNV-1a, kept deterministic and dependency-free so the same cluster name maps

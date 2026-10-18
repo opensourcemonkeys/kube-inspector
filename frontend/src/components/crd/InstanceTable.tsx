@@ -10,10 +10,12 @@ import { VscInfo, VscNote, VscRefresh, VscTrash, VscTypeHierarchySub } from 'rea
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
 import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
+import { ROW_HEIGHT } from '../../lib/tableMetrics';
+import RowAction from '../shared/RowAction';
+import ErrorBanner from '../shared/ErrorBanner';
 
 // Must match the fixed row height enforced by theme-monolith.css
 // (.p-datatable-tbody > tr > td { height: 40px }).
-const ROW_HEIGHT = 40;
 
 export interface InstanceRow {
     /** Names can repeat across namespaces, so rows are keyed by both. */
@@ -160,8 +162,9 @@ export default function InstanceTable(props: InstanceTableProps) {
             <div className="crd-detail__header">
                 <h3>{crd.kind}</h3>
                 <code className="crd-detail__qualified">{qualified}</code>
-                <Tag value={crd.scope} severity={namespaced ? 'info' : 'warning'} style={{ fontSize: '0.68rem' }} />
-                <Tag value={crd.version} style={{ fontSize: '0.68rem' }} />
+                {/* Scope and version are facts about the kind, not states: neutral tags. */}
+                <Tag value={crd.scope} />
+                <Tag value={crd.version} />
                 <div className="crd-detail__header-actions">
                     <Button label={t('panels:crd.crdYaml')} icon={<VscNote size={15} />} text size="small" severity="secondary" onClick={onEditCrd} />
                     <Button
@@ -182,8 +185,7 @@ export default function InstanceTable(props: InstanceTableProps) {
                     value={nameFilter}
                     onChange={(e) => setNameFilter(e.target.value)}
                     placeholder={t('panels:crd.filterByName')}
-                    className="p-inputtext-sm"
-                    style={{ width: '14rem' }}
+                    className="p-inputtext-sm crd-detail__filter"
                 />
                 {namespaced && (
                     <MultiSelect
@@ -193,8 +195,7 @@ export default function InstanceTable(props: InstanceTableProps) {
                         placeholder={t('panels:crd.allNamespaces')}
                         filter
                         maxSelectedLabels={1}
-                        className="p-inputtext-sm"
-                        style={{ minWidth: '12rem' }}
+                        className="p-inputtext-sm crd-detail__ns"
                     />
                 )}
                 {hasWideColumns && (
@@ -203,39 +204,30 @@ export default function InstanceTable(props: InstanceTableProps) {
                         <span>{t('panels:crd.wide')}</span>
                     </label>
                 )}
-                <Tag
-                    value={visibleRows.length === rows.length ? `${rows.length}` : `${visibleRows.length} / ${rows.length}`}
-                    severity="info"
-                    style={{ fontSize: '0.68rem' }}
-                />
+                <span className="rlv-toolbar__count">
+                    {visibleRows.length === rows.length ? rows.length : `${visibleRows.length} / ${rows.length}`}
+                </span>
                 <div className="crd-detail__toolbar-actions">
-                    <Button
-                        label={t('action.deleteSelected')}
-                        icon={<VscTrash size={15} />}
-                        size="small"
-                        severity="danger"
-                        disabled={selected.length === 0}
-                        onClick={() => onDeleteRows(selected)}
-                    />
-                    <Button
-                        icon={<VscRefresh size={15} />}
-                        text
-                        size="small"
-                        severity="secondary"
-                        loading={loading}
-                        onClick={onRefresh}
-                        tooltip={t('panels:crd.refreshInstances')}
-                        tooltipOptions={{ position: 'left' }}
-                    />
+                    {/* Same rule as the resource lists: the delete key is there
+                        only once there is something selected to delete. */}
+                    {selected.length > 0 && (
+                        <Button
+                            label={t('action.deleteCount', { count: selected.length })}
+                            icon={<VscTrash size={15} />}
+                            size="small"
+                            severity="danger"
+                            onClick={() => onDeleteRows(selected)}
+                        />
+                    )}
+                    <RowAction icon={<VscRefresh size={15} />} label={t('panels:crd.refreshInstances')} loading={loading} onClick={onRefresh} />
                 </div>
             </div>
 
-            {error && <div className="crd-detail__error">{t('panels:crd.listFailed', { kind: crd.kind, error })}</div>}
+            <ErrorBanner message={error ? t('panels:crd.listFailed', { kind: crd.kind, error }) : ''} onRetry={onRefresh} busy={loading} stale={rows.length > 0} />
 
             <div
                 ref={tableWrapRef}
-                className="ktable-fill"
-                style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}
+                className="ktable-fill crd-detail__table"
             >
                 <DataTable
                     // Re-initialises the virtual scroller once a measured height
@@ -248,8 +240,6 @@ export default function InstanceTable(props: InstanceTableProps) {
                     selection={selected}
                     onSelectionChange={(e: any) => setSelected(Array.isArray(e.value) ? e.value : [])}
                     onRowDoubleClick={(e: any) => onOpenYaml(e.data as InstanceRow)}
-                    stripedRows
-                    showGridlines
                     resizableColumns
                     scrollable
                     scrollHeight={scrollHeight}
@@ -265,34 +255,10 @@ export default function InstanceTable(props: InstanceTableProps) {
                         {...ACTION_COLUMN_PROPS}
                         style={{ width: '9.5rem' }}
                         body={(row: InstanceRow) => (
-                            <div style={{ display: 'flex', gap: '0.25rem', justifyContent: 'flex-end' }}>
-                                <Button
-                                    icon={<VscInfo size={16} />}
-                                    text
-                                    size="small"
-                                    severity="secondary"
-                                    onClick={() => onDescribe(row)}
-                                    tooltip={t('action.describe')}
-                                    tooltipOptions={{ position: 'top' }}
-                                />
-                                <Button
-                                    icon={<VscNote size={16} />}
-                                    text
-                                    size="small"
-                                    severity="secondary"
-                                    onClick={() => onOpenYaml(row)}
-                                    tooltip={t('panels:crd.editYaml')}
-                                    tooltipOptions={{ position: 'top' }}
-                                />
-                                <Button
-                                    icon={<VscTrash size={16} />}
-                                    text
-                                    size="small"
-                                    severity="danger"
-                                    onClick={() => onDeleteRows([row])}
-                                    tooltip={t('action.delete')}
-                                    tooltipOptions={{ position: 'top' }}
-                                />
+                            <div className="row-actions row-actions--end">
+                                <RowAction icon={<VscInfo size={15} />} label={t('action.describe')} onClick={() => onDescribe(row)} />
+                                <RowAction icon={<VscNote size={15} />} label={t('panels:crd.editYaml')} onClick={() => onOpenYaml(row)} />
+                                <RowAction icon={<VscTrash size={15} />} label={t('action.delete')} severity="danger" onClick={() => onDeleteRows([row])} />
                             </div>
                         )}
                     />

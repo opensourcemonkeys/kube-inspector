@@ -60,7 +60,7 @@ function flattenLimits(limits: models.LimitRangeItemInfo[]): LimitRow[] {
 
 /** Shared body for the value columns: the column's own `field`, or a dim dash. */
 const valueBody = (row: LimitRow, { field }: ColumnBodyOptions) =>
-    row[field as keyof LimitRow] ?? <span style={{ color: 'var(--ink3)' }}>-</span>;
+    row[field as keyof LimitRow] ?? <span className="cell-empty">-</span>;
 
 /**
  * The whole LimitRange spec under an expanded row. Module scope and memoized:
@@ -73,7 +73,7 @@ const LimitItemsTable = React.memo(function LimitItemsTable({ limits }: { limits
         <DataTable value={flattenLimits(limits)} dataKey="_key" size="small" className="rlv-subtable"
             rowGroupMode="rowspan" groupRowsBy="_group">
             <Column field="_group" header={t('resources:column.type')} bodyClassName="rlv-subtable__group" style={{ minWidth: '10rem' }}
-                body={(row: LimitRow) => <Tag value={row.type} severity="info" />} />
+                body={(row: LimitRow) => <Tag value={row.type} />} />
             <Column field="resource" header={t('resources:column.resource')} style={{ minWidth: '10rem' }} />
             <Column field="min" header={t('panels:limitRange.min')} body={valueBody} style={{ minWidth: '6rem' }} />
             <Column field="max" header={t('panels:limitRange.max')} body={valueBody} style={{ minWidth: '6rem' }} />
@@ -117,9 +117,9 @@ export default function LimitRangeListComponent({ clusterName, api }: { clusterN
                     <Column header={t('resources:column.types')} style={{ minWidth: '14rem' }}
                         body={(row: models.LimitRangeInfo) => {
                             if (!row.limits || row.limits.length === 0) return '-';
-                            return <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>{row.limits.map((l, i) => <Tag key={i} value={l.type} severity="info" />)}</div>;
+                            return <div className="tag-list">{row.limits.map((l, i) => <Tag key={i} value={l.type} />)}</div>;
                         }} />
-                    <Column field="created_at" header={t('resources:column.age')} sortable style={{ minWidth: '5rem' }}
+                    <Column field="created_at" header={t('resources:column.age')} align="right" sortable style={{ minWidth: '5rem' }}
                         body={(row: models.LimitRangeInfo) => <span title={absTime(row.created_at)}>{humanAge(row.created_at)}</span>} />
                 </>
             )}

@@ -2,8 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
-import { Button } from 'primereact/button';
+import StatusLamp from '../shared/StatusLamp';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { Menu } from 'primereact/menu';
@@ -18,6 +17,8 @@ import PodDetailPanel from './detail/PodDetailPanel';
 import { containerDotColor, fmtCpu, fmtMem, getStatusSeverity } from './podStatus';
 import { humanAge, absTime } from '../../lib/time';
 import { useT } from '../../i18n/useT';
+import CountCell from '../shared/CountCell';
+import RowAction from '../shared/RowAction';
 
 const getReadySeverity = (ready: number, total: number) => {
     if (total === 0) return 'secondary';
@@ -25,19 +26,8 @@ const getReadySeverity = (ready: number, total: number) => {
     return ready === 0 ? 'danger' : 'warning';
 };
 
-const getOwnerSeverity = (kind: string) => {
-    switch (kind) {
-        case 'Deployment':  return 'info';
-        case 'ReplicaSet':  return 'info';
-        case 'StatefulSet': return 'warning';
-        case 'DaemonSet':   return 'success';
-        case 'Job':         return 'secondary';
-        case 'CronJob':     return 'secondary';
-        default:            return 'contrast'; // bare pod
-    }
-};
-
-const MONO = '"JetBrains Mono", "Cascadia Code", monospace';
+// A pod with no controller. A Kubernetes kind name, so it stays English (locales/GLOSSARY.md).
+const BARE_POD = 'Pod';
 
 const DETAIL_WIDTH_KEY = 'kube-ins:pod-detail-width';
 const DEFAULT_DETAIL_WIDTH = 620;
@@ -59,16 +49,13 @@ const defaultFilters: DataTableFilterMeta = {
 // `options.onClick` must be wired so the item's `command` still fires with a custom template.
 const renderContainerItem = (row: models.PodInfo, name: string, options: MenuItemOptions) => {
     const cs = (row.container_statuses || []).find((c) => !c.init && c.name === name);
-    const color = cs ? containerDotColor(cs) : 'var(--ink2)';
+    const color = cs ? containerDotColor(cs) : 'var(--ink-2)';
     const stateText = cs ? (cs.ready ? 'Ready' : (cs.reason || cs.state || 'Unknown')) : '';
     return (
-        <a className={options.className} role="menuitem" onClick={options.onClick}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%' }}>
-            <span style={{ width: 9, height: 9, borderRadius: '50%', background: color, flexShrink: 0, boxShadow: `0 0 0 3px color-mix(in srgb, ${color} 22%, transparent)` }} />
-            <span style={{ fontFamily: MONO, fontSize: '12.5px', fontWeight: 500, color: 'var(--ink)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{name}</span>
-            {stateText && (
-                <span style={{ marginLeft: 'auto', flexShrink: 0, fontSize: '10px', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase', color: 'var(--ink3)' }}>{stateText}</span>
-            )}
+        <a className={`${options.className} exec-item`} role="menuitem" onClick={options.onClick}>
+            <span className="exec-item__dot" style={{ ['--dot' as string]: color }} />
+            <span className="exec-item__name">{name}</span>
+            {stateText && <span className="exec-item__state">{stateText}</span>}
         </a>
     );
 };
@@ -141,17 +128,17 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
             columns={({ buildInOptions }) => (
                 <>
                     <Column field="name" header={t('resources:column.name')} sortable filter filterField="name" filterPlaceholder={t('resources:filter.searchName')} showFilterMenu={false} style={{ minWidth: '13rem', maxWidth: '13rem' }}
-                        body={(row: models.PodInfo) => <span title={row.name} style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{row.name}</span>} />
+                        body={(row: models.PodInfo) => <span title={row.name} className="cell-clip">{row.name}</span>} />
                     <Column field="namespace" header={t('resources:column.namespace')} sortable filter filterField="namespace" showFilterMenu={false} style={{ minWidth: '8rem' }}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column field="status" header={t('resources:column.status')} sortable filter filterField="status" showFilterMenu={false} style={{ minWidth: '9rem' }}
-                        body={(row: models.PodInfo) => <Tag value={row.status} severity={getStatusSeverity(row.status)} />}
+                        body={(row: models.PodInfo) => <StatusLamp label={row.status} severity={getStatusSeverity(row.status)} />}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('status')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
-                    <Column header={<VscWarning size={14} title={t('resources:column.warnings')} style={{ color: 'var(--amber)', verticalAlign: 'middle' }} />}
+                    <Column header={<VscWarning size={14} title={t('resources:column.warnings')} className="pod-warning-head" />}
                         sortable sortField="warnings" sortFunction={(e) => [...e.data].sort((a: models.PodInfo, b: models.PodInfo) => ((a.warnings?.length ?? 0) - (b.warnings?.length ?? 0)) * (e.order ?? 1))}
                         style={{ width: '3.5rem', textAlign: 'center' }}
                         body={(row: models.PodInfo) => {
@@ -163,18 +150,18 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                                 `${w.container ? `[${w.container}] ` : ''}${t(`resources:pod.warning.${w.code}` as never, { reason: w.reason || '' })}` +
                                 `${w.message ? ` — ${w.message}` : ''}`);
                             return (
-                                <span className="pod-warning" ref={(el) => { if (el) warningTooltipRef.current?.updateTargetEvents(el); }} data-pr-tooltip={lines.join('\n')} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', color: 'var(--amber)' }}>
+                                <span className="pod-warning" ref={(el) => { if (el) warningTooltipRef.current?.updateTargetEvents(el); }} data-pr-tooltip={lines.join('\n')}>
                                     <VscWarning size={16} />
-                                    {ws.length > 1 && <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>{ws.length}</span>}
+                                    {ws.length > 1 && <span className="pod-warning__count">{ws.length}</span>}
                                 </span>
                             );
                         }} />
                     <Column field="ready_count" header={t('resources:column.ready')} sortable style={{ minWidth: '5rem' }}
                         body={(row: models.PodInfo) => (
-                            <Tag value={`${row.ready_count}/${row.total_count}`} severity={getReadySeverity(row.ready_count, row.total_count)} />
+                            <CountCell value={`${row.ready_count}/${row.total_count}`} severity={getReadySeverity(row.ready_count, row.total_count)} />
                         )} />
                     <Column field="owner_kind" header={t('resources:column.owner')} sortable filter filterField="owner_kind" showFilterMenu={false} style={{ minWidth: '7.5rem' }}
-                        body={(row: models.PodInfo) => <Tag value={row.owner_kind || 'Pod'} severity={getOwnerSeverity(row.owner_kind)} />}
+                        body={(row: models.PodInfo) => row.owner_kind || BARE_POD}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('owner_kind')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
@@ -182,25 +169,25 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                         body={(row: models.PodInfo) => fmtCpu(row.cpu_millis)} />
                     <Column field="mem_mi" header={t('resources:column.memory')} sortable style={{ minWidth: '5.5rem' }}
                         body={(row: models.PodInfo) => fmtMem(row.mem_mi)} />
-                    <Column field="pod_ip" header={t('resources:column.podIp')} sortable filter filterField="pod_ip" showFilterMenu={false} style={{ minWidth: '8rem' }}
-                        body={(row: models.PodInfo) => <span style={{  fontSize: '0.8rem' }}>{row.pod_ip || '—'}</span>} 
+                    <Column bodyClassName="cell-mono" field="pod_ip" header={t('resources:column.podIp')} sortable filter filterField="pod_ip" showFilterMenu={false} style={{ minWidth: '8rem' }}
+                        body={(row: models.PodInfo) => row.pod_ip || '—'} 
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('pod_ip')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )}
                         />
                     <Column field="node_name" header={t('resources:column.node')} sortable filter filterField="node_name" showFilterMenu={false} style={{ minWidth: '9rem', maxWidth: '12rem' }}
                         body={(row: models.PodInfo) => row.node_name
-                            ? <span title={row.node_name} style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontFamily: MONO, fontSize: '0.8rem' }}>{row.node_name}</span>
-                            : <span style={{ opacity: 0.5 }} title={t('resources:pod.notScheduled')}>—</span>}
+                            ? <span title={row.node_name} className="cell-clip">{row.node_name}</span>
+                            : <span className="cell-empty" title={t('resources:pod.notScheduled')}>—</span>}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('node_name')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column header={t('resources:column.containers')} style={{ minWidth: '7rem' }}
                         body={(row: models.PodInfo) => {
                             const cs = row.container_statuses || [];
-                            if (cs.length === 0) return <span style={{ opacity: 0.5 }}>—</span>;
+                            if (cs.length === 0) return <span className="cell-empty">—</span>;
                             return (
-                                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                                <div className="pod-dots">
                                     {cs.map((c) => {
                                         const color = containerDotColor(c);
                                         return (
@@ -215,19 +202,9 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                                                     ` · ${c.ready ? t('resources:pod.containerReady') : t('resources:pod.containerNotReady')}` +
                                                     `${c.restart_count > 0 ? t('resources:pod.containerRestarts', { count: c.restart_count }) : ''}`
                                                 }
-                                                style={{
-                                                    position: 'relative', flexShrink: 0, display: 'inline-block', width: 12, height: 12,
-                                                    // Init containers are squares, regular ones circles.
-                                                    borderRadius: c.init ? 3 : '50%',
-                                                    background: color,
-                                                    boxShadow: `0 0 0 3px color-mix(in srgb, ${color} 22%, transparent)`,
-                                                }}>
-                                                {/* A container that has restarted gets an amber corner mark
-                                                    even while it is currently ready — the restart count is
-                                                    the first thing to check when a pod "works but flaps". */}
-                                                {c.restart_count > 0 && (
-                                                    <span style={{ position: 'absolute', top: -4, right: -4, width: 6, height: 6, borderRadius: '50%', background: 'var(--amber)', boxShadow: '0 0 0 1.5px var(--app)' }} />
-                                                )}
+                                                className={`pod-dot${c.init ? ' pod-dot--init' : ''}`}
+                                                style={{ ['--dot' as string]: color }}>
+                                                {c.restart_count > 0 && <span className="pod-dot__restart" />}
                                             </span>
                                         );
                                     })}
@@ -236,25 +213,22 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                         }} />
                     <Column field="restarts" header={t('resources:column.restarts')} sortable style={{ minWidth: '5.5rem' }}
                         body={(row: models.PodInfo) => (
-                            <span style={{ color: row.restarts > 0 ? 'var(--amber)' : 'inherit', fontWeight: row.restarts > 0 ? 600 : 400 }}>{row.restarts}</span>
+                            <span className={row.restarts > 0 ? 'cell-warn' : undefined}>{row.restarts}</span>
                         )} />
-                    <Column field="created_at" header={t('resources:column.age')} sortable style={{ minWidth: '5rem' }}
+                    <Column field="created_at" header={t('resources:column.age')} align="right" sortable style={{ minWidth: '5rem' }}
                         body={(row: models.PodInfo) => <span title={absTime(row.created_at)}>{humanAge(row.created_at)}</span>} />
                     <Column field="last_restart_at" header={t('resources:column.lastRestart')} sortable style={{ minWidth: '7.5rem' }}
                         body={(row: models.PodInfo) => (
-                            <span title={absTime(row.last_restart_at)}
-                                style={{ color: row.last_restart_at ? 'var(--amber)' : undefined, opacity: row.last_restart_at ? 1 : 0.5 }}>
+                            <span title={absTime(row.last_restart_at)} className={row.last_restart_at ? 'cell-warn' : 'cell-empty'}>
                                 {humanAge(row.last_restart_at)}
                             </span>
                         )} />
                     <Column header="" style={{ width: '5rem', textAlign: 'center' }}
                         body={(row: models.PodInfo) => (
-                            <div style={{ display: 'flex', gap: '0.2rem', justifyContent: 'center' }}>
-                                <Button text size="small" severity="secondary" style={{ padding: '0.2rem' }}
-                                    onClick={() => openLogPanel({ clusterName, resourceKind: 'pod', name: row.name, namespace: row.namespace, referencePanel })}>
-                                    <VscListFlat size={16} />
-                                </Button>
-                                <Button text size="small" severity="secondary" style={{ padding: '0.2rem' }}
+                            <div className="row-actions row-actions--center">
+                                <RowAction icon={<VscListFlat size={15} />} label={t('action.logs')}
+                                    onClick={() => openLogPanel({ clusterName, resourceKind: 'pod', name: row.name, namespace: row.namespace, referencePanel })} />
+                                <RowAction icon={<VscTerminal size={15} />} label={t('action.exec')}
                                     onClick={(e) => {
                                         const cs = row.containers || [];
                                         if (cs.length <= 1) {
@@ -262,7 +236,7 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                                             return;
                                         }
                                         setExecMenuItems([{
-                                            label: `Exec into · ${cs.length} containers`,
+                                            label: t('resources:pod.execPick', { count: cs.length }),
                                             items: cs.map((name) => ({
                                                 label: name,
                                                 template: (_item, options) => renderContainerItem(row, name, options),
@@ -270,9 +244,7 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
                                             })),
                                         }]);
                                         execMenuRef.current?.toggle(e);
-                                    }}>
-                                    <VscTerminal size={16} />
-                                </Button>
+                                    }} />
                             </div>
                         )} />
                 </>

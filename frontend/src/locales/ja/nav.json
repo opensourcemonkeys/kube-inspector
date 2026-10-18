@@ -2,7 +2,7 @@
   "group": {
     "workloads": "ワークロード",
     "networking": "ネットワーク",
-    "config": "設定と SECRETS",
+    "config": "設定と Secrets",
     "security": "セキュリティ",
     "storage": "ストレージ",
     "cluster": "クラスター"

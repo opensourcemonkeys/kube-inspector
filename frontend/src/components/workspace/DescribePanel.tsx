@@ -2,11 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { IDockviewPanelProps } from 'dockview';
 import { VscInfo, VscRefresh, VscCopy, VscCheck } from 'react-icons/vsc';
 import { Button } from 'primereact/button';
-import { ProgressSpinner } from 'primereact/progressspinner';
 import { GetObjectDescribe } from '../../../wailsjs/go/controller_app/App';
 import { errText } from '../../lib/errText';
 import ErrorBanner from '../shared/ErrorBanner';
 import { useT } from '../../i18n/useT';
+import PanelSkeleton from '../shared/PanelSkeleton';
 
 export interface DescribePanelParams {
     clusterName: string;
@@ -69,13 +69,13 @@ export default function DescribePanel({ params }: IDockviewPanelProps<DescribePa
     };
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div className="yaml-editor-toolbar flex align-items-center justify-content-between">
-                <span className="yaml-editor-toolbar__label flex align-items-center gap-1">
-                    <VscInfo size={14} />
-                    {namespace ? `${namespace}/${name}` : name}
+        <div className="describe-panel">
+            <div className="panel-toolbar">
+                <span className="panel-toolbar__label">
+                    <VscInfo size={14} aria-hidden />
+                    <span className="cell-clip">{namespace ? `${namespace}/${name}` : name}</span>
                 </span>
-                <div className="flex align-items-center gap-1 flex-shrink-0">
+                <div className="panel-toolbar__actions">
                     <Button
                         label={t('panels:describe.refresh')}
                         icon={<VscRefresh size={16} />}
@@ -104,27 +104,9 @@ export default function DescribePanel({ params }: IDockviewPanelProps<DescribePa
             />
 
             {!loaded ? (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <ProgressSpinner style={{ width: 40, height: 40 }} strokeWidth="4" />
-                </div>
+                <PanelSkeleton />
             ) : (
-                <pre
-                    ref={preRef}
-                    style={{
-                        flex: 1,
-                        minHeight: 0,
-                        margin: 0,
-                        padding: '0.75rem 1rem',
-                        overflow: 'auto',
-                        whiteSpace: 'pre',
-                        fontFamily: 'var(--font-mono, ui-monospace, monospace)',
-                        fontSize: 13,
-                        lineHeight: 1.5,
-                        color: 'var(--ink)',
-                        background: 'var(--panel)',
-                        userSelect: 'text',
-                    }}
-                >
+                <pre ref={preRef} className="describe-panel__text dark-display">
                     {text}
                 </pre>
             )}

@@ -10,9 +10,21 @@
     "portForward": "端口转发",
     "retry": "重试",
     "expandAll": "全部展开",
-    "collapseAll": "全部折叠"
+    "collapseAll": "全部折叠",
+    "logs": "日志",
+    "exec": "打开 Shell",
+    "edit": "编辑",
+    "deleteCount": "删除 {{count}} 项",
+    "remove": "移除"
   },
   "filter": {
     "all": "全部"
+  },
+  "status": {
+    "loading": "正在加载…"
+  },
+  "value": {
+    "yes": "是",
+    "no": "否"
   }
 }

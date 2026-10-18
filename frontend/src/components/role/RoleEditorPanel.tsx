@@ -14,6 +14,7 @@ import { GetRoles, UpdateRole } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
 import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
+import RowAction from '../shared/RowAction';
 
 interface RoleEditorPanelParams {
     clusterName: string;
@@ -143,30 +144,30 @@ export default function RoleEditorPanel({ params }: IDockviewPanelProps<RoleEdit
         <InputText
             value={options.value}
             onChange={e => options.editorCallback!(e.target.value)}
-            style={{ fontFamily: 'monospace', fontSize: '0.85rem', width: '100%' }}
+            className="kv-input"
             autoFocus
         />
     );
 
     const actionsBody = (rowData: RuleRow) => (
-        <Button
-            icon={<VscClose size={16} />}
-            text
-            severity="danger"
-            size="small"
-            onClick={() => removeRow(rowData.id)}
-            disabled={saving}
-            style={{ padding: '0.2rem' }}
-        />
+        <RowAction icon={<VscClose size={15} />} label={t('action.remove')} severity="danger"
+            onClick={() => removeRow(rowData.id)} disabled={saving} />
+    );
+
+    const emptyState = (
+        <div className="rlv-empty">
+            <span>{t('panels:roleEditor.empty')}</span>
+            <Button label={t('panels:roleEditor.addRule')} icon={<VscAdd size={14} />} outlined size="small" onClick={addRow} disabled={saving} />
+        </div>
     );
 
     const tableHeader = (
-        <div className="flex justify-content-between align-items-center gap-2">
-            <span className="yaml-editor-toolbar__label flex align-items-center gap-1" style={{ fontSize: '0.85rem' }}>
-                <VscSettings size={14} />
-                {namespace}/{name}
+        <div className="panel-toolbar">
+            <span className="panel-toolbar__label">
+                <VscSettings size={14} aria-hidden />
+                <span className="cell-clip">{namespace}/{name}</span>
             </span>
-            <div className="flex align-items-center gap-1">
+            <div className="panel-toolbar__actions">
                 <Button label={t('panels:roleEditor.addRule')} icon={<VscAdd size={16} />} text size="small" onClick={addRow} disabled={saving} />
                 <Button label={t('panels:yaml.revert')} icon={<VscDiscard size={16} />} text size="small" disabled={!dirty || saving} onClick={handleRevert} />
                 <Button label={t('panels:yaml.save')} icon={<VscCheck size={16} />} size="small" loading={saving} disabled={!dirty} onClick={handleSave} />
@@ -175,25 +176,23 @@ export default function RoleEditorPanel({ params }: IDockviewPanelProps<RoleEdit
     );
 
     return (
-        <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="kv-editor">
             <Toast ref={toast} position="bottom-right" />
+            {tableHeader}
             <DataTable
                 value={rows}
                 dataKey="id"
                 editMode="cell"
-                header={tableHeader}
                 scrollable
                 scrollHeight="flex"
-                showGridlines
-                stripedRows
-                emptyMessage={t('panels:roleEditor.empty')}
-                style={{ flex: 1 }}
+                emptyMessage={emptyState}
+                className="kv-editor__table"
             >
-                <Column field="apiGroups" header={t('resources:column.apiGroups')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '11rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
-                <Column field="resources" header={t('resources:column.resources')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '11rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
-                <Column field="verbs" header={t('resources:column.verbs')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '11rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
-                <Column field="resourceNames" header={t('resources:column.resourceNames')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '11rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
-                <Column header="" {...ACTION_COLUMN_PROPS} body={actionsBody} style={{ width: '3.5rem', textAlign: 'center' }} />
+                <Column field="apiGroups" header={t('resources:column.apiGroups')} editor={textEditor} onCellEditComplete={onCellEditComplete} className="cell-mono" style={{ minWidth: '11rem' }} />
+                <Column field="resources" header={t('resources:column.resources')} editor={textEditor} onCellEditComplete={onCellEditComplete} className="cell-mono" style={{ minWidth: '11rem' }} />
+                <Column field="verbs" header={t('resources:column.verbs')} editor={textEditor} onCellEditComplete={onCellEditComplete} className="cell-mono" style={{ minWidth: '11rem' }} />
+                <Column field="resourceNames" header={t('resources:column.resourceNames')} editor={textEditor} onCellEditComplete={onCellEditComplete} className="cell-mono" style={{ minWidth: '11rem' }} />
+                <Column header="" {...ACTION_COLUMN_PROPS} body={actionsBody} style={{ width: '3.5rem' }} />
             </DataTable>
         </div>
     );

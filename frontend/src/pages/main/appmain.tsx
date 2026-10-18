@@ -81,44 +81,18 @@ function Appmain() {
                         <AiChat />
                         <div className="flex flex-column overflow-hidden" style={{ height: '100vh' }}>
                             <TitleBar onToggleSidebar={toggleSidebar} sidebarOpen={sidebarOpen} onToggleCli={() => setCliMode(true)} />
-                            <div className="flex-1 min-h-0" style={{ position: 'relative', overflow: 'hidden' }}>
+                            <div className="flex-1 min-h-0 relative overflow-hidden">
 
                                 {/* CLI mode: fullscreen terminal UI over the workspace. Dockview +
                                     menu stay mounted underneath so their state survives the toggle. */}
                                 {cliMode && <CliModeOverlay onClose={() => setCliMode(false)} />}
 
                                 {/* Hover trigger zone — only active when sidebar is collapsed */}
-                                {!sidebarOpen && (
-                                    <div
-                                        style={{
-                                            position: 'absolute',
-                                            left: 0,
-                                            top: 0,
-                                            width: '6px',
-                                            height: '100%',
-                                            zIndex: 200,
-                                        }}
-                                        onMouseEnter={onEnter}
-                                    />
-                                )}
+                                {!sidebarOpen && <div className="app-sidebar-hotzone" onMouseEnter={onEnter} />}
 
                                 {/* Resource Explorer Sidebar — always absolute so it never affects workspace layout */}
                                 <div
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        height: '100%',
-                                        zIndex: sidebarOpen ? 1 : 100,
-                                        width: sidebarOpen ? '240px' : (hovered ? '240px' : '0'),
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        overflow: 'hidden',
-                                        transition: 'width 0.2s ease',
-                                        background: 'var(--panel)',
-                                        borderRight: '1px solid var(--line)',
-                                        boxShadow: !sidebarOpen && hovered ? '4px 0 16px rgba(0,0,0,0.4)' : 'none',
-                                    }}
+                                    className={`app-sidebar${sidebarOpen ? ' app-sidebar--docked' : hovered ? ' app-sidebar--floating' : ''}`}
                                     onMouseEnter={onEnter}
                                     onMouseLeave={onLeave}
                                 >
@@ -129,15 +103,7 @@ function Appmain() {
                                 {/* Main Workspace — shifts right only when sidebar is open */}
                                 <div
                                     id="tour-workspace"
-                                    style={{
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: sidebarOpen ? '240px' : '0',
-                                        right: 0,
-                                        bottom: 0,
-                                        overflow: 'hidden',
-                                        transition: 'left 0.2s ease',
-                                    }}
+                                    className={`app-workspace${sidebarOpen ? ' app-workspace--beside-sidebar' : ''}`}
                                 >
                                     <DockviewContainer />
                                 </div>

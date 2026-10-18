@@ -10,9 +10,21 @@
     "portForward": "ポートフォワード",
     "retry": "再試行",
     "expandAll": "すべて展開",
-    "collapseAll": "すべて折りたたむ"
+    "collapseAll": "すべて折りたたむ",
+    "logs": "ログ",
+    "exec": "シェルを開く",
+    "edit": "編集",
+    "deleteCount": "{{count}} 件を削除",
+    "remove": "削除"
   },
   "filter": {
     "all": "すべて"
+  },
+  "status": {
+    "loading": "読み込み中…"
+  },
+  "value": {
+    "yes": "はい",
+    "no": "いいえ"
   }
 }

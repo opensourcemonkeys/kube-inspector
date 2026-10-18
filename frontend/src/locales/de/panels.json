@@ -27,7 +27,9 @@
     "author": "Autor",
     "dependencies": "Abhängigkeiten",
     "diagnostics": "Diagnose",
-    "close": "Schließen"
+    "close": "Schließen",
+    "title": "Über Kube Inspector",
+    "version": "Version"
   },
   "update": {
     "titleAvailable": "Update verfügbar",
@@ -69,7 +71,10 @@
       "removed": "Entfernt",
       "deprecated": "Veraltet",
       "security": "Sicherheit"
-    }
+    },
+    "installed": "Installiert",
+    "available": "Verfügbar",
+    "progressLabel": "Update-Fortschritt"
   },
   "tour": {
     "welcome": {
@@ -97,13 +102,14 @@
       "content": "Öffnen Sie eine interaktive Terminal-Sitzung. Führen Sie kubectl-Befehle aus, prüfen Sie Ressourcen und arbeiten Sie direkt aus der Anwendung heraus mit Ihrem Cluster."
     },
     "done": {
-      "title": "Alles bereit!",
+      "title": "Alles bereit",
       "content": "Sie kennen jetzt die Grundlagen von Kube Inspector. Ein Doppelklick auf eine Zeile in einer Ressourcenliste zeigt deren YAML, und die Log-Schaltfläche in Workload-Zeilen streamt Live-Logs."
     },
     "previous": "Zurück",
     "next": "Weiter",
     "finish": "Fertig",
-    "skip": "Tour überspringen"
+    "skip": "Tour überspringen",
+    "stepOf": "Schritt {{current}} von {{total}}"
   },
   "diagnostics": {
     "tab": {
@@ -146,7 +152,13 @@
     "logLevel": "Loglevel",
     "healthChecks": "Health-Checks",
     "rerunning": "Läuft…",
-    "rerun": "Prüfungen erneut ausführen"
+    "rerun": "Prüfungen erneut ausführen",
+    "checkStatus": {
+      "ok": "Bestanden",
+      "warn": "Warnung",
+      "fail": "Fehlgeschlagen",
+      "skip": "Übersprungen"
+    }
   },
   "trivy": {
     "tab": {
@@ -176,14 +188,29 @@
     "imagePlaceholder": "nginx:1.25",
     "scanImage": "Image scannen",
     "exportHtml": "Als HTML exportieren",
-    "title": "Sicherheits-Scan"
+    "title": "Sicherheits-Scan",
+    "logStartK8s": "Kubernetes-Ressourcenscan wird gestartet…",
+    "logListing": "Pod-Images werden aufgelistet…",
+    "logScanning": "{{image}} wird gescannt ({{current}} von {{total}})",
+    "logFirstRun": "Der erste Scan lädt die Schwachstellendatenbank herunter.",
+    "logDone": "Fertig. Befunde: {{findings}}, gescannte Images: {{images}}",
+    "logNoImages": "Keine Images zum Scannen gefunden.",
+    "logCancelled": "Scan abgebrochen.",
+    "logQueued": "Images in der Warteschlange: {{count}}",
+    "toastK8sFailed": "Kubernetes-Scan fehlgeschlagen",
+    "toastListFailed": "Images konnten nicht aufgelistet werden",
+    "toastScanIssue": "Scan-Problem: {{image}}",
+    "toastScanFailed": "{{image}} konnte nicht gescannt werden",
+    "toastNoVulns": "Keine Schwachstellen gefunden",
+    "toastEnterImage": "Geben Sie ein Image ein",
+    "toastEnterImageHint": "Zum Beispiel nginx:1.25 oder registry/repo:tag",
+    "total": "Gesamt"
   },
   "monitoring": {
     "switchTooltip": "Zwischen Pods / Workloads wechseln",
     "noData": "Keine Daten.",
     "label": "Ressourcen-Überwachung",
     "loading": "Metriken werden geladen…",
-    "noMetricsServer": "Auf diesem Cluster ist kein metrics-server verfügbar — die Ressourcennutzung kann nicht angezeigt werden. Installieren Sie metrics-server, um die Überwachung zu aktivieren.",
     "timeWindow": "Zeitfenster",
     "clusterCpu": "Cluster-CPU",
     "clusterMemory": "Cluster-Speicher",
@@ -238,7 +265,8 @@
     "localPortHint": "(leer = automatisch wählen)",
     "automatic": "Automatisch",
     "inUse": "Port {{port}} ist bereits belegt — Vorschlag: {{suggested}}.",
-    "loopbackOnly": "Nur an 127.0.0.1 gebunden — aus Ihrem Netzwerk nicht erreichbar."
+    "loopbackOnly": "Nur an 127.0.0.1 gebunden — aus Ihrem Netzwerk nicht erreichbar.",
+    "custom": "Benutzerdefiniert…"
   },
   "cluster": {
     "select": "Cluster auswählen…",
@@ -278,12 +306,12 @@
     "contexts": "Contexts",
     "users": "Benutzer",
     "currentContext": "Aktueller Context",
-    "noServerEndpoint": "kein Server-Endpunkt",
+    "noServerEndpoint": "Kein Server-Endpunkt",
     "save": "Speichern"
   },
   "cliMode": {
-    "badge": "CLI-MODUS",
-    "subtitle": "— Terminal-Oberfläche",
+    "badge": "CLI-Modus",
+    "subtitle": "Terminal-Oberfläche",
     "exit": "CLI-Modus beenden"
   },
   "logs": {
@@ -380,7 +408,16 @@
     "clusterAria": "Ziel-Cluster",
     "clear": "Leeren",
     "apply": "Anwenden",
-    "output": "Ausgabe"
+    "output": "Ausgabe",
+    "emptyTitle": "Nichts anzuwenden",
+    "emptyDetail": "Der Editor ist leer.",
+    "noClusterTitle": "Kein Cluster ausgewählt",
+    "noClusterDetail": "Wählen Sie vor dem Anwenden einen Zielcluster.",
+    "applied": "Angewendet",
+    "appliedDetail": "Auf {{cluster}} angewendet.",
+    "failed": "Anwenden fehlgeschlagen",
+    "closeOutput": "Ausgabe schließen",
+    "resizeOutput": "Ausgabe skalieren"
   },
   "describe": {
     "refresh": "Aktualisieren",
@@ -412,7 +449,7 @@
   },
   "configMapEditor": {
     "addKey": "Schlüssel hinzufügen",
-    "empty": "Keine Dateneinträge. Klicken Sie auf „Schlüssel hinzufügen“."
+    "empty": "Diese ConfigMap hat keine Schlüssel."
   },
   "crd": {
     "loading": "CRDs werden geladen…",
@@ -472,7 +509,9 @@
     "podSelector": "Pod: {{selector}}",
     "ipBlock": "IP: {{block}}",
     "except": "außer: {{value}}",
-    "resizeDivider": "Trennlinie verschieben"
+    "resizeDivider": "Trennlinie verschieben",
+    "blocked": "Blockiert",
+    "allPorts": "alle Ports"
   },
   "node": {
     "drain": "Drain",
@@ -490,16 +529,24 @@
     "version": "Version",
     "cpuCap": "CPU-Kapazität",
     "memCap": "RAM-Kapazität",
-    "noMetricsServer": "Metrics Server nicht verfügbar — CPU-/RAM-Nutzung nicht abrufbar",
     "drainWarning": "Dabei wird der Node zuerst <1>cordoned</1> (als nicht planbar markiert) und anschließend werden alle Pods außer DaemonSet- und Mirror-Pods verdrängt.",
     "drainTarget": "Node: <1>{{name}}</1>",
     "title": "Node-Liste",
-    "empty": "In diesem Cluster wurden keine Nodes gefunden."
+    "empty": "In diesem Cluster wurden keine Nodes gefunden.",
+    "readyCount": "{{ready}} von {{total}} bereit",
+    "toastCordoned": "Cordoned",
+    "toastCordonedDetail": "{{name}} nimmt keine neuen Pods mehr an",
+    "toastCordonFailed": "Cordon fehlgeschlagen",
+    "toastUncordoned": "Uncordoned",
+    "toastUncordonedDetail": "{{name}} nimmt wieder neue Pods an",
+    "toastUncordonFailed": "Uncordon fehlgeschlagen",
+    "toastDrained": "Drain abgeschlossen",
+    "toastDrainedDetail": "Pods auf {{name}} wurden verdrängt",
+    "toastDrainFailed": "Drain fehlgeschlagen"
   },
   "overview": {
     "label": "Übersicht",
     "clusterCapacity": "Cluster-Kapazität",
-    "noMetricsServer": "Auf diesem Cluster ist kein metrics-server verfügbar — die Ressourcennutzung kann nicht angezeigt werden. Installieren Sie metrics-server, um sie zu aktivieren.",
     "clusterCpu": "Cluster-CPU",
     "clusterMemory": "Cluster-Speicher",
     "cordoned": "Cordoned",
@@ -516,33 +563,50 @@
     "copyAddress": "Adresse kopieren",
     "restart": "Neu starten",
     "dismiss": "Ausblenden",
-    "stop": "Stoppen"
+    "stop": "Stoppen",
+    "status": {
+      "ready": "Bereit",
+      "starting": "Wird gestartet",
+      "reconnecting": "Verbindet neu",
+      "error": "Fehler",
+      "stopped": "Gestoppt"
+    },
+    "attempt": "Versuch {{n}}",
+    "toastStopFailed": "Weiterleitung konnte nicht gestoppt werden",
+    "toastRestarted": "Weiterleitung neu gestartet",
+    "toastRestartFailed": "Weiterleitung konnte nicht neu gestartet werden",
+    "toastCopied": "Adresse kopiert",
+    "toastCopyFailed": "Kopieren fehlgeschlagen"
   },
   "editYaml": "YAML bearbeiten",
   "roleEditor": {
     "addRule": "Regel hinzufügen",
-    "empty": "Keine Regeln. Klicken Sie auf „Regel hinzufügen“."
+    "empty": "Diese Rolle hat keine Regeln."
   },
   "roleBindingEditor": {
     "addSubject": "Subjekt hinzufügen",
-    "empty": "Keine Subjekte. Klicken Sie auf „Subjekt hinzufügen“."
+    "empty": "Diese Bindung hat keine Subjekte."
   },
   "secretEditor": {
     "addKey": "Schlüssel hinzufügen",
-    "empty": "Keine Dateneinträge. Klicken Sie auf „Schlüssel hinzufügen“."
+    "empty": "Dieses Secret hat keine Schlüssel.",
+    "showValue": "Wert anzeigen",
+    "hideValue": "Wert ausblenden",
+    "masked": "Wert verborgen"
   },
   "roleMap": {
     "label": "Sicherheits-Rollenkarte",
     "refresh": "Aktualisieren",
-    "none": "keine",
-    "noMatches": "keine Treffer",
+    "none": "Keine",
+    "noMatches": "Keine Treffer",
     "clearFocus": "Fokus aufheben",
-    "tip": "Tipp: klicken, um Verbindungen hervorzuheben · doppelklicken für Details",
-    "legendGrants": "gewährt",
+    "tip": "Tipp: klicken, um Verbindungen hervorzuheben; doppelklicken für Details",
+    "legendGrants": "Gewährt",
     "accessibleObjects": "Erreichbare Objekte ({{count}})",
     "filterObjects": "Objekte filtern…",
     "describe": "Describe",
-    "viewEditYaml": "YAML ansehen / bearbeiten"
+    "viewEditYaml": "YAML ansehen / bearbeiten",
+    "allOf": "Alle ({{count}})"
   },
   "ai": {
     "backToChat": "Zurück zum Chat",
@@ -563,7 +627,7 @@
     "catalogError": "Katalog konnte nicht geladen werden: {{error}}",
     "cancel": "Abbrechen",
     "showSizes": "Größen anzeigen",
-    "installed": "installiert",
+    "installed": "Installiert",
     "loadingSizes": "Größen werden geladen…",
     "sizesError": "Größen konnten nicht geladen werden — nutzen Sie das Feld oben, um einen bestimmten Tag zu laden.",
     "noTags": "Keine Tags gefunden.",
@@ -581,6 +645,22 @@
     "noModelPlaceholder": "Zuerst ein Modell installieren/auswählen",
     "stop": "Stoppen",
     "send": "Senden",
-    "mutating": "verändernd"
+    "mutating": "Verändernd",
+    "workingFor": "Arbeitet ({{seconds}} s)",
+    "you": "Sie",
+    "downloadModel": "{{name}} herunterladen",
+    "pullStarting": "Wird gestartet…",
+    "pullFailed": "Fehler: {{error}}",
+    "requestFailed": "Die Anfrage ist fehlgeschlagen.",
+    "toolStatus": {
+      "running": "Läuft",
+      "done": "Fertig",
+      "declined": "Abgelehnt",
+      "error": "Fehlgeschlagen"
+    }
+  },
+  "metrics": {
+    "unavailableTitle": "Keine Nutzungsdaten",
+    "unavailableHint": "Auf diesem Cluster läuft kein metrics-server. Installieren Sie ihn, um CPU- und Speichernutzung zu sehen."
   }
 }

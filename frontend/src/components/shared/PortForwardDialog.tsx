@@ -3,12 +3,12 @@ import { Dialog } from 'primereact/dialog';
 import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { InputNumber } from 'primereact/inputnumber';
-import { ProgressSpinner } from 'primereact/progressspinner';
-import { VscClose, VscArrowSwap, VscLock } from 'react-icons/vsc';
+import { VscArrowSwap, VscLock } from 'react-icons/vsc';
 import { GetForwardablePorts, SuggestLocalPort, StartPortForward } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { errText } from '../../lib/errText';
 import { useT } from '../../i18n/useT';
+import Spinner from './Spinner';
 
 export type ForwardableKind = 'pod' | 'deployment' | 'statefulset' | 'replicaset' | 'daemonset' | 'service';
 
@@ -167,22 +167,23 @@ export default function PortForwardDialog({
             // selectable, which explains its absence better than hiding it.
             disabled: p.protocol === 'UDP',
         })),
-        { label: 'Custom…', value: CUSTOM, disabled: false },
+        { label: t('panels:portForwardDialog.custom'), value: CUSTOM, disabled: false },
     ];
 
     return (
         <Dialog
             header={t('action.portForward')}
             visible={visible}
-            style={{ width: '30rem' }}
+            className="pf-dialog"
             modal
             onHide={close}
             footer={
-                <div className="flex justify-content-end gap-2">
-                    <Button label={t('action.cancel')} icon={<VscClose size={16} />} text onClick={close} />
+                <div className="dlg-actions">
+                    <Button label={t('action.cancel')} severity="secondary" size="small" onClick={close} />
                     <Button
                         label={t('panels:portForwardDialog.start')}
-                        icon={<VscArrowSwap size={16} />}
+                        icon={<VscArrowSwap size={14} />}
+                        size="small"
                         onClick={submit}
                         loading={busy}
                         disabled={busy || !effectiveRemote || effectiveRemote < 1}
@@ -190,19 +191,18 @@ export default function PortForwardDialog({
                 </div>
             }
         >
-            <div className="flex flex-column gap-3">
-                <span style={{ fontSize: '0.85rem', color: 'var(--ink2)', wordBreak: 'break-all' }}>
-                    {kind} · {namespace}/{name}
-                </span>
+            <div className="dlg-form">
+                <p className="dlg-subject">
+                    <span className="dlg-subject__kind">{kind}</span>
+                    <span className="cell-mono">{namespace}/{name}</span>
+                </p>
 
-                <div className="flex flex-column gap-2">
-                    <label htmlFor="pf-remote" style={{ fontSize: '0.8rem', color: 'var(--ink2)' }}>
-                        {t('panels:portForwardDialog.remotePort')}
-                    </label>
+                <div className="dlg-field">
+                    <label htmlFor="pf-remote" className="dlg-label">{t('panels:portForwardDialog.remotePort')}</label>
                     {loadingPorts ? (
-                        <div className="flex align-items-center gap-2" style={{ height: '2rem' }}>
-                            <ProgressSpinner style={{ width: 16, height: 16 }} strokeWidth="6" />
-                            <span style={{ fontSize: '0.8rem', color: 'var(--ink3)' }}>{t('panels:portForwardDialog.readingPorts')}</span>
+                        <div className="dlg-loading">
+                            <Spinner size={14} label={t('panels:portForwardDialog.readingPorts')} />
+                            <span>{t('panels:portForwardDialog.readingPorts')}</span>
                         </div>
                     ) : (
                         <Dropdown
@@ -212,7 +212,7 @@ export default function PortForwardDialog({
                             optionDisabled="disabled"
                             onChange={(e) => setRemotePort(e.value)}
                             placeholder={t('panels:portForwardDialog.selectPort')}
-                            style={{ width: '100%' }}
+                            className="w-full"
                         />
                     )}
                     {usingCustom && (
@@ -224,20 +224,19 @@ export default function PortForwardDialog({
                             placeholder={t('panels:portForwardDialog.portNumber')}
                             autoFocus
                             onValueChange={(e) => setCustomPort(e.value ?? null)}
-                            inputStyle={{ width: '100%' }}
+                            className="w-full"
+                            inputClassName="w-full"
                         />
                     )}
                     {portsError && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--ink3)' }}>
-                            {t('panels:portForwardDialog.portsError', { error: portsError })}
-                        </span>
+                        <span className="dlg-note">{t('panels:portForwardDialog.portsError', { error: portsError })}</span>
                     )}
                 </div>
 
-                <div className="flex flex-column gap-2">
-                    <label htmlFor="pf-local" style={{ fontSize: '0.8rem', color: 'var(--ink2)' }}>
+                <div className="dlg-field">
+                    <label htmlFor="pf-local" className="dlg-label">
                         {t('panels:portForwardDialog.localPort')}{' '}
-                        <span style={{ opacity: 0.7 }}>{t('panels:portForwardDialog.localPortHint')}</span>
+                        <span className="dlg-label__hint">{t('panels:portForwardDialog.localPortHint')}</span>
                     </label>
                     <InputNumber
                         inputId="pf-local"
@@ -253,23 +252,22 @@ export default function PortForwardDialog({
                         onKeyDown={(e) => {
                             if (e.key === 'Enter' && !busy) submit();
                         }}
-                        inputStyle={{ width: '100%' }}
+                        className="w-full"
+                        inputClassName="w-full"
                     />
                     {suggestedAway && effectiveRemote && (
-                        <span style={{ fontSize: '0.75rem', color: 'var(--amber)' }}>
+                        <span className="dlg-note dlg-note--warn">
                             {t('panels:portForwardDialog.inUse', { port: effectiveRemote, suggested: localPort })}
                         </span>
                     )}
                 </div>
 
-                <span className="flex align-items-center gap-2" style={{ fontSize: '0.75rem', color: 'var(--ink3)' }}>
-                    <VscLock size={13} />
+                <span className="dlg-note dlg-note--icon">
+                    <VscLock size={13} aria-hidden />
                     {t('panels:portForwardDialog.loopbackOnly')}
                 </span>
 
-                {error && (
-                    <span style={{ color: 'var(--red)', fontSize: '0.8rem', wordBreak: 'break-word' }}>{error}</span>
-                )}
+                {error && <p className="dlg-error" role="alert">{error}</p>}
             </div>
         </Dialog>
     );

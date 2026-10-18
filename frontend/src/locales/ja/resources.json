@@ -106,7 +106,8 @@
       "successDetail": "{{target}} を削除しました",
       "failSummary": "削除に失敗しました",
       "failDetail": "{{target}} を削除できませんでした"
-    }
+    },
+    "more": "ほか {{count}} 件"
   },
   "namespace": {
     "createTitle": "Namespace を作成",
@@ -128,7 +129,9 @@
   },
   "cronjob": {
     "title": "CronJob 一覧",
-    "empty": "CronJob が見つかりません"
+    "empty": "CronJob が見つかりません",
+    "stateActive": "有効",
+    "stateSuspended": "一時停止中"
   },
   "daemonset": {
     "title": "DaemonSet 一覧",
@@ -245,7 +248,8 @@
         "liveness": "生存プローブ",
         "readiness": "準備プローブ"
       }
-    }
+    },
+    "execPick": "コンテナーを選択（{{count}}）"
   },
   "replicaset": {
     "title": "ReplicaSet 一覧",
@@ -288,5 +292,9 @@
       "critical": "危険",
       "full": "上限到達"
     }
+  },
+  "list": {
+    "filteredCount": "{{total}} 件中 {{shown}} 件",
+    "noMatch": "現在のフィルターに一致する項目はありません"
   }
 }

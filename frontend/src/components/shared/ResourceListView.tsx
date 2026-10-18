@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
 import { VscClearAll, VscTrash, VscClose, VscExpandAll, VscCollapseAll } from 'react-icons/vsc';
 import { DataTable, DataTableExpandedRows, DataTableFilterMeta, DataTableProps, DataTableRowToggleEvent } from 'primereact/datatable';
@@ -6,7 +6,6 @@ import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
-import { ProgressSpinner } from 'primereact/progressspinner';
 import { Menu } from 'primereact/menu';
 import type { MenuItem } from 'primereact/menuitem';
 import { VscInfo, VscArrowSwap, VscKebabVertical } from 'react-icons/vsc';
@@ -14,6 +13,8 @@ import { useResourceList, ResourceRow } from '../../lib/useResourceList';
 import { useT } from '../../i18n/useT';
 import { useTabContext } from '../../contexts/TabContext';
 import ErrorBanner from './ErrorBanner';
+import { ListSkeleton } from './PanelSkeleton';
+import { ROW_HEIGHT } from '../../lib/tableMetrics';
 import PortForwardDialog, { type ForwardableKind } from './PortForwardDialog';
 import { useWorkloadActions, type WorkloadActionSpec } from './WorkloadActions';
 import { ACTION_COLUMN_PROPS } from './actionColumn';
@@ -88,9 +89,18 @@ function tagLastForActions(data: React.ReactNode[]): React.ReactNode[] {
     });
 }
 
-// Must match the fixed row height enforced by theme-monolith.css
-// (.p-datatable-tbody > tr > td { height: 40px }).
-const ROW_HEIGHT = 40;
+// The delete dialog names this many objects, then counts the rest: a
+// select-all on a 300-pod namespace made a dialog taller than the window.
+const DELETE_LIST_MAX = 8;
+
+// Whether any column filter holds a value. Compared by value rather than
+// against `defaultFilters`, because DataTable hands back filter objects that
+// are structurally different from the defaults while meaning the same thing.
+const hasFilterValue = (filters: DataTableFilterMeta): boolean =>
+    Object.values(filters).some((f) => {
+        const metas = (f as { constraints?: { value: unknown }[] }).constraints ?? [f as { value: unknown }];
+        return metas.some(({ value }) => value != null && value !== '' && !(Array.isArray(value) && value.length === 0));
+    });
 // Elements inside a row whose clicks belong to themselves, not to `onRowClick`.
 const ROW_CONTROLS = 'button, a, input, .p-checkbox, .p-row-toggler';
 
@@ -237,6 +247,33 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
 
     const deletable = !!deleter;
     const { openDescribePanel } = useTabContext();
+    const filtersActive = useMemo(() => hasFilterValue(filters), [filters]);
+    // How many rows survive the filters, for the toolbar count. DataTable
+    // reports it through onValueChange; null until it has.
+    const [shownCount, setShownCount] = useState<number | null>(null);
+
+    // Rows that were not there on the previous poll get a one-shot highlight,
+    // so a new pod is noticed without anyone diffing the list by eye. New rows
+    // only: pods change CPU and memory on every poll, and flashing changed
+    // rows would light up the whole list every two seconds. The first load
+    // and a cluster switch establish the baseline instead of flashing it.
+    const seenRef = useRef<{ cluster: string; keys: Set<string> } | null>(null);
+    const [freshKeys, setFreshKeys] = useState<Set<string>>(() => new Set());
+    useEffect(() => {
+        if (loading) return;
+        const keys = items.map((r) => String((r as Record<string, unknown>)[dataKey]));
+        const seen = seenRef.current;
+        if (!seen || seen.cluster !== clusterName) {
+            seenRef.current = { cluster: clusterName, keys: new Set(keys) };
+            return;
+        }
+        const added = keys.filter((k) => !seen.keys.has(k));
+        seen.keys = new Set(keys);
+        if (added.length === 0) return;
+        setFreshKeys(new Set(added));
+        const id = window.setTimeout(() => setFreshKeys(new Set()), 700);
+        return () => window.clearTimeout(id);
+    }, [items, loading, clusterName, dataKey]);
 
     // Keyed by `dataKey`, not by row object: a poll replaces every row object,
     // and the object form of `expandedRows` is what keeps an expanded row open
@@ -331,8 +368,8 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                 text
                 size="small"
                 severity="secondary"
-                style={{ padding: '0.2rem' }}
                 aria-label={t('action.more')}
+                title={t('action.more')}
                 aria-haspopup
                 onClick={(e) => {
                     e.stopPropagation();
@@ -424,14 +461,14 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
         : {};
 
     const deleteDialogFooter = (
-        <div className="flex justify-content-end gap-2">
+        <div className="dlg-actions">
             <Button label={t('action.cancel')} icon={<VscClose size={16} />} text onClick={closeDeleteDialog} disabled={deleting} />
             <Button label={t('action.delete')} icon={<VscTrash size={16} />} severity="danger" onClick={handleDeleteSelected} loading={deleting} />
         </div>
     );
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="rlv-root">
             <Toast ref={toastRef} position="bottom-right" />
 
             {/* Appended to <body>: the panel root and the table wrapper are both
@@ -448,12 +485,19 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                 }}
             />
 
-            <div className="rlv-toolbar" style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.6rem 1rem', borderBottom: '1px solid var(--surface-border)', flexShrink: 0 }}>
+            <div className="rlv-toolbar">
                 {/* `title` so the ellipsis (theme-monolith.css) never hides the
                     panel's identity: German and Russian list titles run 20-35%
                     longer than the English these widths were chosen for. */}
-                <h3 className="rlv-toolbar__title" style={{ margin: 0 }} title={title}>{title}</h3>
-                <div className="rlv-toolbar__actions" style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                <h3 className="rlv-toolbar__title" title={title}>{title}</h3>
+                {!loading && !(error && items.length === 0) && (
+                    <span className="rlv-toolbar__count">
+                        {filtersActive && shownCount !== null && shownCount !== items.length
+                            ? t('resources:list.filteredCount', { shown: shownCount, total: items.length })
+                            : items.length}
+                    </span>
+                )}
+                <div className="rlv-toolbar__actions">
                     {toolbarExtra?.({ reload })}
                     {rowExpansion && (
                         <>
@@ -461,6 +505,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                                 icon={<VscExpandAll size={16} />}
                                 text
                                 severity="secondary"
+                                aria-label={t('action.expandAll')}
                                 onClick={expandAll}
                                 tooltip={t('action.expandAll')}
                                 tooltipOptions={{ position: 'left' }}
@@ -469,6 +514,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                                 icon={<VscCollapseAll size={16} />}
                                 text
                                 severity="secondary"
+                                aria-label={t('action.collapseAll')}
                                 onClick={() => setExpandedRows({})}
                                 tooltip={t('action.collapseAll')}
                                 tooltipOptions={{ position: 'left' }}
@@ -479,17 +525,23 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                         icon={<VscClearAll size={16} />}
                         text
                         severity="secondary"
+                        aria-label={t('action.clearFilters')}
                         onClick={() => setFilters(defaultFilters)}
+                        disabled={!filtersActive}
                         tooltip={t('action.clearFilters')}
-                        tooltipOptions={{ position: 'left' }}
+                        tooltipOptions={{ position: 'left', showOnDisabled: false }}
                     />
-                    {deletable && (
+                    {/* Only once something is selected, and saying how much: a
+                        disabled red key on every list was a permanent alarm
+                        about nothing. */}
+                    {deletable && selected.length > 0 && (
                         <Button
-                            label={t('action.deleteSelected')}
-                            icon={<VscTrash size={16} />}
+                            className="rlv-delete"
+                            label={t('action.deleteCount', { count: selected.length })}
+                            icon={<VscTrash size={15} />}
                             severity="danger"
                             onClick={openDeleteDialog}
-                            disabled={selected.length === 0 || deleting}
+                            disabled={deleting}
                         />
                     )}
                 </div>
@@ -498,32 +550,32 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
             {/* Three distinct outcomes, deliberately not collapsed into one
                 "nothing here" state (beta-plan S8): still loading, failed, or
                 genuinely empty. `error` with rows behind it means stale, not gone. */}
-            <ErrorBanner
-                message={error}
-                onRetry={reload}
-                busy={refreshing}
-                stale={items.length > 0}
-                context={`${title} (${clusterName})`}
-            />
+            {items.length > 0 && (
+                <ErrorBanner
+                    message={error}
+                    onRetry={reload}
+                    busy={refreshing}
+                    stale
+                    context={`${title} (${clusterName})`}
+                />
+            )}
 
             {/* The wrapper is never conditional: it is what the layout effect above
                 measures, and it has to exist (and have its final height) while the
                 first fetch is still running so the table can mount already knowing
                 its height. Only its *contents* swap from spinner to table. */}
-            <div
-                ref={tableWrapRef}
-                className="ktable-fill"
-                style={{
-                    flex: 1,
-                    minHeight: 0,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    ...(loading ? { alignItems: 'center', justifyContent: 'center' } : null),
-                }}
-            >
+            <div ref={tableWrapRef} className="ktable-fill">
                 {loading ? (
-                    <ProgressSpinner style={{ width: 40, height: 40 }} strokeWidth="4" />
+                    <ListSkeleton />
+                ) : error && items.length === 0 ? (
+                    <ErrorBanner
+                        block
+                        message={error}
+                        onRetry={reload}
+                        busy={refreshing}
+                        cluster={clusterName}
+                        context={`${title} (${clusterName})`}
+                    />
                 ) : (
                 <DataTable
                     // The virtual scroller captures its viewport height once at init time.
@@ -551,18 +603,29 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                         if ((e.originalEvent?.target as HTMLElement | null)?.closest(ROW_CONTROLS)) return;
                         onRowClick(e.data as T);
                     } : undefined}
-                    rowClassName={activeRowKey ? (row: T) => ({ 'rlv-row--active': String((row as Record<string, unknown>)[dataKey]) === activeRowKey }) : undefined}
+                    rowClassName={(row: T) => {
+                        const key = String((row as Record<string, unknown>)[dataKey]);
+                        return { 'rlv-row--active': key === activeRowKey, 'rlv-row--new': freshKeys.has(key) };
+                    }}
                     filters={filters}
                     onFilter={(e) => setFilters(e.filters)}
+                    onValueChange={(rows) => setShownCount(rows.length)}
                     filterDisplay="row"
-                    stripedRows
-                    showGridlines
                     resizableColumns
                     scrollable
                     scrollHeight={scrollHeight}
-                    // A failed fetch must not read as "there are none of these":
-                    // the banner above is the message in that case.
-                    emptyMessage={error ? ' ' : emptyMessage}
+                    // Empty because of the filters is a different situation from
+                    // empty because there are none, and it comes with its way out.
+                    emptyMessage={
+                        filtersActive ? (
+                            <div className="rlv-empty">
+                                <span>{t('resources:list.noMatch')}</span>
+                                <Button text size="small" label={t('action.clearFilters')} icon={<VscClearAll size={14} />} onClick={() => setFilters(defaultFilters)} />
+                            </div>
+                        ) : (
+                            <div className="rlv-empty"><span>{emptyMessage}</span></div>
+                        )
+                    }
                 >
                     {rowExpansion && (
                         <Column expander={canExpand} headerStyle={{ width: '3rem' }} style={{ minWidth: '3rem', maxWidth: '3rem' }} />
@@ -583,17 +646,20 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                     // locales/GLOSSARY.md. Only the frame around it is translated.
                     header={t('resources:delete.header', { kind: deleteLabel.charAt(0).toUpperCase() + deleteLabel.slice(1) })}
                     visible={deleteDialogVisible}
-                    style={{ width: '30rem' }}
+                    className="rlv-delete-dialog"
                     modal
                     footer={deleteDialogFooter}
                     onHide={closeDeleteDialog}
                 >
-                    <p className="m-0 mb-3">{t('resources:delete.body', { label: deleteLabel })}</p>
-                    <ul className="m-0 pl-3">
-                        {selected.map((row) => (
+                    <p className="rlv-delete-dialog__body">{t('resources:delete.body', { label: deleteLabel })}</p>
+                    <ul className="rlv-delete-dialog__list">
+                        {selected.slice(0, DELETE_LIST_MAX).map((row) => (
                             <li key={`${row.namespace ?? ''}-${row.name}`}>{row.namespace ? `${row.namespace}/` : ''}{row.name}</li>
                         ))}
                     </ul>
+                    {selected.length > DELETE_LIST_MAX && (
+                        <p className="rlv-delete-dialog__more">{t('resources:delete.more', { count: selected.length - DELETE_LIST_MAX })}</p>
+                    )}
                 </Dialog>
             )}
 

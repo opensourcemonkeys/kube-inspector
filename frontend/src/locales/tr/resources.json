@@ -106,7 +106,8 @@
       "successDetail": "{{target}} silindi",
       "failSummary": "Silme başarısız",
       "failDetail": "{{target}} silinemedi"
-    }
+    },
+    "more": "ve {{count}} tane daha"
   },
   "namespace": {
     "createTitle": "Namespace Oluştur",
@@ -128,7 +129,9 @@
   },
   "cronjob": {
     "title": "CronJob Listesi",
-    "empty": "CronJob bulunamadı"
+    "empty": "CronJob bulunamadı",
+    "stateActive": "Etkin",
+    "stateSuspended": "Askıda"
   },
   "daemonset": {
     "title": "DaemonSet Listesi",
@@ -245,7 +248,8 @@
         "liveness": "Canlılık",
         "readiness": "Hazırlık"
       }
-    }
+    },
+    "execPick": "Container seçin ({{count}})"
   },
   "replicaset": {
     "title": "ReplicaSet Listesi",
@@ -288,5 +292,9 @@
       "critical": "Kritik",
       "full": "Dolu"
     }
+  },
+  "list": {
+    "filteredCount": "{{total}} içinden {{shown}}",
+    "noMatch": "Geçerli filtrelerle eşleşen bir şey yok"
   }
 }

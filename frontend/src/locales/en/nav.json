@@ -1,11 +1,11 @@
 {
   "group": {
-    "workloads": "WORKLOADS",
-    "networking": "NETWORKING",
-    "config": "CONFIG & SECRETS",
-    "security": "SECURITY",
-    "storage": "STORAGE",
-    "cluster": "CLUSTER"
+    "workloads": "Workloads",
+    "networking": "Networking",
+    "config": "Config & Secrets",
+    "security": "Security",
+    "storage": "Storage",
+    "cluster": "Cluster"
   },
   "item": {
     "pods": "Pods",

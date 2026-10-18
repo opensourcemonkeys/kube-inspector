@@ -446,7 +446,8 @@ export default function LogViewerPanel({ params, api }: IDockviewPanelProps<LogV
                     />
                 </div>
 
-                <div className="log-viewer-toolbar__group">
+                {/* One set of keys, each latching: pressed into the bezel while on. */}
+                <div className="log-viewer-toolbar__group log-viewer-toolbar__keys">
                     {toggle(follow, <VscPinned size={15} />, t('panels:logs.follow'), toggleFollow)}
                     {toggle(wrap, <VscWordWrap size={15} />, t('panels:logs.wrap'), () => setWrap(!wrap))}
                     {toggle(timestamps, <VscWatch size={15} />, t('panels:logs.timestamps'), () => setTimestamps(!timestamps))}
@@ -467,7 +468,7 @@ export default function LogViewerPanel({ params, api }: IDockviewPanelProps<LogV
                 </div>
             </div>
 
-            <div className="log-viewer-body">
+            <div className="log-viewer-body dark-display">
                 <LazyLog
                     text={logText}
                     follow={follow}

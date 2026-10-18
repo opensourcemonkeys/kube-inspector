@@ -7,13 +7,14 @@ import { Toast } from 'primereact/toast';
 import { parse as parseYaml } from 'yaml';
 
 import {
-    VscServer, VscClose, VscCheck, VscCloudUpload, VscFileCode,
-    VscPass, VscError, VscGlobe, VscListTree, VscAccount, VscArrowRight,
+    VscServer, VscClose, VscCheck, VscCloudUpload, VscFileCode, VscArrowRight,
 } from 'react-icons/vsc';
 import { SaveCluster, GetClusterContent } from '../../../wailsjs/go/controller_app/App';
 import { CLUSTER_PALETTE, defaultColorId, hexForId, isCustomHex, normalizeHex } from '../../lib/clusterColors';
 import { useClusterColorStore } from '../../stores/clusterColorStore';
 import { useT } from '../../i18n/useT';
+import RowAction from '../shared/RowAction';
+import StatusLamp from '../shared/StatusLamp';
 
 interface Props {
     editingName: string | null;
@@ -193,9 +194,7 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
                         <span>{t(editingName ? 'panels:clusterModal.editTitle' : 'panels:clusterModal.addTitle')}</span>
                     </div>
                     {dismissible && (
-                        <button className="cluster-modal__close" onClick={onClose} title={t('panels:clusterModal.close')}>
-                            <VscClose size={14} />
-                        </button>
+                        <RowAction icon={<VscClose size={15} />} label={t('panels:clusterModal.close')} onClick={onClose} />
                     )}
                 </div>
 
@@ -212,7 +211,7 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
                             autoFocus={!editingName}
                         />
                         {editingName ? (
-                            <small style={{ color: 'var(--ink2)', fontSize: 11 }}>
+                            <small className="cluster-modal__hint">
                                 {t('panels:clusterModal.configNameLocked')}
                             </small>
                         ) : suggested && sanitizeName(name) !== suggested ? (
@@ -275,7 +274,7 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
                                 {t('panels:clusterModal.autoColor')}
                             </button>
                         </div>
-                        <small style={{ color: 'var(--ink2)', fontSize: 11 }}>
+                        <small className="cluster-modal__hint">
                             {t('panels:clusterModal.colorHint')}
                         </small>
                     </div>
@@ -293,18 +292,19 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
                                 <label htmlFor="cluster-kubeconfig-content" className="cluster-modal__label">
                                     {t('panels:clusterModal.kubeconfigContent')}
                                 </label>
-                                <button
+                                <Button
                                     type="button"
-                                    className="cluster-modal__file-btn"
+                                    label={t('panels:clusterModal.browseFile')}
+                                    icon={<VscFileCode size={14} />}
+                                    severity="secondary"
+                                    size="small"
                                     onClick={() => fileInputRef.current?.click()}
-                                >
-                                    <VscFileCode size={13} /> {t('panels:clusterModal.browseFile')}
-                                </button>
+                                />
                                 <input
                                     ref={fileInputRef}
                                     type="file"
                                     accept=".yaml,.yml,.config,.kubeconfig,text/*"
-                                    style={{ display: 'none' }}
+                                    hidden
                                     onChange={e => {
                                         const f = e.target.files?.[0];
                                         if (f) loadFile(f);
@@ -333,16 +333,8 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
                         <div className="cluster-modal__preview">
                             <div className="cluster-modal__preview-head">
                                 <span className="cluster-modal__label">{t('panels:clusterModal.detectedConfiguration')}</span>
-                                {parsed.state === 'ok' && (
-                                    <span className="cluster-modal__badge cluster-modal__badge--ok">
-                                        <VscPass size={12} /> {t('panels:clusterModal.valid')}
-                                    </span>
-                                )}
-                                {parsed.state === 'error' && (
-                                    <span className="cluster-modal__badge cluster-modal__badge--err">
-                                        <VscError size={12} /> {t('panels:clusterModal.invalid')}
-                                    </span>
-                                )}
+                                {parsed.state === 'ok' && <StatusLamp label={t('panels:clusterModal.valid')} tone="ok" />}
+                                {parsed.state === 'error' && <StatusLamp label={t('panels:clusterModal.invalid')} tone="err" />}
                             </div>
 
                             <div className="cluster-modal__preview-body">
@@ -355,27 +347,20 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
 
                                 {parsed.state === 'error' && (
                                     <div className="cluster-modal__empty cluster-modal__empty--err">
-                                        <VscError size={26} />
+                                        <StatusLamp label={t('panels:clusterModal.invalid')} tone="err" />
                                         <p>{parsed.message}</p>
                                     </div>
                                 )}
 
                                 {parsed.state === 'ok' && (
                                     <>
-                                        <div className="cluster-modal__stats">
-                                            <div className="cluster-modal__stat">
-                                                <VscGlobe size={14} />
-                                                <b>{parsed.data.clusters.length}</b><span>{t('panels:clusterModal.clusters')}</span>
-                                            </div>
-                                            <div className="cluster-modal__stat">
-                                                <VscListTree size={14} />
-                                                <b>{parsed.data.contexts.length}</b><span>{t('panels:clusterModal.contexts')}</span>
-                                            </div>
-                                            <div className="cluster-modal__stat">
-                                                <VscAccount size={14} />
-                                                <b>{parsed.data.users.length}</b><span>{t('panels:clusterModal.users')}</span>
-                                            </div>
-                                        </div>
+                                        {/* Three counts read across one line, like the
+                                            Overview readouts: figure, then what it counts. */}
+                                        <dl className="cluster-modal__counts">
+                                            <div><dt>{t('panels:clusterModal.clusters')}</dt><dd>{parsed.data.clusters.length}</dd></div>
+                                            <div><dt>{t('panels:clusterModal.contexts')}</dt><dd>{parsed.data.contexts.length}</dd></div>
+                                            <div><dt>{t('panels:clusterModal.users')}</dt><dd>{parsed.data.users.length}</dd></div>
+                                        </dl>
 
                                         {parsed.data.currentContext && (
                                             <div className="cluster-modal__current">
@@ -387,7 +372,7 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
                                         <div className="cluster-modal__list">
                                             {parsed.data.clusters.map((c, i) => (
                                                 <div className="cluster-modal__cluster-row" key={`${c.name}-${i}`}>
-                                                    <VscServer size={13} color="var(--teal)" />
+                                                    <VscServer size={14} aria-hidden />
                                                     <div className="cluster-modal__cluster-meta">
                                                         <span className="cluster-modal__cluster-name">{c.name}</span>
                                                         <span className="cluster-modal__cluster-server">{c.server || t('panels:clusterModal.noServerEndpoint')}</span>

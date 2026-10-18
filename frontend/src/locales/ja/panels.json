@@ -26,7 +26,9 @@
     "author": "作者",
     "dependencies": "依存関係",
     "diagnostics": "診断",
-    "close": "閉じる"
+    "close": "閉じる",
+    "title": "Kube Inspector について",
+    "version": "バージョン"
   },
   "update": {
     "titleAvailable": "更新があります",
@@ -68,7 +70,10 @@
       "removed": "削除",
       "deprecated": "非推奨",
       "security": "セキュリティ"
-    }
+    },
+    "installed": "インストール済み",
+    "available": "利用可能",
+    "progressLabel": "更新の進行状況"
   },
   "tour": {
     "welcome": {
@@ -102,7 +107,8 @@
     "previous": "戻る",
     "next": "次へ",
     "finish": "完了",
-    "skip": "ツアーをスキップ"
+    "skip": "ツアーをスキップ",
+    "stepOf": "ステップ {{current}} / {{total}}"
   },
   "diagnostics": {
     "tab": {
@@ -145,7 +151,13 @@
     "logLevel": "ログレベル",
     "healthChecks": "ヘルスチェック",
     "rerunning": "実行中…",
-    "rerun": "チェックを再実行"
+    "rerun": "チェックを再実行",
+    "checkStatus": {
+      "ok": "合格",
+      "warn": "警告",
+      "fail": "失敗",
+      "skip": "スキップ"
+    }
   },
   "trivy": {
     "tab": {
@@ -175,14 +187,29 @@
     "imagePlaceholder": "nginx:1.25",
     "scanImage": "イメージをスキャン",
     "exportHtml": "HTML でエクスポート",
-    "title": "セキュリティスキャン"
+    "title": "セキュリティスキャン",
+    "logStartK8s": "Kubernetes リソースのスキャンを開始しています…",
+    "logListing": "Pod のイメージを一覧表示しています…",
+    "logScanning": "{{image}} をスキャン中（{{total}} 件中 {{current}} 件目）",
+    "logFirstRun": "最初のスキャンで脆弱性データベースをダウンロードします。",
+    "logDone": "完了。検出: {{findings}} 件、スキャンしたイメージ: {{images}} 件",
+    "logNoImages": "スキャンするイメージが見つかりません。",
+    "logCancelled": "スキャンをキャンセルしました。",
+    "logQueued": "キュー内のイメージ: {{count}}",
+    "toastK8sFailed": "Kubernetes のスキャンに失敗しました",
+    "toastListFailed": "イメージを一覧表示できませんでした",
+    "toastScanIssue": "スキャンの問題: {{image}}",
+    "toastScanFailed": "{{image}} をスキャンできませんでした",
+    "toastNoVulns": "脆弱性は見つかりませんでした",
+    "toastEnterImage": "イメージを入力してください",
+    "toastEnterImageHint": "例: nginx:1.25 または registry/repo:tag",
+    "total": "合計"
   },
   "monitoring": {
     "switchTooltip": "Pods / ワークロードを切り替え",
     "noData": "データがありません。",
     "label": "リソースモニタリング",
     "loading": "メトリクスを読み込み中…",
-    "noMetricsServer": "このクラスターには metrics-server がないため、リソース使用量を表示できません。モニタリングを有効にするには metrics-server をインストールしてください。",
     "timeWindow": "表示期間",
     "clusterCpu": "クラスター CPU",
     "clusterMemory": "クラスターメモリ",
@@ -237,7 +264,8 @@
     "localPortHint": "（空欄 = 自動で選択）",
     "automatic": "自動",
     "inUse": "ポート {{port}} は使用中です — {{suggested}} を提案します。",
-    "loopbackOnly": "127.0.0.1 にのみバインドされます — ネットワークからは到達できません。"
+    "loopbackOnly": "127.0.0.1 にのみバインドされます — ネットワークからは到達できません。",
+    "custom": "カスタム…"
   },
   "cluster": {
     "select": "クラスターを選択…",
@@ -274,7 +302,7 @@
     "invalid": "無効",
     "previewEmpty": "kubeconfig を貼り付けるかドロップすると、そのクラスター、context、エンドポイントをここでプレビューできます。",
     "clusters": "クラスター",
-    "contexts": "context",
+    "contexts": "Context",
     "users": "ユーザー",
     "currentContext": "現在の Context",
     "noServerEndpoint": "サーバーエンドポイントなし",
@@ -282,7 +310,7 @@
   },
   "cliMode": {
     "badge": "CLI モード",
-    "subtitle": "— ターミナル UI",
+    "subtitle": "ターミナル UI",
     "exit": "CLI モードを終了"
   },
   "logs": {
@@ -378,7 +406,16 @@
     "clusterAria": "対象クラスター",
     "clear": "クリア",
     "apply": "適用",
-    "output": "出力"
+    "output": "出力",
+    "emptyTitle": "適用する内容がありません",
+    "emptyDetail": "エディターが空です。",
+    "noClusterTitle": "クラスターが選択されていません",
+    "noClusterDetail": "適用する前に対象クラスターを選択してください。",
+    "applied": "適用しました",
+    "appliedDetail": "{{cluster}} に適用しました。",
+    "failed": "適用に失敗しました",
+    "closeOutput": "出力を閉じる",
+    "resizeOutput": "出力のサイズを変更"
   },
   "describe": {
     "refresh": "更新",
@@ -410,7 +447,7 @@
   },
   "configMapEditor": {
     "addKey": "キーを追加",
-    "empty": "データがありません。「キーを追加」をクリックしてください。"
+    "empty": "この ConfigMap にはキーがありません。"
   },
   "crd": {
     "loading": "CRD を読み込み中…",
@@ -468,7 +505,9 @@
     "podSelector": "Pod: {{selector}}",
     "ipBlock": "IP: {{block}}",
     "except": "除外: {{value}}",
-    "resizeDivider": "仕切りをドラッグ"
+    "resizeDivider": "仕切りをドラッグ",
+    "blocked": "ブロック",
+    "allPorts": "すべてのポート"
   },
   "node": {
     "drain": "Drain",
@@ -486,16 +525,24 @@
     "version": "バージョン",
     "cpuCap": "CPU 容量",
     "memCap": "メモリ容量",
-    "noMetricsServer": "Metrics Server が利用できません — CPU/RAM の使用量は表示できません",
     "drainWarning": "まず Node を <1>cordon</1>（スケジュール不可に）してから、DaemonSet と mirror Pod を除くすべての Pod を退避します。",
     "drainTarget": "Node: <1>{{name}}</1>",
     "title": "Node 一覧",
-    "empty": "このクラスターに Node は見つかりません。"
+    "empty": "このクラスターに Node は見つかりません。",
+    "readyCount": "{{total}} 台中 {{ready}} 台が Ready",
+    "toastCordoned": "Cordon しました",
+    "toastCordonedDetail": "{{name}} は新しい Pod を受け付けません",
+    "toastCordonFailed": "Cordon に失敗しました",
+    "toastUncordoned": "Uncordon しました",
+    "toastUncordonedDetail": "{{name}} は再び新しい Pod を受け付けます",
+    "toastUncordonFailed": "Uncordon に失敗しました",
+    "toastDrained": "Drain が完了しました",
+    "toastDrainedDetail": "{{name}} 上の Pod を退避しました",
+    "toastDrainFailed": "Drain に失敗しました"
   },
   "overview": {
     "label": "概要",
     "clusterCapacity": "クラスターの容量",
-    "noMetricsServer": "このクラスターには metrics-server がないため、リソース使用量を表示できません。有効にするには metrics-server をインストールしてください。",
     "clusterCpu": "クラスター CPU",
     "clusterMemory": "クラスターメモリ",
     "cordoned": "スケジュール不可",
@@ -512,20 +559,36 @@
     "copyAddress": "アドレスをコピー",
     "restart": "再起動",
     "dismiss": "閉じる",
-    "stop": "停止"
+    "stop": "停止",
+    "status": {
+      "ready": "準備完了",
+      "starting": "開始中",
+      "reconnecting": "再接続中",
+      "error": "エラー",
+      "stopped": "停止"
+    },
+    "attempt": "{{n}} 回目",
+    "toastStopFailed": "転送を停止できませんでした",
+    "toastRestarted": "転送を再開しました",
+    "toastRestartFailed": "転送を再開できませんでした",
+    "toastCopied": "アドレスをコピーしました",
+    "toastCopyFailed": "コピーに失敗しました"
   },
   "editYaml": "YAML を編集",
   "roleEditor": {
     "addRule": "ルールを追加",
-    "empty": "ルールがありません。「ルールを追加」をクリックしてください。"
+    "empty": "このロールにはルールがありません。"
   },
   "roleBindingEditor": {
     "addSubject": "サブジェクトを追加",
-    "empty": "サブジェクトがありません。「サブジェクトを追加」をクリックしてください。"
+    "empty": "このバインディングにはサブジェクトがありません。"
   },
   "secretEditor": {
     "addKey": "キーを追加",
-    "empty": "データがありません。「キーを追加」をクリックしてください。"
+    "empty": "この Secret にはキーがありません。",
+    "showValue": "値を表示",
+    "hideValue": "値を隠す",
+    "masked": "値は非表示"
   },
   "roleMap": {
     "label": "セキュリティロールマップ",
@@ -533,12 +596,13 @@
     "none": "なし",
     "noMatches": "一致なし",
     "clearFocus": "フォーカスを解除",
-    "tip": "ヒント: クリックでつながりを強調 · ダブルクリックで詳細",
+    "tip": "ヒント: クリックでつながりを強調、ダブルクリックで詳細",
     "legendGrants": "付与",
     "accessibleObjects": "アクセスできるオブジェクト（{{count}}）",
     "filterObjects": "オブジェクトを絞り込み…",
     "describe": "Describe",
-    "viewEditYaml": "YAML を表示 / 編集"
+    "viewEditYaml": "YAML を表示 / 編集",
+    "allOf": "すべて（{{count}}）"
   },
   "ai": {
     "backToChat": "チャットに戻る",
@@ -577,6 +641,22 @@
     "noModelPlaceholder": "先にモデルをインストール／選択してください",
     "stop": "停止",
     "send": "送信",
-    "mutating": "変更あり"
+    "mutating": "変更あり",
+    "workingFor": "処理中（{{seconds}} 秒）",
+    "you": "あなた",
+    "downloadModel": "{{name}} をダウンロード",
+    "pullStarting": "開始中…",
+    "pullFailed": "エラー: {{error}}",
+    "requestFailed": "リクエストに失敗しました。",
+    "toolStatus": {
+      "running": "実行中",
+      "done": "完了",
+      "declined": "拒否",
+      "error": "失敗"
+    }
+  },
+  "metrics": {
+    "unavailableTitle": "使用状況データがありません",
+    "unavailableHint": "このクラスターには metrics-server がありません。CPU とメモリの使用状況を表示するにはインストールしてください。"
   }
 }

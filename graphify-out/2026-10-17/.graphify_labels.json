@@ -260,5 +260,18 @@
   "258": "TestNewQuotaEntryRemaining",
   "259": "securityGraphInfo.go",
   "260": ".reportExecFailure",
-  "261": "GetMetricsSnapshot"
+  "261": "GetMetricsSnapshot",
+  "262": "headerCell",
+  "263": "LogContainerInfo",
+  "264": "InstancePickerMenu.tsx",
+  "265": "ModelTags",
+  "266": "GetPods",
+  "267": "newCancelRegistry",
+  "268": "ingress.go",
+  "269": "cronJob.go",
+  "270": "replicaSet.go",
+  "271": "statefulSet.go",
+  "272": "progressWriter",
+  "273": "shells_darwin.go",
+  "274": "shells_other.go"
 }

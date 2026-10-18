@@ -9,6 +9,7 @@ import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
 import { useT } from '../../i18n/useT';
+import CountCell from '../shared/CountCell';
 
 const defaultFilters: DataTableFilterMeta = {
     name:      { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -17,10 +18,10 @@ const defaultFilters: DataTableFilterMeta = {
 
 const policyTypesBody = (row: models.NetworkPolicyInfo) => {
     const types: string[] = row.policy_types ?? [];
-    if (types.length === 0) return <Tag value="None" severity="secondary" />;
+    if (types.length === 0) return <Tag value="None" />;
     return (
         <div className="flex gap-1 flex-wrap">
-            {types.map((t) => <Tag key={t} value={t} severity={t === 'Ingress' ? 'info' : 'warning'} />)}
+            {types.map((t) => <Tag key={t} value={t} />)}
         </div>
     );
 };
@@ -51,12 +52,12 @@ export default function NetworkPolicyListComponent({ clusterName, api }: { clust
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
-                    <Column field="pod_selector" header={t('resources:column.podSelector')} sortable style={{ minWidth: '12rem' }} />
+                    <Column bodyClassName="cell-mono" field="pod_selector" header={t('resources:column.podSelector')} sortable style={{ minWidth: '12rem' }} />
                     <Column header={t('resources:column.policyTypes')} style={{ minWidth: '12rem' }} body={policyTypesBody} />
                     <Column header={t('resources:column.ingress')} field="ingress_rule_count" sortable dataType="numeric" style={{ width: '6rem', textAlign: 'center' }}
-                        body={(row: models.NetworkPolicyInfo) => <Tag value={String(row.ingress_rule_count)} severity="info" />} />
+                        body={(row: models.NetworkPolicyInfo) => <CountCell value={String(row.ingress_rule_count)} />} />
                     <Column header={t('resources:column.egress')} field="egress_rule_count" sortable dataType="numeric" style={{ width: '6rem', textAlign: 'center' }}
-                        body={(row: models.NetworkPolicyInfo) => <Tag value={String(row.egress_rule_count)} severity="warning" />} />
+                        body={(row: models.NetworkPolicyInfo) => <CountCell value={String(row.egress_rule_count)} />} />
                 </>
             )}
         />

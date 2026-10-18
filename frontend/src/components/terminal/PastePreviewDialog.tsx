@@ -74,11 +74,11 @@ export default function PastePreviewDialog({
         <Dialog
             header={t('panels:terminal.paste.header')}
             visible={text !== null}
-            style={{ width: '38rem' }}
+            className="paste-dialog"
             modal
             onHide={onCancel}
             footer={
-                <div className="flex justify-content-end gap-2">
+                <div className="dlg-actions">
                     <Button
                         label={t('action.cancel')}
                         icon={<VscClose size={16} />}
@@ -94,12 +94,12 @@ export default function PastePreviewDialog({
                 </div>
             }
         >
-            <div className="flex flex-column gap-2">
-                <span style={{ color: 'var(--amber)', fontSize: '0.85rem' }}>
+            <div className="dlg-form">
+                <p className="dlg-note dlg-note--warn">
                     {text === ''
                         ? t('panels:terminal.paste.empty')
                         : t('panels:terminal.paste.warning', { count: lines })}
-                </span>
+                </p>
                 <InputTextarea
                     ref={areaRef}
                     value={value}
@@ -108,16 +108,9 @@ export default function PastePreviewDialog({
                     rows={Math.min(14, Math.max(4, lines))}
                     spellCheck={false}
                     aria-label={t('panels:terminal.paste.aria')}
-                    style={{
-                        width: '100%',
-                        fontFamily: 'var(--font-family-mono)',
-                        fontSize: 12,
-                        resize: 'vertical',
-                    }}
+                    className="paste-dialog__text"
                 />
-                <span style={{ color: 'var(--ink3)', fontSize: '0.75rem' }}>
-                    {t('panels:terminal.paste.hint')}
-                </span>
+                <p className="dlg-note">{t('panels:terminal.paste.hint')}</p>
             </div>
         </Dialog>
     );

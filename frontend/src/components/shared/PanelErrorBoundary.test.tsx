@@ -78,7 +78,7 @@ describe('ErrorBanner', () => {
         render(<ErrorBanner message={msg} onRetry={onRetry} stale />);
 
         expect(screen.getByText(msg)).toBeTruthy();
-        expect(screen.getByText('showing last known data')).toBeTruthy();
+        expect(screen.getByText('Showing last known data')).toBeTruthy();
 
         fireEvent.click(screen.getByText('Retry'));
         expect(onRetry).toHaveBeenCalledOnce();

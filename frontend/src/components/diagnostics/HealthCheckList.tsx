@@ -1,12 +1,8 @@
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
+import StatusLamp, { type LampTone } from '../shared/StatusLamp';
 
-const STATUS_LABEL: Record<string, string> = {
-    ok: 'OK',
-    warn: 'WARN',
-    fail: 'FAIL',
-    skip: 'SKIP',
-};
+const STATUS_TONE: Record<string, LampTone> = { ok: 'ok', warn: 'warn', fail: 'err', skip: 'idle' };
 
 /**
  * Renders the preflight rows in the order the backend returned them. That order
@@ -21,6 +17,15 @@ export default function HealthCheckList({
     running: boolean;
 }) {
     const t = useT();
+    const statusLabel = (status: string) => {
+        switch (status) {
+            case 'ok': return t('panels:diagnostics.checkStatus.ok');
+            case 'warn': return t('panels:diagnostics.checkStatus.warn');
+            case 'fail': return t('panels:diagnostics.checkStatus.fail');
+            case 'skip': return t('panels:diagnostics.checkStatus.skip');
+            default: return status;
+        }
+    };
     if (!checks.length) {
         return (
             <div className="diag-empty">
@@ -33,8 +38,8 @@ export default function HealthCheckList({
         <div className="diag-checks">
             {checks.map((c) => (
                 <div className="diag-check" key={c.name}>
-                    <span className={`diag-pill diag-pill--${c.status}`}>
-                        {STATUS_LABEL[c.status] ?? c.status}
+                    <span className="diag-check__status">
+                        <StatusLamp label={statusLabel(c.status)} tone={STATUS_TONE[c.status] ?? 'idle'} />
                     </span>
                     <div className="diag-check__body">
                         <div className="diag-check__label">{c.label}</div>

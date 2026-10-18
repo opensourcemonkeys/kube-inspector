@@ -159,7 +159,7 @@ export default function LogsTab({ active, ownPid }: { active: boolean; ownPid: n
                 )}
                 {rows.map((e, i) => (
                     <div className="diag-log-row" key={`${e.timestamp}-${i}`}>
-                        <span className={`diag-pill diag-pill--${e.level.toLowerCase()}`}>
+                        <span className={`diag-level diag-level--${e.level.toLowerCase()}`}>
                             {e.level}
                         </span>
                         <span className="diag-log-row__ts">{e.timestamp}</span>

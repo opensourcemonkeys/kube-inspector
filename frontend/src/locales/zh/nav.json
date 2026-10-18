@@ -2,7 +2,7 @@
   "group": {
     "workloads": "工作负载",
     "networking": "网络",
-    "config": "配置与 SECRETS",
+    "config": "配置与 Secrets",
     "security": "安全",
     "storage": "存储",
     "cluster": "集群"

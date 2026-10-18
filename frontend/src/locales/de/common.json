@@ -10,9 +10,21 @@
     "portForward": "Port-Weiterleitung",
     "retry": "Erneut versuchen",
     "expandAll": "Alle aufklappen",
-    "collapseAll": "Alle zuklappen"
+    "collapseAll": "Alle zuklappen",
+    "logs": "Logs",
+    "exec": "Shell öffnen",
+    "edit": "Bearbeiten",
+    "deleteCount": "{{count}} löschen",
+    "remove": "Entfernen"
   },
   "filter": {
     "all": "Alle"
+  },
+  "status": {
+    "loading": "Wird geladen…"
+  },
+  "value": {
+    "yes": "Ja",
+    "no": "Nein"
   }
 }

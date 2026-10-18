@@ -82,7 +82,7 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
         // tab renderer object is created once per panel and reused. The new
         // wrapper therefore carries no `--tab-accent` and the stylesheet falls
         // back to the theme's default stripe — the cluster's colour silently
-        // turns into --teal on every split, reorder or drop into another group.
+        // turns into --accent on every split, reorder or drop into another group.
         //
         // Two signals are needed because neither covers the other's case:
         //  - onDidMovePanel fires *after* the re-parent, and is the only one
@@ -289,29 +289,13 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
             onContextMenu={handleContextMenu}
             onMouseDown={handleAuxDown}
             onAuxClick={handleAuxClick}
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                height: '100%',
-                padding: '0 2px 0 8px',
-                gap: 4,
-                userSelect: 'none',
-                cursor: 'default',
-            }}
+            className="ftab"
         >
             <span
                 // Clipped at 180px since long before i18n; the tooltip is what
                 // makes that survivable once the label is German or Russian.
                 title={api.title}
-                style={{
-                    fontSize: 12,
-                    color: 'var(--dv-tab-color, inherit)',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    maxWidth: 180,
-                    flex: 1,
-                }}
+                className="ftab__label"
             >
                 {api.title}
             </span>
@@ -319,19 +303,6 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
             <button
                 title={t('panels:tabMenu.close')}
                 onClick={e => { e.stopPropagation(); api.close(); }}
-                style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: '2px 3px',
-                    borderRadius: 3,
-                    display: 'flex',
-                    alignItems: 'center',
-                    color: 'var(--dv-tab-color, var(--ink2))',
-                    opacity: 0,
-                    flexShrink: 0,
-                    transition: 'opacity 0.15s',
-                }}
                 className="tab-close-btn"
             >
                 <VscClose size={13} />

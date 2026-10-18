@@ -15,6 +15,7 @@ import { GetRoleBindings, UpdateRoleBinding } from '../../../wailsjs/go/controll
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
 import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
+import RowAction from '../shared/RowAction';
 
 interface RoleBindingEditorPanelParams {
     clusterName: string;
@@ -143,30 +144,30 @@ export default function RoleBindingEditorPanel({ params }: IDockviewPanelProps<R
         <InputText
             value={options.value}
             onChange={e => options.editorCallback!(e.target.value)}
-            style={{ fontFamily: 'monospace', fontSize: '0.85rem', width: '100%' }}
+            className="kv-input"
             autoFocus
         />
     );
 
     const actionsBody = (rowData: SubjectRow) => (
-        <Button
-            icon={<VscClose size={16} />}
-            text
-            severity="danger"
-            size="small"
-            onClick={() => removeRow(rowData.id)}
-            disabled={saving}
-            style={{ padding: '0.2rem' }}
-        />
+        <RowAction icon={<VscClose size={15} />} label={t('action.remove')} severity="danger"
+            onClick={() => removeRow(rowData.id)} disabled={saving} />
+    );
+
+    const emptyState = (
+        <div className="rlv-empty">
+            <span>{t('panels:roleBindingEditor.empty')}</span>
+            <Button label={t('panels:roleBindingEditor.addSubject')} icon={<VscAdd size={14} />} outlined size="small" onClick={addRow} disabled={saving} />
+        </div>
     );
 
     const tableHeader = (
-        <div className="flex justify-content-between align-items-center gap-2">
-            <span className="yaml-editor-toolbar__label flex align-items-center gap-1" style={{ fontSize: '0.85rem' }}>
-                <VscSettings size={14} />
-                {namespace}/{name}
+        <div className="panel-toolbar">
+            <span className="panel-toolbar__label">
+                <VscSettings size={14} aria-hidden />
+                <span className="cell-clip">{namespace}/{name}</span>
             </span>
-            <div className="flex align-items-center gap-1">
+            <div className="panel-toolbar__actions">
                 <Button label={t('panels:roleBindingEditor.addSubject')} icon={<VscAdd size={16} />} text size="small" onClick={addRow} disabled={saving} />
                 <Button label={t('panels:yaml.revert')} icon={<VscDiscard size={16} />} text size="small" disabled={!dirty || saving} onClick={handleRevert} />
                 <Button label={t('panels:yaml.save')} icon={<VscCheck size={16} />} size="small" loading={saving} disabled={!dirty} onClick={handleSave} />
@@ -175,24 +176,22 @@ export default function RoleBindingEditorPanel({ params }: IDockviewPanelProps<R
     );
 
     return (
-        <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="kv-editor">
             <Toast ref={toast} position="bottom-right" />
+            {tableHeader}
             <DataTable
                 value={rows}
                 dataKey="id"
                 editMode="cell"
-                header={tableHeader}
                 scrollable
                 scrollHeight="flex"
-                showGridlines
-                stripedRows
-                emptyMessage={t('panels:roleBindingEditor.empty')}
-                style={{ flex: 1 }}
+                emptyMessage={emptyState}
+                className="kv-editor__table"
             >
                 <Column field="kind" header={t('resources:column.kind')} editor={kindEditor} onCellEditComplete={onCellEditComplete} style={{ width: '12rem', minWidth: '10rem' }} />
-                <Column field="name" header={t('resources:column.name')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '12rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
-                <Column field="namespace" header={t('resources:column.namespace')} editor={textEditor} onCellEditComplete={onCellEditComplete} style={{ minWidth: '12rem', fontFamily: 'monospace', fontSize: '0.85rem' }} />
-                <Column header="" {...ACTION_COLUMN_PROPS} body={actionsBody} style={{ width: '3.5rem', textAlign: 'center' }} />
+                <Column field="name" header={t('resources:column.name')} editor={textEditor} onCellEditComplete={onCellEditComplete} className="cell-mono" style={{ minWidth: '12rem' }} />
+                <Column field="namespace" header={t('resources:column.namespace')} editor={textEditor} onCellEditComplete={onCellEditComplete} className="cell-mono" style={{ minWidth: '12rem' }} />
+                <Column header="" {...ACTION_COLUMN_PROPS} body={actionsBody} style={{ width: '3.5rem' }} />
             </DataTable>
         </div>
     );

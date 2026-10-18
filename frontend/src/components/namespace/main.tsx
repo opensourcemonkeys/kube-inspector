@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
+import StatusLamp from '../shared/StatusLamp';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { Button } from 'primereact/button';
@@ -90,11 +90,11 @@ function NewNamespaceButton({ clusterName, reload }: { clusterName: string; relo
             <Dialog
                 header={t('resources:namespace.createTitle')}
                 visible={visible}
-                style={{ width: '28rem' }}
+                className="scale-dialog"
                 modal
                 onHide={close}
                 footer={
-                    <div className="flex justify-content-end gap-2">
+                    <div className="dlg-actions">
                         <Button label={t('action.cancel')} icon={<VscClose size={16} />} text onClick={close} disabled={busy} />
                         <Button
                             label={t('resources:namespace.createConfirm')}
@@ -106,9 +106,9 @@ function NewNamespaceButton({ clusterName, reload }: { clusterName: string; relo
                     </div>
                 }
             >
-                <div className="flex flex-column gap-3">
-                    <div className="flex flex-column gap-1">
-                        <label htmlFor="ns-name" style={{ fontSize: '0.8rem', color: 'var(--ink2)' }}>{t('resources:column.name')}</label>
+                <div className="dlg-form">
+                    <div className="dlg-field">
+                        <label htmlFor="ns-name" className="dlg-label">{t('resources:column.name')}</label>
                         <InputText
                             id="ns-name"
                             value={name}
@@ -118,10 +118,10 @@ function NewNamespaceButton({ clusterName, reload }: { clusterName: string; relo
                             placeholder={t('resources:namespace.namePlaceholder')}
                         />
                     </div>
-                    <div className="flex flex-column gap-1">
-                        <label htmlFor="ns-labels" style={{ fontSize: '0.8rem', color: 'var(--ink2)' }}>
+                    <div className="dlg-field">
+                        <label htmlFor="ns-labels" className="dlg-label">
                             {t('resources:namespace.labels')}{' '}
-                            <span style={{ opacity: 0.7 }}>{t('resources:namespace.labelsHint')}</span>
+                            <span className="dlg-label__hint">{t('resources:namespace.labelsHint')}</span>
                         </label>
                         <InputText
                             id="ns-labels"
@@ -130,9 +130,7 @@ function NewNamespaceButton({ clusterName, reload }: { clusterName: string; relo
                             placeholder={t('resources:namespace.labelsPlaceholder')}
                         />
                     </div>
-                    {error && (
-                        <span style={{ color: 'var(--red)', fontSize: '0.8rem', wordBreak: 'break-word' }}>{error}</span>
-                    )}
+                    {error && <p className="dlg-error">{error}</p>}
                 </div>
             </Dialog>
         </>
@@ -163,7 +161,7 @@ export default function NamespaceListComponent({ clusterName, api }: { clusterNa
                 <>
                     <Column field="name" header={t('resources:column.name')} sortable filter filterField="name" filterPlaceholder={t('resources:filter.searchName')} showFilterMenu={false} style={{ minWidth: '14rem' }} />
                     <Column field="status" header={t('resources:column.status')} sortable filter filterField="status" showFilterMenu={false} style={{ minWidth: '9rem' }}
-                        body={(row: models.NamespaceInfo) => <Tag value={row.status} severity={getStatusSeverity(row.status)} />}
+                        body={(row: models.NamespaceInfo) => <StatusLamp label={row.status} severity={getStatusSeverity(row.status)} />}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('status')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />

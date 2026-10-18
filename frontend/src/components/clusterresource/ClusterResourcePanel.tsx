@@ -1,16 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { IDockviewPanelProps } from 'dockview';
 import React from 'react';
-import { CircularProgress } from '@mui/material';
-import { VscGlobe, VscTypeHierarchySub, VscLayers, VscDatabase, VscServer, VscCopy, VscPackage, VscRefresh, VscWarning } from 'react-icons/vsc';
+import { VscGlobe, VscTypeHierarchySub, VscLayers, VscDatabase, VscServer, VscCopy, VscPackage, VscRefresh } from 'react-icons/vsc';
 import ReactFlow, {
-    Background,
-    Controls,
-    MiniMap,
     Node,
     Edge,
     MarkerType,
-    BackgroundVariant,
     Handle,
     Position,
     NodeProps,
@@ -21,6 +16,11 @@ import { GetClusterGraph } from '../../../wailsjs/go/controller_app/App';
 import { useT } from '../../i18n/useT';
 import { themeColor, useThemeVersion } from '../../lib/themeColors';
 import type { ThemeVar } from '../../lib/themeColors';
+import ErrorBanner from '../shared/ErrorBanner';
+import GraphChrome from '../shared/GraphChrome';
+import RowAction from '../shared/RowAction';
+import Spinner from '../shared/Spinner';
+import StatusLamp, { type LampTone } from '../shared/StatusLamp';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -43,20 +43,20 @@ interface ClusterGraph {
 
 // Each kind carries a palette *variable*, not a color: reactflow hands some of
 // these to SVG attributes (the minimap), where `var(--x)` never resolves, so
-// they are resolved with `themeColor` at the point of use instead. Seven kinds,
-// seven distinct palette entries — ReplicaSet gets the muted one because it is
-// the intermediate object nobody is looking for.
+// they are resolved with `themeColor` at the point of use instead. Categories,
+// not statuses — an Ingress used to be drawn in --err. ReplicaSet gets the
+// muted ink because it is the intermediate object nobody is looking for.
 const KIND_CONFIG: Record<string, { color: ThemeVar; Icon: React.ComponentType<{ style?: React.CSSProperties }>; column: number }> = {
-    Ingress:     { color: '--red',    Icon: VscGlobe,             column: 0 },
-    Service:     { color: '--amber',  Icon: VscTypeHierarchySub,  column: 1 },
-    Deployment:  { color: '--green',  Icon: VscLayers,            column: 2 },
-    StatefulSet: { color: '--violet', Icon: VscDatabase,          column: 2 },
-    DaemonSet:   { color: '--teal',   Icon: VscServer,            column: 2 },
-    ReplicaSet:  { color: '--ink2',   Icon: VscCopy,              column: 3 },
-    Pod:         { color: '--blue',   Icon: VscPackage,           column: 4 },
+    Ingress:     { color: '--cat-5', Icon: VscGlobe,             column: 0 },
+    Service:     { color: '--cat-3', Icon: VscTypeHierarchySub,  column: 1 },
+    Deployment:  { color: '--cat-1', Icon: VscLayers,            column: 2 },
+    StatefulSet: { color: '--cat-2', Icon: VscDatabase,          column: 2 },
+    DaemonSet:   { color: '--cat-4', Icon: VscServer,            column: 2 },
+    ReplicaSet:  { color: '--ink-2', Icon: VscCopy,              column: 3 },
+    Pod:         { color: '--cat-6', Icon: VscPackage,           column: 4 },
 };
 
-const UNKNOWN_KIND = { color: '--ink3' as ThemeVar, Icon: VscPackage, column: 5 };
+const UNKNOWN_KIND = { color: '--ink-3' as ThemeVar, Icon: VscPackage, column: 5 };
 
 const NODE_W = 220;
 const NODE_H = 80;
@@ -74,66 +74,42 @@ const ROW_Y: Record<string, number> = {
     Pod:         800,
 };
 
-// ── Status color ──────────────────────────────────────────────────────────────
+// ── Status ────────────────────────────────────────────────────────────────────
 
-function statusColor(kind: string, status?: string): string {
-    if (!status) return themeColor('--ink3');
+// A pod phase or a "ready/total" count, as a lamp tone.
+function statusTone(kind: string, status?: string): LampTone {
+    if (!status) return 'idle';
     if (kind === 'Pod') {
-        if (status === 'Running') return themeColor('--green');
-        if (status === 'Pending') return themeColor('--amber');
-        return themeColor('--red');
+        if (status === 'Running') return 'ok';
+        if (status === 'Pending') return 'warn';
+        return 'err';
     }
     if (status.includes('/')) {
         const [ready, total] = status.split('/').map(Number);
-        if (ready === total && total > 0) return themeColor('--green');
-        if (ready > 0) return themeColor('--amber');
-        return themeColor('--red');
+        if (ready === total && total > 0) return 'ok';
+        if (ready > 0) return 'warn';
+        return 'err';
     }
-    return themeColor('--ink3');
+    return 'idle';
 }
 
 // ── Custom node ───────────────────────────────────────────────────────────────
 
 function K8sNode({ data }: NodeProps<ResourceNode>) {
     const cfg = KIND_CONFIG[data.kind] ?? UNKNOWN_KIND;
-    const kindColor = themeColor(cfg.color);
-    const sc = statusColor(data.kind, data.status);
-
+    // The kind colour used to be written as `cfg.color` — a variable *name*
+    // ("--err"), which is not a colour, so labels, handles and legend never
+    // took it. It rides a custom property now; the rest is .graph-node CSS.
     return (
-        <div style={{
-            border: `2px solid ${kindColor}`,
-            borderRadius: 8,
-            background: 'var(--panel2)',
-            padding: '7px 12px',
-            width: NODE_W,
-            minHeight: NODE_H,
-            fontFamily: 'var(--font-family)',
-            boxSizing: 'border-box',
-        }}>
-            <Handle type="target" position={Position.Top}
-                style={{ background: cfg.color, width: 8, height: 8 }} />
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginBottom: 4 }}>
-                <cfg.Icon style={{ color: cfg.color, fontSize: 11 }} />
-                <span style={{ color: cfg.color, fontSize: 10, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {data.kind}
-                </span>
-                {data.status && (
-                    <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 3, fontSize: 10, color: sc }}>
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: sc, display: 'inline-block', flexShrink: 0 }} />
-                        {data.status}
-                    </span>
-                )}
+        <div className="graph-node graph-node--tall" style={{ ['--kind' as string]: `var(${cfg.color})`, width: NODE_W, minHeight: NODE_H }}>
+            <Handle type="target" position={Position.Top} />
+            <div className="graph-node__kind">
+                <cfg.Icon /> {data.kind}
+                {data.status && <span className="graph-node__status"><StatusLamp label={data.status} tone={statusTone(data.kind, data.status)} /></span>}
             </div>
-            <div style={{ color: 'var(--ink)', fontSize: 13, fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {data.name}
-            </div>
-            <div style={{ color: 'var(--ink3)', fontSize: 11, marginTop: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {data.namespace}
-            </div>
-
-            <Handle type="source" position={Position.Bottom}
-                style={{ background: cfg.color, width: 8, height: 8 }} />
+            <div className="graph-node__name" title={data.name}>{data.name}</div>
+            <div className="graph-node__sub">{data.namespace}</div>
+            <Handle type="source" position={Position.Bottom} />
         </div>
     );
 }
@@ -283,15 +259,15 @@ function buildFlow(graph: ClusterGraph): { nodes: Node[]; edges: Edge[] } {
     const edges: Edge[] = graph.edges.map(e => {
         const isSelector = e.kind === 'selector';
         const isIngress  = e.kind === 'ingress';
-        let color = themeColor('--ink3');
-        if (isSelector) color = themeColor('--blue');
-        else if (isIngress) color = themeColor('--amber');
+        let color = themeColor('--ink-3');
+        if (isSelector) color = themeColor('--cat-3');
+        else if (isIngress) color = themeColor('--cat-5');
         return {
             id: e.id,
             source: e.source,
             target: e.target,
             type: 'smoothstep',
-            animated: isSelector,
+            // Dashed, not animated: a marching dash is a loop that never stops.
             style: {
                 stroke: color,
                 strokeWidth: 1.5,
@@ -342,65 +318,37 @@ export default function ClusterResourcePanel({ params }: IDockviewPanelProps<Clu
     useEffect(() => { load(); }, [load]);
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--app)' }}>
-
-            {/* Toolbar */}
-            <div className="yaml-editor-toolbar flex align-items-center justify-content-between" style={{ flexShrink: 0 }}>
-                <span className="yaml-editor-toolbar__label flex align-items-center gap-2">
-                    <VscTypeHierarchySub style={{ fontSize: 14 }} />{' '}
-                    {t('panels:resourceGraph.label')}
-                </span>
-                <div className="flex align-items-center gap-2">
-                    {loading && <CircularProgress size={14} style={{ color: 'var(--text-color-secondary)' }} />}
-                    <button
-                        className="cluster-bar__edit-btn"
-                        onClick={load}
-                        disabled={loading}
-                        title={t('panels:resourceGraph.refresh')}
-                    >
-                        <VscRefresh style={{ fontSize: 14 }} />
-                    </button>
+        <div className="graph-root">
+            <div className="panel-toolbar">
+                <span className="panel-toolbar__label"><VscTypeHierarchySub /> {t('panels:resourceGraph.label')}</span>
+                <div className="panel-toolbar__actions">
+                    {loading && <Spinner />}
+                    <RowAction icon={<VscRefresh size={15} />} label={t('panels:resourceGraph.refresh')} onClick={load} disabled={loading} />
                 </div>
             </div>
 
-            {/* Legend */}
-            <div style={{
-                display: 'flex', gap: 16, padding: '5px 14px', flexShrink: 0,
-                flexWrap: 'wrap', borderBottom: '1px solid var(--surface-border)',
-                background: 'var(--panel2)',
-            }}>
+            <div className="graph-legend">
                 {Object.entries(KIND_CONFIG).map(([kind, cfg]) => (
-                    <span key={kind} style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: cfg.color }}>
-                        <cfg.Icon style={{ fontSize: 11 }} />{' '}
-                        {kind}
+                    <span key={kind} className="graph-legend__item" style={{ ['--kind' as string]: `var(${cfg.color})` }}>
+                        <span className="graph-swatch" />{kind}
                     </span>
                 ))}
-                <span style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10, fontSize: 11, color: 'var(--ink3)' }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ width: 24, height: 2, background: 'var(--line2)', display: 'inline-block' }} />{' '}
-                        {t('panels:resourceGraph.legendOwner')}
+                <span className="graph-legend__lines">
+                    <span className="graph-legend__item" style={{ ['--kind' as string]: 'var(--ink-3)' }}>
+                        <span className="graph-swatch graph-swatch--line" />{t('panels:resourceGraph.legendOwner')}
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ width: 24, height: 2, background: 'var(--blue)', display: 'inline-block', borderTop: '2px dashed var(--blue)' }} />{' '}
-                        {t('panels:resourceGraph.legendSelector')}
+                    <span className="graph-legend__item" style={{ ['--kind' as string]: 'var(--cat-3)' }}>
+                        <span className="graph-swatch graph-swatch--dashed" />{t('panels:resourceGraph.legendSelector')}
                     </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <span style={{ width: 24, height: 2, background: 'var(--amber)', display: 'inline-block' }} />{' '}
-                        {t('panels:resourceGraph.legendIngress')}
+                    <span className="graph-legend__item" style={{ ['--kind' as string]: 'var(--cat-5)' }}>
+                        <span className="graph-swatch graph-swatch--line" />{t('panels:resourceGraph.legendIngress')}
                     </span>
                 </span>
             </div>
 
-            {/* Flow canvas */}
-            <div style={{ flex: 1, minHeight: 0, position: 'relative' }}>
+            <div className="graph-canvas">
                 {error ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', flexDirection: 'column', gap: 12, color: 'var(--red)' }}>
-                        <VscWarning style={{ fontSize: 32 }} />
-                        <span style={{ fontSize: 13 }}>{error}</span>
-                        <button className="cluster-bar__edit-btn" onClick={load} style={{ marginTop: 4 }}>
-                            <VscRefresh style={{ fontSize: 14 }} /> {t('action.retry')}
-                        </button>
-                    </div>
+                    <ErrorBanner block message={error} onRetry={load} busy={loading} cluster={cn} context={`Resource graph (${cn})`} />
                 ) : (
                     <ReactFlow
                         nodes={nodes}
@@ -413,21 +361,8 @@ export default function ClusterResourcePanel({ params }: IDockviewPanelProps<Clu
                         elementsSelectable
                         onlyRenderVisibleElements
                         onInit={inst => { rfRef.current = inst; }}
-                        style={{ background: 'var(--app)' }}
                     >
-                        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={themeColor('--line')} />
-                        <Controls style={{
-                            background: 'var(--panel2)',
-                            border: '1px solid var(--surface-border)',
-                            borderRadius: 8,
-                        }} />
-                        <MiniMap
-                            style={{
-                                background: 'var(--panel2)',
-                                border: '1px solid var(--surface-border)',
-                            }}
-                            nodeColor={n => themeColor(KIND_CONFIG[n.data?.kind]?.color ?? UNKNOWN_KIND.color)}
-                        />
+                        <GraphChrome nodeColor={n => KIND_CONFIG[n.data?.kind]?.color ?? UNKNOWN_KIND.color} />
                     </ReactFlow>
                 )}
             </div>

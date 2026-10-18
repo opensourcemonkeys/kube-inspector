@@ -5,6 +5,7 @@ import { GetDiagnostics, RunHealthChecks } from '../../../wailsjs/go/controller_
 import { useAiChatStore } from '../../stores/aiChatStore';
 import HealthCheckList from './HealthCheckList';
 import { useT } from '../../i18n/useT';
+import { VscRefresh } from 'react-icons/vsc';
 
 function Row({ label, value }: { label: string; value: string | number | undefined }) {
     if (value === undefined || value === '' || value === null) return null;
@@ -86,7 +87,7 @@ export default function OverviewTab({
                     <h3 className="diag-section__title">{t('panels:diagnostics.healthChecks')}</h3>
                     <Button
                         label={t(running ? 'panels:diagnostics.rerunning' : 'panels:diagnostics.rerun')}
-                        icon="pi pi-refresh"
+                        icon={<VscRefresh />}
                         size="small"
                         outlined
                         disabled={running}

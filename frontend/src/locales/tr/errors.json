@@ -1,6 +1,6 @@
 {
   "banner": {
-    "stale": "en son bilinen veriler gösteriliyor",
+    "stale": "En son bilinen veriler gösteriliyor",
     "retry": "Yeniden dene",
     "copyDiagnostics": "Tanılamayı kopyala",
     "copied": "Kopyalandı",
@@ -15,5 +15,8 @@
     "copied": "Kopyalandı",
     "copyDiagnostics": "Tanılamayı kopyala",
     "hint": "Uygulamanın geri kalanı çalışmaya devam ediyor. Yığın izi tanılama raporunda."
+  },
+  "block": {
+    "title": "{{cluster}} kümesinden yüklenemedi"
   }
 }

@@ -1,22 +1,28 @@
 import { useEffect } from 'react';
 import type { RefObject } from 'react';
 import type { ITerminalOptions, ITheme, Terminal } from '@xterm/xterm';
-import { themeColor, useThemeVersion } from './themeColors';
+import { displayColor, useThemeVersion } from './themeColors';
+import { MONO_FONT } from './fonts';
+import { prefersReducedMotion } from './motion';
 
 /**
  * The terminal palette, derived from the app palette.
  *
  * xterm takes an `ITheme` of plain color strings and paints them itself, so
- * `var(--red)` never reaches it — the values have to be resolved. This is the
+ * `var(--err)` never reaches it — the values have to be resolved. This is the
  * single definition; the terminal panel, the pod-exec panel and the CLI-mode
  * overlay all used to carry their own near-identical copy, which is why a theme
  * switch left them all looking like the default theme.
  *
- * The ANSI slots are mapped to the palette's semantic colors rather than to
- * literal ANSI hues: what matters is that a shell's red still reads as this
- * theme's "bad" and its green as this theme's "good".
+ * The ANSI slots come from the `--ansi-*` tokens. Red, green, yellow and blue
+ * resolve to the status colors, so a shell's red still reads as this theme's
+ * "bad"; cyan is its own hue rather than the accent, which would have painted
+ * every `ls --color` directory in the selection color.
+ *
+ * Everything is read through `displayColor`, the dark-display scope: the
+ * terminal stays dark in the light theme, so it takes the dark palette there.
  */
-// ITheme's selection slots are the only ones that take alpha, and themeColor
+// ITheme's selection slots are the only ones that take alpha, and displayColor
 // hands back the palette's #rrggbb — so the two have to be combined here.
 function withAlpha(hex: string | undefined, alpha: number): string | undefined {
     if (!hex) return undefined;
@@ -27,9 +33,9 @@ function withAlpha(hex: string | undefined, alpha: number): string | undefined {
 }
 
 export function xtermTheme(): ITheme {
-    const bg = themeColor('--panel2');
-    const fg = themeColor('--ink');
-    const accent = themeColor('--blue');
+    const bg = displayColor('--screen-dark');
+    const fg = displayColor('--ink');
+    const accent = displayColor('--accent');
     return {
         background: bg,
         foreground: fg,
@@ -39,23 +45,23 @@ export function xtermTheme(): ITheme {
         // that is barely visible on these dark backgrounds — which matters now
         // that copying is selection-driven. selectionForeground is deliberately
         // left unset: forcing it would flatten coloured output while selecting.
-        selectionBackground: withAlpha(accent, 0.35),
-        selectionInactiveBackground: withAlpha(accent, 0.18),
-        black: themeColor('--panel3'),
-        red: themeColor('--red'),
-        green: themeColor('--green'),
-        yellow: themeColor('--amber'),
-        blue: accent,
-        magenta: themeColor('--violet'),
-        cyan: themeColor('--teal'),
-        white: themeColor('--ink2'),
-        brightBlack: themeColor('--ink3'),
-        brightRed: themeColor('--red'),
-        brightGreen: themeColor('--green'),
-        brightYellow: themeColor('--amber'),
-        brightBlue: accent,
-        brightMagenta: themeColor('--violet'),
-        brightCyan: themeColor('--teal'),
+        selectionBackground: withAlpha(accent, 0.3),
+        selectionInactiveBackground: withAlpha(accent, 0.15),
+        black: displayColor('--line-strong'),
+        red: displayColor('--ansi-red'),
+        green: displayColor('--ansi-green'),
+        yellow: displayColor('--ansi-yellow'),
+        blue: displayColor('--ansi-blue'),
+        magenta: displayColor('--ansi-magenta'),
+        cyan: displayColor('--ansi-cyan'),
+        white: displayColor('--ink-2'),
+        brightBlack: displayColor('--ink-3'),
+        brightRed: displayColor('--ansi-red'),
+        brightGreen: displayColor('--ansi-green'),
+        brightYellow: displayColor('--ansi-yellow'),
+        brightBlue: displayColor('--ansi-blue'),
+        brightMagenta: displayColor('--ansi-magenta'),
+        brightCyan: displayColor('--ansi-cyan'),
         brightWhite: fg,
     };
 }
@@ -83,9 +89,9 @@ export function useXtermTheme(termRef: RefObject<Terminal | null>): void {
  */
 export function xtermOptions(): ITerminalOptions {
     return {
-        cursorBlink: true,
+        cursorBlink: !prefersReducedMotion(),
         cursorStyle: 'underline',
-        fontFamily: '"JetBrains Mono", "Cascadia Code", monospace',
+        fontFamily: MONO_FONT,
         fontSize: 13,
         lineHeight: 1.4,
         // xterm's default is 1000 rows, which a single `kubectl logs` scrolls

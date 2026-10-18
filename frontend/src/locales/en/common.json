@@ -10,9 +10,21 @@
     "portForward": "Port forward",
     "retry": "Retry",
     "expandAll": "Expand all",
-    "collapseAll": "Collapse all"
+    "collapseAll": "Collapse all",
+    "logs": "Logs",
+    "exec": "Open shell",
+    "edit": "Edit",
+    "deleteCount": "Delete {{count}}",
+    "remove": "Remove"
   },
   "filter": {
     "all": "All"
+  },
+  "status": {
+    "loading": "Loading…"
+  },
+  "value": {
+    "yes": "Yes",
+    "no": "No"
   }
 }

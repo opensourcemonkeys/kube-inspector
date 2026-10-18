@@ -1,4 +1,5 @@
 import { CardComponentProps } from 'nextstepjs';
+import { Button } from 'primereact/button';
 import { useT } from '../../i18n/useT';
 
 export default function TourCard({
@@ -11,7 +12,6 @@ export default function TourCard({
     arrow,
 }: CardComponentProps) {
     const t = useT();
-    const progress = ((currentStep + 1) / totalSteps) * 100;
     const isLast = currentStep === totalSteps - 1;
 
     return (
@@ -25,37 +25,20 @@ export default function TourCard({
 
             <div className="tour-card__content">{step.content}</div>
 
-            <div className="tour-card__progress-track">
-                <div className="tour-card__progress-fill" style={{ width: `${progress}%` }} />
-            </div>
-
             <div className="tour-card__footer">
+                <span className="tour-card__counter">{t('panels:tour.stepOf', { current: currentStep + 1, total: totalSteps })}</span>
                 {step.showControls && (
-                    <button
-                        className="tour-card__btn tour-card__btn--secondary"
-                        onClick={prevStep}
-                        disabled={currentStep === 0}
-                    >
-                        {t('panels:tour.previous')}
-                    </button>
-                )}
-
-                <span className="tour-card__counter">{currentStep + 1} / {totalSteps}</span>
-
-                {step.showControls && (
-                    <button
-                        className={`tour-card__btn ${isLast ? 'tour-card__btn--finish' : 'tour-card__btn--primary'}`}
-                        onClick={nextStep}
-                    >
-                        {t(isLast ? 'panels:tour.finish' : 'panels:tour.next')}
-                    </button>
+                    <span className="tour-card__nav">
+                        {currentStep > 0 && (
+                            <Button label={t('panels:tour.previous')} severity="secondary" size="small" onClick={prevStep} />
+                        )}
+                        <Button label={t(isLast ? 'panels:tour.finish' : 'panels:tour.next')} size="small" onClick={nextStep} />
+                    </span>
                 )}
             </div>
 
             {skipTour && !isLast && step.showSkip && (
-                <button className="tour-card__skip" onClick={skipTour}>
-                    {t('panels:tour.skip')}
-                </button>
+                <Button className="tour-card__skip" label={t('panels:tour.skip')} text size="small" onClick={skipTour} />
             )}
 
             {arrow}

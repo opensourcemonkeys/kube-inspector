@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { VscCloudDownload, VscDesktopDownload, VscCheck, VscWarning } from 'react-icons/vsc';
+import { VscDesktopDownload } from 'react-icons/vsc';
 import { Dialog } from 'primereact/dialog';
+import { Button } from 'primereact/button';
 import { ProgressBar } from 'primereact/progressbar';
 import { StartSelfUpdate, CancelSelfUpdate } from '../../../wailsjs/go/controller_app/App';
 import { EventsOn, EventsOff, BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
@@ -113,16 +114,6 @@ export default function UpdateModal({ visible, onHide, info }: Props) {
     // install that is already talking to the package manager.
     useEffect(() => () => { if (sessionRef.current) detach(sessionRef.current); }, []);
 
-    const stepClass = (step: 1 | 2) => {
-        const active = step === 1 ? stage === 'downloading' : stage === 'installing';
-        const done = step === 1
-            ? stage === 'installing' || stage === 'done'
-            : stage === 'done';
-        if (active) return 'update-modal__step update-modal__step--active';
-        if (done) return 'update-modal__step update-modal__step--done';
-        return 'update-modal__step';
-    };
-
     const downloadPercent = progress && progress.phase === 'download' ? progress.percent : 0;
     const indeterminateDownload = stage === 'downloading' && (progress?.total ?? -1) <= 0;
 
@@ -132,193 +123,180 @@ export default function UpdateModal({ visible, onHide, info }: Props) {
     const failed = !!info.failedUpdateVersion;
     const nothingToInstall = !info.available;
 
+    const title = stage === 'done' ? t('panels:update.titleDone')
+        : failed && nothingToInstall ? t('panels:update.failedTitle')
+        : nothingToInstall ? t('panels:update.titleUpToDate')
+        : t('panels:update.titleAvailable');
+
+    const openDownloads = () => BrowserOpenURL(info.downloadUrl);
+
+    // One primary action per state, on the right; the way out beside it.
+    let actions: React.ReactNode;
+    if (nothingToInstall) {
+        actions = (
+            <>
+                {(failed || info.aheadOfChannel) && (
+                    <Button label={t('panels:update.openDownloads')} text size="small" onClick={openDownloads} />
+                )}
+                <Button label={t('panels:update.close')} severity="secondary" size="small" onClick={onHide} />
+            </>
+        );
+    } else if (canInstall) {
+        actions = stage === 'idle' ? (
+            <>
+                <Button label={t('panels:update.later')} severity="secondary" size="small" onClick={onHide} />
+                <Button label={t('panels:update.updateNow')} icon={<VscDesktopDownload size={14} />} size="small" onClick={start} autoFocus />
+            </>
+        ) : stage === 'downloading' ? (
+            <Button label={t('panels:update.cancel')} severity="secondary" size="small" onClick={cancel} />
+        ) : stage === 'error' ? (
+            <>
+                <Button label={t('panels:update.openDownloads')} text size="small" onClick={openDownloads} />
+                <Button label={t('panels:update.tryAgain')} size="small" onClick={start} />
+            </>
+        ) : null;
+    } else {
+        actions = (
+            <>
+                <Button label={t('panels:update.later')} severity="secondary" size="small" onClick={onHide} />
+                <Button label={t('panels:update.openDownloads')} icon={<VscDesktopDownload size={14} />} size="small"
+                    onClick={() => { openDownloads(); onHide(); }} autoFocus />
+            </>
+        );
+    }
+
+    // Download, then install: two segments of one rail. A finished segment is
+    // solid ink, the running one is the accent, the next one is the bare rail.
+    const segment = (step: 'download' | 'install') => {
+        const active = step === 'download' ? stage === 'downloading' : stage === 'installing';
+        const done = step === 'download' ? stage === 'installing' || stage === 'done' : stage === 'done';
+        return `update-rail__step${active ? ' is-active' : done ? ' is-done' : ''}`;
+    };
+
     return (
         <Dialog
             visible={visible}
             onHide={() => { if (!busy) onHide(); }}
-            header={null}
-            closable={false}
+            header={title}
+            footer={actions ? <div className="dlg-actions">{actions}</div> : null}
+            closable={!busy}
             closeOnEscape={!busy}
             modal
             className="update-modal"
-            style={{ width: '560px', maxWidth: 'calc(100vw - 32px)' }}
         >
-            <div className="update-modal__content">
-                <div className="update-modal__logo">
-                    {stage === 'done' || (nothingToInstall && !failed) ? <VscCheck className="update-modal__logo-icon" />
-                        : stage === 'error' || failed ? <VscWarning className="update-modal__logo-icon update-modal__logo-icon--warn" />
-                        : <VscCloudDownload className="update-modal__logo-icon" />}
-                </div>
+            {/* Only when there is something to move to. On the stable
+                channel latestVersion can be empty (no stable release yet) or
+                older than what is running, and "0.16.0-beta.3 → 0.15.0"
+                would read as an offer to downgrade. */}
+            {!nothingToInstall && (
+                <dl className="dlg-facts update-modal__versions">
+                    <dt>{t('panels:update.installed')}</dt>
+                    <dd className="dlg-facts__mono">{info.currentVersion}</dd>
+                    <dt>{t('panels:update.available')}</dt>
+                    <dd className="dlg-facts__mono update-modal__new">{info.latestVersion}</dd>
+                </dl>
+            )}
+            {!nothingToInstall && <ChangelogNotes from={info.currentVersion} to={info.latestVersion} />}
 
-                <h2 className="update-modal__title">
-                    {stage === 'done' ? t('panels:update.titleDone')
-                        : failed && nothingToInstall ? t('panels:update.failedTitle')
-                        : nothingToInstall ? t('panels:update.titleUpToDate')
-                        : t('panels:update.titleAvailable')}
-                </h2>
-
-                {/* Only when there is something to move to. On the stable
-                    channel latestVersion can be empty (no stable release yet) or
-                    older than what is running, and "0.16.0-beta.3 → 0.15.0"
-                    would read as an offer to downgrade. */}
-                {!nothingToInstall && (
-                    <div className="update-modal__versions">
-                        <span className="update-modal__ver">{info.currentVersion}</span>
-                        <span className="update-modal__arrow">→</span>
-                        <span className="update-modal__ver update-modal__ver--new">{info.latestVersion}</span>
-                    </div>
-                )}
-                {!nothingToInstall && <ChangelogNotes from={info.currentVersion} to={info.latestVersion} />}
-
-                {nothingToInstall ? (
-                    <div className="update-modal__body">
-                        {failed ? (
-                            <>
-                                <p className="update-modal__desc">
-                                    {t('panels:update.failedBody', {
-                                        version: info.failedUpdateVersion,
-                                        current: info.currentVersion,
-                                    })}
-                                </p>
-                                {/* The macOS swap helper runs after the app has
-                                    quit, so this log is the only account of what
-                                    it did. Absent on every other platform. */}
-                                {info.failedUpdateLog && (
-                                    <details className="update-modal__log">
-                                        <summary>{t('panels:update.failedLog')}</summary>
-                                        <pre>{info.failedUpdateLog}</pre>
-                                    </details>
-                                )}
-                            </>
-                        ) : info.aheadOfChannel ? (
-                            <p className="update-modal__desc">
-                                {t('panels:update.aheadOfChannel', {
+            {nothingToInstall ? (
+                <div className="update-modal__body">
+                    {failed ? (
+                        <>
+                            <p className="update-modal__desc update-modal__desc--err">
+                                {t('panels:update.failedBody', {
+                                    version: info.failedUpdateVersion,
                                     current: info.currentVersion,
-                                    latest: info.latestVersion,
-                                    channel: info.channel,
                                 })}
                             </p>
-                        ) : (
-                            <p className="update-modal__desc">
-                                {t('panels:update.upToDate', {
-                                    version: info.currentVersion,
-                                    channel: info.channel,
-                                })}
-                            </p>
-                        )}
-                        <div className="update-modal__actions">
-                            {(failed || info.aheadOfChannel) && (
-                                <button className="update-modal__btn" onClick={() => BrowserOpenURL(info.downloadUrl)}>
-                                    {t('panels:update.openDownloads')}
-                                </button>
+                            {/* The macOS swap helper runs after the app has
+                                quit, so this log is the only account of what
+                                it did. Absent on every other platform. */}
+                            {info.failedUpdateLog && (
+                                <details className="update-modal__log">
+                                    <summary>{t('panels:update.failedLog')}</summary>
+                                    <pre>{info.failedUpdateLog}</pre>
+                                </details>
                             )}
-                            <button className="update-modal__btn update-modal__btn--primary" onClick={onHide}>
-                                {t('panels:update.close')}
-                            </button>
-                        </div>
-                    </div>
-                ) : canInstall ? (
-                    <>
-                        <div className="update-modal__steps">
-                            <div className={stepClass(1)}>
-                                <span className="update-modal__step-no">1</span>
-                                <span className="update-modal__step-label">{t('panels:update.stepDownload')}</span>
-                            </div>
-                            <div className="update-modal__step-line" />
-                            <div className={stepClass(2)}>
-                                <span className="update-modal__step-no">2</span>
-                                <span className="update-modal__step-label">{t('panels:update.stepInstall')}</span>
-                            </div>
-                        </div>
-
-                        <div className="update-modal__body">
-                            {stage === 'idle' && (
-                                <p className="update-modal__desc">{t('panels:update.intro')}</p>
-                            )}
-
-                            {stage === 'downloading' && (
-                                <>
-                                    <ProgressBar
-                                        className="update-modal__bar"
-                                        mode={indeterminateDownload ? 'indeterminate' : 'determinate'}
-                                        value={Math.round(downloadPercent)}
-                                        showValue={!indeterminateDownload}
-                                    />
-                                    <div className="update-modal__status">
-                                        {progress && progress.total > 0
-                                            ? t('panels:update.downloadingProgress', {
-                                                  received: formatBytes(progress.received),
-                                                  total: formatBytes(progress.total),
-                                              })
-                                            : t('panels:update.downloading')}
-                                    </div>
-                                </>
-                            )}
-
-                            {stage === 'installing' && (
-                                <>
-                                    <ProgressBar className="update-modal__bar" mode="indeterminate" />
-                                    <div className="update-modal__status">
-                                        {t('panels:update.installing')} {info.assetKind === 'deb' || info.assetKind === 'rpm'
-                                            ? t('panels:update.installingPassword')
-                                            : t('panels:update.installingQuick')}
-                                    </div>
-                                    <div className="update-modal__hint">{t('panels:update.doNotClose')}</div>
-                                </>
-                            )}
-
-                            {stage === 'done' && (
-                                <div className="update-modal__status">{t('panels:update.restarting')}</div>
-                            )}
-
-                            {stage === 'error' && (
-                                <div className="update-modal__error">{error}</div>
-                            )}
-                        </div>
-
-                        <div className="update-modal__actions">
-                            {stage === 'idle' && (
-                                <>
-                                    <button className="update-modal__btn" onClick={onHide}>{t('panels:update.later')}</button>
-                                    <button className="update-modal__btn update-modal__btn--primary" onClick={start}>
-                                        <VscDesktopDownload size={13} /> {t('panels:update.updateNow')}
-                                    </button>
-                                </>
-                            )}
-                            {stage === 'downloading' && (
-                                <button className="update-modal__btn" onClick={cancel}>{t('panels:update.cancel')}</button>
-                            )}
-                            {stage === 'error' && (
-                                <>
-                                    <button className="update-modal__btn" onClick={() => BrowserOpenURL(info.downloadUrl)}>
-                                        {t('panels:update.openDownloads')}
-                                    </button>
-                                    <button className="update-modal__btn update-modal__btn--primary" onClick={start}>
-                                        {t('panels:update.tryAgain')}
-                                    </button>
-                                </>
-                            )}
-                        </div>
-                    </>
-                ) : (
-                    <div className="update-modal__body">
+                        </>
+                    ) : info.aheadOfChannel ? (
                         <p className="update-modal__desc">
-                            {info.notInstallableReason
-                                ? t('panels:update.notInstallable', { reason: info.notInstallableReason })
-                                : t('panels:update.downloadFromSite')}
+                            {t('panels:update.aheadOfChannel', {
+                                current: info.currentVersion,
+                                latest: info.latestVersion,
+                                channel: info.channel,
+                            })}
                         </p>
-                        <div className="update-modal__actions">
-                            <button className="update-modal__btn" onClick={onHide}>{t('panels:update.later')}</button>
-                            <button
-                                className="update-modal__btn update-modal__btn--primary"
-                                onClick={() => { BrowserOpenURL(info.downloadUrl); onHide(); }}
-                            >
-                                <VscDesktopDownload size={13} /> {t('panels:update.openDownloads')}
-                            </button>
-                        </div>
-                    </div>
-                )}
-            </div>
+                    ) : (
+                        <p className="update-modal__desc">
+                            {t('panels:update.upToDate', {
+                                version: info.currentVersion,
+                                channel: info.channel,
+                            })}
+                        </p>
+                    )}
+                </div>
+            ) : canInstall ? (
+                <div className="update-modal__body">
+                    <ol className="update-rail" aria-label={t('panels:update.progressLabel')}>
+                        <li className={segment('download')}>{t('panels:update.stepDownload')}</li>
+                        <li className={segment('install')}>{t('panels:update.stepInstall')}</li>
+                    </ol>
+
+                    {stage === 'idle' && (
+                        <p className="update-modal__desc">{t('panels:update.intro')}</p>
+                    )}
+
+                    {stage === 'downloading' && (
+                        <>
+                            <ProgressBar
+                                className="update-modal__bar"
+                                mode={indeterminateDownload ? 'indeterminate' : 'determinate'}
+                                value={Math.round(downloadPercent)}
+                                showValue={false}
+                            />
+                            <div className="update-modal__status">
+                                {progress && progress.total > 0
+                                    ? <>
+                                        {t('panels:update.downloadingProgress', {
+                                            received: formatBytes(progress.received),
+                                            total: formatBytes(progress.total),
+                                        })}
+                                        <span className="update-modal__pct">{Math.round(downloadPercent)}%</span>
+                                    </>
+                                    : t('panels:update.downloading')}
+                            </div>
+                        </>
+                    )}
+
+                    {stage === 'installing' && (
+                        <>
+                            <ProgressBar className="update-modal__bar" mode="indeterminate" />
+                            <div className="update-modal__status">
+                                {t('panels:update.installing')} {info.assetKind === 'deb' || info.assetKind === 'rpm'
+                                    ? t('panels:update.installingPassword')
+                                    : t('panels:update.installingQuick')}
+                            </div>
+                            <div className="update-modal__hint">{t('panels:update.doNotClose')}</div>
+                        </>
+                    )}
+
+                    {stage === 'done' && (
+                        <div className="update-modal__status">{t('panels:update.restarting')}</div>
+                    )}
+
+                    {stage === 'error' && (
+                        <div className="update-modal__error" role="alert">{error}</div>
+                    )}
+                </div>
+            ) : (
+                <div className="update-modal__body">
+                    <p className="update-modal__desc">
+                        {info.notInstallableReason
+                            ? t('panels:update.notInstallable', { reason: info.notInstallableReason })
+                            : t('panels:update.downloadFromSite')}
+                    </p>
+                </div>
+            )}
         </Dialog>
     );
 }

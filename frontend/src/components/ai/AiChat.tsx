@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { VscClose, VscSend, VscTrash, VscRefresh, VscHubot, VscCheck, VscChromeClose, VscCloudDownload, VscArrowLeft, VscChevronRight, VscChevronDown } from 'react-icons/vsc';
+import { VscClose, VscSend, VscTrash, VscRefresh, VscHubot, VscCheck, VscChromeClose, VscCloudDownload, VscArrowLeft, VscChevronRight, VscChevronDown, VscDebugStop } from 'react-icons/vsc';
+import { Button } from 'primereact/button';
 import { Dropdown } from 'primereact/dropdown';
 import { EventsOn, EventsOff, BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 import { StartAiChat, StopAiChat, ListAiModels, ConfirmToolCall, AiAvailable, AiModelSupportsTools, ListAiModelCatalog, ListAiModelTags, PullAiModel, StopAiPull } from '../../../wailsjs/go/controller_app/App';
@@ -9,6 +10,8 @@ import { useClusterContext } from '../../contexts/ClusterContext';
 import { useAiChatStore, ChatMessage, ToolLine } from '../../stores/aiChatStore';
 import { Trans } from 'react-i18next';
 import { useT } from '../../i18n/useT';
+import RowAction from '../shared/RowAction';
+import StatusLamp, { type LampTone } from '../shared/StatusLamp';
 
 interface ConfirmReq { id: string; name: string; args: Record<string, unknown>; }
 interface PullState { percent: number; status: string; error?: string; }
@@ -57,6 +60,16 @@ export default function AiChat() {
     const [liveTools, setLiveTools] = useState<ToolLine[]>([]);
     const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
     const [confirmQueue, setConfirmQueue] = useState<ConfirmReq[]>([]);
+    // Seconds since the turn started: a counting line instead of bouncing dots,
+    // so a slow local model reads as "still going" and says for how long.
+    const [elapsed, setElapsed] = useState(0);
+    useEffect(() => {
+        if (!streaming) return;
+        setElapsed(0);
+        const started = Date.now();
+        const id = window.setInterval(() => setElapsed(Math.floor((Date.now() - started) / 1000)), 1000);
+        return () => window.clearInterval(id);
+    }, [streaming]);
 
     const sessionId = useRef(`ai-${Date.now()}`).current;
     const liveTextRef = useRef('');
@@ -101,8 +114,12 @@ export default function AiChat() {
 
     // ---- chat streaming events ----
     const finalize = useCallback((errText?: string) => {
-        const content = errText ? (liveTextRef.current ? liveTextRef.current + '\n\n' : '') + `⚠️ ${errText}` : liveTextRef.current;
-        const msg: ChatMessage = { role: 'assistant', content, tools: liveToolsRef.current.slice() };
+        const msg: ChatMessage = {
+            role: 'assistant',
+            content: liveTextRef.current,
+            tools: liveToolsRef.current.slice(),
+            ...(errText !== undefined ? { error: errText } : {}),
+        };
         setMessages([...useAiChatStore.getState().messages, msg]);
         liveTextRef.current = '';
         liveToolsRef.current = [];
@@ -123,7 +140,8 @@ export default function AiChat() {
         };
         const onConfirm = (req: ConfirmReq) => setConfirmQueue((q) => [...q, req]);
         const onDone = () => finalize();
-        const onError = (e: string) => finalize(e || 'request failed');
+        // An empty reason is still an error; Message words it at render time.
+        const onError = (e: string) => finalize(e ?? '');
 
         EventsOn(`ai:token:${sessionId}`, onToken);
         EventsOn(`ai:tool:${sessionId}`, onTool);
@@ -186,7 +204,7 @@ export default function AiChat() {
     const stop = () => { StopAiChat(sessionId).catch(() => {}); };
 
     const startPull = (name: string) => {
-        setPulls((prev) => ({ ...prev, [name]: { percent: 0, status: 'starting…' } }));
+        setPulls((prev) => ({ ...prev, [name]: { percent: 0, status: t('panels:ai.pullStarting') } }));
         PullAiModel(host, name).catch((e) => setPulls((prev) => ({ ...prev, [name]: { percent: 0, status: 'error', error: String(e) } })));
     };
     const cancelPull = (name: string) => {
@@ -223,6 +241,8 @@ export default function AiChat() {
         window.addEventListener('pointerup', up);
     };
 
+    const showChat = () => setView('chat');
+    const showModels = () => { setView('models'); loadCatalog(); };
     const confirm = confirmQueue[0];
     const installedSet = new Set(modelList);
     const isInstalled = (ref: string) => installedSet.has(ref) || installedSet.has(`${ref}:latest`);
@@ -238,13 +258,15 @@ export default function AiChat() {
             <div className="ai-float__head" onPointerDown={onDragStart}>
                 {view === 'models' ? (
                     <>
-                        <button className="ai-float__icon" title={t('panels:ai.backToChat')} onClick={(e) => { e.stopPropagation(); setView('chat'); }}><VscArrowLeft size={15} /></button>
+                        <RowAction icon={<VscArrowLeft size={15} />} label={t('panels:ai.backToChat')} onClick={(e) => { e.stopPropagation(); showChat(); }} />
                         <span className="ai-float__title">{t('panels:ai.models')}</span>
-                        <button className="ai-float__icon" style={{ marginLeft: 'auto' }} title={t('panels:ai.refresh')} onClick={(e) => { e.stopPropagation(); loadCatalog(); }}><VscRefresh size={13} /></button>
+                        <span className="ai-float__push">
+                            <RowAction icon={<VscRefresh size={14} />} label={t('panels:ai.refresh')} onClick={(e) => { e.stopPropagation(); loadCatalog(); }} />
+                        </span>
                     </>
                 ) : (
                     <>
-                        <VscHubot size={15} className="ai-float__logo" />
+                        <VscHubot size={15} className="ai-float__logo" aria-hidden />
                         <span className="ai-float__title">{t('panels:ai.assistant')}</span>
                         <Dropdown
                             className="ai-float__model"
@@ -258,11 +280,12 @@ export default function AiChat() {
                             filter={modelList.length > 6}
                             onClick={(e) => e.stopPropagation()}
                         />
-                        <button className="ai-float__icon" title={t('panels:ai.manageModels')} disabled={!available} onClick={(e) => { e.stopPropagation(); setView('models'); loadCatalog(); }}><VscCloudDownload size={14} /></button>
-                        <button className="ai-float__icon" title={t('panels:ai.clearChat')} onClick={(e) => { e.stopPropagation(); clear(); }}><VscTrash size={13} /></button>
+                        <RowAction icon={<VscCloudDownload size={15} />} label={t('panels:ai.manageModels')} disabled={!available}
+                            onClick={(e) => { e.stopPropagation(); showModels(); }} />
+                        <RowAction icon={<VscTrash size={14} />} label={t('panels:ai.clearChat')} onClick={(e) => { e.stopPropagation(); clear(); }} />
                     </>
                 )}
-                <button className="ai-float__icon" title={t('panels:ai.close')} onClick={(e) => { e.stopPropagation(); setOpen(false); }}><VscClose size={14} /></button>
+                <RowAction icon={<VscClose size={15} />} label={t('panels:ai.close')} onClick={(e) => { e.stopPropagation(); setOpen(false); }} />
             </div>
 
             {/* Not-available gate */}
@@ -274,14 +297,14 @@ export default function AiChat() {
                         <Trans t={t} i18nKey="panels:ai.ollamaMissing" values={{ host }} components={{ 1: <code /> }} />
                     </div>
                     <div className="ai-install__btns">
-                        <button className="ai-install__primary" onClick={() => BrowserOpenURL(OLLAMA_DOWNLOAD_URL)}><VscCloudDownload size={13} /> {t('panels:ai.installOllama')}</button>
-                        <button className="ai-install__retry" onClick={checkAvailable}><VscRefresh size={13} /> {t('action.retry')}</button>
+                        <Button label={t('action.retry')} icon={<VscRefresh size={14} />} severity="secondary" size="small" onClick={checkAvailable} />
+                        <Button label={t('panels:ai.installOllama')} icon={<VscCloudDownload size={14} />} size="small" onClick={() => BrowserOpenURL(OLLAMA_DOWNLOAD_URL)} />
                     </div>
                 </div>
             )}
 
             {available === null && (
-                <div className="ai-float__empty" style={{ flex: 1 }}>{t('panels:ai.connecting')}</div>
+                <div className="ai-float__empty ai-float__empty--fill">{t('panels:ai.connecting')}</div>
             )}
 
             {/* Model manager */}
@@ -297,7 +320,7 @@ export default function AiChat() {
                             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); pullFreeText(); } }}
                             placeholder={t('panels:ai.pullPlaceholder')}
                         />
-                        <button className="ai-model__dl" title={t('panels:ai.download')} disabled={!pullInput.trim()} onClick={pullFreeText}><VscCloudDownload size={14} /></button>
+                        <RowAction icon={<VscCloudDownload size={15} />} label={t('panels:ai.download')} disabled={!pullInput.trim()} onClick={pullFreeText} />
                     </div>
                     {catalogError && <div className="ai-float__hint">{t('panels:ai.catalogError', { error: catalogError })}</div>}
 
@@ -312,12 +335,17 @@ export default function AiChat() {
                                             <div className="ai-model__progress">
                                                 <div className="ai-model__bar"><div className="ai-model__barfill" style={{ width: `${Math.max(2, pull.percent)}%` }} /></div>
                                                 <div className={`ai-model__pstatus${pull.error ? ' ai-model__pstatus--err' : ''}`}>
-                                                    {pull.error ? `error: ${pull.error}` : `${pull.status}${pull.percent ? ` · ${pull.percent.toFixed(0)}%` : ''}`}
+                                                    {pull.error ? t('panels:ai.pullFailed', { error: pull.error }) : (
+                                                        <>
+                                                            <span>{pull.status}</span>
+                                                            {pull.percent > 0 && <span>{pull.percent.toFixed(0)}%</span>}
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="ai-model__action">
-                                            <button className="ai-model__cancel" title={t('panels:ai.cancel')} onClick={() => cancelPull(name)}><VscChromeClose size={13} /></button>
+                                            <RowAction icon={<VscChromeClose size={14} />} label={t('panels:ai.cancel')} onClick={() => cancelPull(name)} />
                                         </div>
                                     </div>
                                 ))}
@@ -332,24 +360,24 @@ export default function AiChat() {
                             return (
                                 <div className="ai-model-group" key={m.name}>
                                     <div className="ai-model">
-                                        <button className="ai-model__expand" title={t('panels:ai.showSizes')} onClick={() => toggleExpand(base)}>
+                                        <button className="ai-model__expand" title={t('panels:ai.showSizes')} aria-label={t('panels:ai.showSizes')} aria-expanded={isOpen} onClick={() => toggleExpand(base)}>
                                             {isOpen ? <VscChevronDown size={13} /> : <VscChevronRight size={13} />}
                                         </button>
-                                        <div className="ai-model__info" onClick={() => toggleExpand(base)} style={{ cursor: 'pointer' }}>
+                                        <div className="ai-model__info ai-model__info--toggle" onClick={() => toggleExpand(base)}>
                                             <div className="ai-model__name">
                                                 {m.name}
-                                                {m.installed && <span className="ai-model__badge">{t('panels:ai.installed')}</span>}
+                                                {m.installed && <StatusLamp label={t('panels:ai.installed')} tone="ok" />}
                                                 {!!m.vramBytes && <span className="ai-model__meta">~{fmtBytes(m.vramBytes)} VRAM</span>}
                                             </div>
                                             {m.description && <div className="ai-model__desc">{m.description}</div>}
                                         </div>
                                         <div className="ai-model__action">
                                             {isInstalled(m.name) ? (
-                                                <span className="ai-model__installed"><VscCheck size={14} /></span>
+                                                <span className="ai-model__installed" title={t('panels:ai.installed')}><VscCheck size={14} aria-label={t('panels:ai.installed')} /></span>
                                             ) : pull && !pull.error ? (
-                                                <button className="ai-model__cancel" title={t('panels:ai.cancel')} onClick={() => cancelPull(m.name)}><VscChromeClose size={13} /></button>
+                                                <RowAction icon={<VscChromeClose size={14} />} label={t('panels:ai.cancel')} onClick={() => cancelPull(m.name)} />
                                             ) : (
-                                                <button className="ai-model__dl" title={`Download ${m.name}`} onClick={() => startPull(m.name)}><VscCloudDownload size={14} /></button>
+                                                <RowAction icon={<VscCloudDownload size={15} />} label={t('panels:ai.downloadModel', { name: m.name })} onClick={() => startPull(m.name)} />
                                             )}
                                         </div>
                                     </div>
@@ -371,11 +399,11 @@ export default function AiChat() {
                                                             </span>
                                                         )}
                                                         {isInstalled(ref) ? (
-                                                            <span className="ai-model__installed"><VscCheck size={13} /></span>
+                                                            <span className="ai-model__installed" title={t('panels:ai.installed')}><VscCheck size={13} aria-label={t('panels:ai.installed')} /></span>
                                                         ) : vpull && !vpull.error ? (
-                                                            <button className="ai-model__cancel" title={t('panels:ai.cancel')} onClick={() => cancelPull(ref)}><VscChromeClose size={12} /></button>
+                                                            <RowAction icon={<VscChromeClose size={13} />} label={t('panels:ai.cancel')} onClick={() => cancelPull(ref)} />
                                                         ) : (
-                                                            <button className="ai-model__dl ai-model__dl--sm" title={`Download ${ref}`} onClick={() => startPull(ref)}><VscCloudDownload size={13} /></button>
+                                                            <RowAction icon={<VscCloudDownload size={14} />} label={t('panels:ai.downloadModel', { name: ref })} onClick={() => startPull(ref)} />
                                                         )}
                                                     </div>
                                                 );
@@ -417,10 +445,7 @@ export default function AiChat() {
                             <div className="ai-msg ai-msg--assistant">
                                 <ToolLines tools={liveTools} />
                                 {liveText && <div className="ai-msg__text">{liveText}</div>}
-                                <div className="ai-working" aria-label={t('panels:ai.working')}>
-                                    <span /><span /><span />
-                                    <em>{t('panels:ai.workingEllipsis')}</em>
-                                </div>
+                                <div className="ai-working" role="status">{t('panels:ai.workingFor', { seconds: elapsed })}</div>
                             </div>
                         )}
                     </div>
@@ -429,9 +454,12 @@ export default function AiChat() {
                         <div className="ai-confirm">
                             <div className="ai-confirm__title">{t('panels:ai.approveAction')} <b>{confirm.name}</b></div>
                             <pre className="ai-confirm__args">{JSON.stringify(confirm.args, null, 2)}</pre>
+                            {/* Approving runs a change against the cluster (delete,
+                                apply, scale), so it carries the danger role, like
+                                every other destructive confirm in the app. */}
                             <div className="ai-confirm__btns">
-                                <button className="ai-confirm__deny" onClick={() => answerConfirm(false)}><VscChromeClose size={12} /> {t('panels:ai.deny')}</button>
-                                <button className="ai-confirm__approve" onClick={() => answerConfirm(true)}><VscCheck size={12} /> {t('panels:ai.approve')}</button>
+                                <Button label={t('panels:ai.deny')} severity="secondary" size="small" onClick={() => answerConfirm(false)} autoFocus />
+                                <Button label={t('panels:ai.approve')} icon={<VscCheck size={14} />} severity="danger" size="small" onClick={() => answerConfirm(true)} />
                             </div>
                         </div>
                     )}
@@ -445,8 +473,8 @@ export default function AiChat() {
                             rows={2}
                         />
                         {streaming
-                            ? <button className="ai-float__send ai-float__send--stop" onClick={stop} title={t('panels:ai.stop')}><VscChromeClose size={15} /></button>
-                            : <button className="ai-float__send" onClick={send} disabled={!input.trim() || !model} title={t('panels:ai.send')}><VscSend size={15} /></button>}
+                            ? <Button className="ai-float__send" icon={<VscDebugStop size={15} />} severity="danger" onClick={stop} aria-label={t('panels:ai.stop')} title={t('panels:ai.stop')} />
+                            : <Button className="ai-float__send" icon={<VscSend size={15} />} onClick={send} disabled={!input.trim() || !model} aria-label={t('panels:ai.send')} title={t('panels:ai.send')} />}
                     </div>
                 </>
             )}
@@ -454,28 +482,49 @@ export default function AiChat() {
     );
 }
 
+// One turn of the log. The user's line carries the accent notch and a "You"
+// marker; the assistant's is plain text on the screen, no bubble.
 function Message({ msg }: { msg: ChatMessage }) {
+    const t = useT();
     return (
         <div className={`ai-msg ai-msg--${msg.role}`}>
+            {msg.role === 'user' && <span className="ai-msg__who">{t('panels:ai.you')}</span>}
             {msg.tools && msg.tools.length > 0 && <ToolLines tools={msg.tools} />}
             {msg.content && <div className="ai-msg__text">{msg.content}</div>}
+            {msg.error !== undefined && (
+                <div className="ai-msg__error" role="alert">
+                    <StatusLamp label={t('panels:ai.toolStatus.error')} tone="err" />
+                    <span>{msg.error || t('panels:ai.requestFailed')}</span>
+                </div>
+            )}
         </div>
     );
 }
 
+const TOOL_TONE: Record<ToolLine['status'], LampTone> = { running: 'info', done: 'ok', declined: 'idle', error: 'err' };
+
+// A tool call as an instrument log line: lamp, tool name, and its outcome.
 function ToolLines({ tools }: { tools: ToolLine[] }) {
     const t = useT();
     if (!tools.length) return null;
+    const statusLabel = (s: ToolLine['status']) => {
+        switch (s) {
+            case 'running': return t('panels:ai.toolStatus.running');
+            case 'done': return t('panels:ai.toolStatus.done');
+            case 'declined': return t('panels:ai.toolStatus.declined');
+            default: return t('panels:ai.toolStatus.error');
+        }
+    };
     return (
-        <div className="ai-tools">
+        <ul className="ai-tools">
             {tools.map((tool) => (
-                <div key={tool.id} className={`ai-tool ai-tool--${tool.status}`}>
-                    <span className="ai-tool__dot" />
+                <li key={tool.id} className={`ai-tool ai-tool--${tool.status}`}>
+                    <StatusLamp markOnly label={statusLabel(tool.status)} tone={TOOL_TONE[tool.status] ?? 'idle'} />
                     <span className="ai-tool__name">{tool.name}</span>
                     {tool.mutating && <span className="ai-tool__badge">{t('panels:ai.mutating')}</span>}
-                    <span className="ai-tool__status">{tool.status}</span>
-                </div>
+                    <span className="ai-tool__status">{statusLabel(tool.status)}</span>
+                </li>
             ))}
-        </div>
+        </ul>
     );
 }

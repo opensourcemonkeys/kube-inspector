@@ -14,6 +14,7 @@ import { useDiagnosticsStore } from '../../stores/diagnosticsStore';
 import { writeClipboard } from '../../lib/clipboard';
 import { renderReport } from '../../lib/diagnosticsReport';
 import { useT } from '../../i18n/useT';
+import { VscCopy, VscDesktopDownload, VscFolderOpened } from 'react-icons/vsc';
 
 function humanBytes(n: number): string {
     if (n < 1024) return `${n} B`;
@@ -136,20 +137,20 @@ export default function ExportTab({ report }: { report: models.DiagnosticsReport
             <section className="diag-section diag-actions">
                 <Button
                     label={t('panels:diagnostics.saveZip')}
-                    icon="pi pi-download"
+                    icon={<VscDesktopDownload />}
                     disabled={busy}
                     onClick={saveZip}
                 />
                 <Button
                     label={t('panels:diagnostics.copyReport')}
-                    icon="pi pi-copy"
+                    icon={<VscCopy />}
                     outlined
                     disabled={busy}
                     onClick={copyReport}
                 />
                 <Button
                     label={t('panels:diagnostics.openLogFolder')}
-                    icon="pi pi-folder-open"
+                    icon={<VscFolderOpened />}
                     outlined
                     onClick={openFolder}
                 />

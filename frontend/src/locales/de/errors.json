@@ -1,6 +1,6 @@
 {
   "banner": {
-    "stale": "zeigt die zuletzt bekannten Daten",
+    "stale": "Zeigt die zuletzt bekannten Daten",
     "retry": "Erneut versuchen",
     "copyDiagnostics": "Diagnose kopieren",
     "copied": "Kopiert",
@@ -15,5 +15,8 @@
     "copied": "Kopiert",
     "copyDiagnostics": "Diagnose kopieren",
     "hint": "Der Rest der Anwendung läuft weiter. Der Stacktrace steht im Diagnosebericht."
+  },
+  "block": {
+    "title": "Laden aus {{cluster}} fehlgeschlagen"
   }
 }

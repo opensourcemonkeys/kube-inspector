@@ -3,22 +3,27 @@ import type { DockviewPanelApi } from 'dockview';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Dropdown } from 'primereact/dropdown';
-import { Message } from 'primereact/message';
 import { FilterMatchMode } from 'primereact/api';
 import { VscPulse, VscClose, VscChevronRight } from 'react-icons/vsc';
 
 import { GetMetricsSnapshot } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useMetricsStore, ClusterPoint, EntityPoint } from '../../stores/metricsStore';
-import { fmtCpu, fmtMem, pct, getUsageColor, UsageBarChart, CssBar } from '../../lib/usage';
+import { fmtCpu, fmtMem, pct, CssBar } from '../../lib/usage';
 import { themeAlpha, themeColor, useThemeVersion } from '../../lib/themeColors';
 import { errText } from '../../lib/errText';
 import ErrorBanner from '../shared/ErrorBanner';
+import Gauge from '../shared/Gauge';
+import NoMetrics from '../shared/NoMetrics';
+import Segmented from '../shared/Segmented';
 import { useT } from '../../i18n/useT';
 import { usePanelActive } from '../../lib/usePanelActive';
 import { LiveChart } from '../../lib/LiveChart';
 
 const POLL_MS = 4000;
+
+// The consumers table lists either; the ids double as i18n keys.
+const MODES = ['pods', 'workloads'] as const;
 
 // Selectable chart time windows (minutes) — clip the rolling buffer for display.
 const WINDOWS = [
@@ -52,7 +57,8 @@ const lineOptions = (suggestedMax?: number, xMin?: number, xMax?: number) => ({
     // exactly on a point), showing every dataset's value at that time.
     interaction: { mode: 'index' as const, intersect: false, axis: 'x' as const },
     plugins: {
-        legend: { display: true, labels: { color: themeColor('--ink2'), boxWidth: 10, boxHeight: 10, font: { size: 10 } } },
+        // One series per chart, and the card above it already names it.
+        legend: { display: false },
         tooltip: { enabled: true, mode: 'index' as const, intersect: false, callbacks: { title: (items: any[]) => (items.length ? fmtTime(items[0].parsed.x) : '') } },
     },
     scales: {
@@ -60,17 +66,18 @@ const lineOptions = (suggestedMax?: number, xMin?: number, xMax?: number) => ({
             type: 'linear' as const,
             min: xMin,
             max: xMax,
-            ticks: { color: themeColor('--ink3'), font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6, callback: (v: any) => fmtTime(Number(v)) },
+            ticks: { color: themeColor('--ink-3'), font: { size: 9 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 6, callback: (v: any) => fmtTime(Number(v)) },
             grid: { display: false },
         },
         y: {
             beginAtZero: true,
             ...(suggestedMax ? { suggestedMax } : {}),
-            ticks: { color: themeColor('--ink3'), font: { size: 10 }, maxTicksLimit: 4 },
-            grid: { color: themeAlpha('--line', 0.6) },
+            ticks: { color: themeColor('--ink-3'), font: { size: 10 }, maxTicksLimit: 4 },
+            grid: { color: themeAlpha('--line', 0.45) },
+            border: { display: false },
         },
     },
-    elements: { point: { radius: 0, hoverRadius: 4, hitRadius: 10 }, line: { tension: 0.3, borderWidth: 1.5 } },
+    elements: { point: { radius: 0, hoverRadius: 3, hitRadius: 10 }, line: { tension: 0.2, borderWidth: 1.5 } },
 });
 
 // ── small reusable bits ─────────────────────────────────────────────
@@ -109,7 +116,7 @@ const podSel = (r: models.ResourceUsage): Selected => ({
 
 export default function MonitoringDashboard({ clusterName, api }: { clusterName: string; api?: DockviewPanelApi }) {
     const t = useT();
-    // Ditto: chart.js paints into a canvas, so `var(--teal)` cannot reach it and
+    // Ditto: chart.js paints into a canvas, so `var(--accent)` cannot reach it and
     // the colors are read from the palette on each render instead.
     useThemeVersion();
     // The most expensive poll in the app (a metrics-server fan-out every 4s):
@@ -188,18 +195,19 @@ export default function MonitoringDashboard({ clusterName, api }: { clusterName:
     if (!snap) {
         return (
             <div className="mon-root">
-                <div className="mon-header"><VscPulse /> <span>{t('panels:monitoring.label')}</span><span className="mon-cluster">• {clusterName}</span></div>
-                <ErrorBanner message={error} onRetry={tick} busy={refreshing} context={`Monitoring (${clusterName})`} />
-                {!error && <div className="mon-empty">{t('panels:monitoring.loading')}</div>}
+                <div className="mon-header"><VscPulse /> <span>{t('panels:monitoring.label')}</span>{clusterName && <span className="mon-cluster">{clusterName}</span>}</div>
+                {error
+                    ? <ErrorBanner block message={error} onRetry={tick} busy={refreshing} cluster={clusterName} context={`Monitoring (${clusterName})`} />
+                    : <div className="mon-empty">{t('panels:monitoring.loading')}</div>}
             </div>
         );
     }
     if (!snap.metricsAvailable) {
         return (
             <div className="mon-root">
-                <div className="mon-header"><VscPulse /> <span>{t('panels:monitoring.label')}</span><span className="mon-cluster">• {clusterName}</span></div>
+                <div className="mon-header"><VscPulse /> <span>{t('panels:monitoring.label')}</span>{clusterName && <span className="mon-cluster">{clusterName}</span>}</div>
                 <ErrorBanner message={error} onRetry={tick} busy={refreshing} stale context={`Monitoring (${clusterName})`} />
-                <Message severity="warn" text={t('panels:monitoring.noMetricsServer')} />
+                <NoMetrics />
             </div>
         );
     }
@@ -218,19 +226,19 @@ export default function MonitoringDashboard({ clusterName, api }: { clusterName:
     // two cards were pixel-identical.
     const cpuTrend = {
         datasets: [
-            { label: 'CPU %', data: clusterPts.map((p) => ({ x: p.t, y: +pct(p.cpu, p.cpuCap).toFixed(1) })), borderColor: themeColor('--teal'), backgroundColor: themeAlpha('--teal', 0.15), fill: true },
+            { label: 'CPU %', data: clusterPts.map((p) => ({ x: p.t, y: +pct(p.cpu, p.cpuCap).toFixed(1) })), borderColor: themeColor('--accent'), backgroundColor: themeAlpha('--accent', 0.08), fill: true },
         ],
     };
     const memTrend = {
         datasets: [
-            { label: 'Mem %', data: clusterPts.map((p) => ({ x: p.t, y: +pct(p.mem, p.memCap).toFixed(1) })), borderColor: themeColor('--blue'), backgroundColor: themeAlpha('--blue', 0.12), fill: true },
+            { label: 'Mem %', data: clusterPts.map((p) => ({ x: p.t, y: +pct(p.mem, p.memCap).toFixed(1) })), borderColor: themeColor('--info'), backgroundColor: themeAlpha('--info', 0.08), fill: true },
         ],
     };
 
     return (
         <div className="mon-root">
             <div className="mon-header">
-                <VscPulse /> <span>{t('panels:monitoring.label')}</span><span className="mon-cluster">• {clusterName}</span>
+                <VscPulse /> <span>{t('panels:monitoring.label')}</span>{clusterName && <span className="mon-cluster">{clusterName}</span>}
                 <div className="mon-header__actions">
                     <Dropdown value={windowMin} options={WINDOWS} onChange={(e) => setWindowMin(e.value)} aria-label={t('panels:monitoring.timeWindow')} />
                 </div>
@@ -243,50 +251,42 @@ export default function MonitoringDashboard({ clusterName, api }: { clusterName:
                     {/* Cluster summary */}
                     <div className="mon-grid">
                         <div className="mon-card">
-                            <div className="mon-card__head"><span>{t('panels:monitoring.clusterCpu')}</span><b>{fmtCpu(c.cpuMillis)} / {fmtCpu(c.cpuCapMillis)}</b></div>
-                            <div className="mon-card__pct" style={{ color: getUsageColor(cpuClusterPct) }}>{cpuClusterPct.toFixed(0)}%</div>
+                            <Gauge label={t('panels:monitoring.clusterCpu')} value={cpuClusterPct} detail={`${fmtCpu(c.cpuMillis)} / ${fmtCpu(c.cpuCapMillis)}`} />
                             <div className="mon-trend"><LiveChart type="line" data={cpuTrend} options={lineOptions(100, xMin, xMax)} height={130} /></div>
                         </div>
                         <div className="mon-card">
-                            <div className="mon-card__head"><span>{t('panels:monitoring.clusterMemory')}</span><b>{fmtMem(c.memMi)} / {fmtMem(c.memCapMi)}</b></div>
-                            <div className="mon-card__pct" style={{ color: getUsageColor(memClusterPct) }}>{memClusterPct.toFixed(0)}%</div>
+                            <Gauge label={t('panels:monitoring.clusterMemory')} value={memClusterPct} detail={`${fmtMem(c.memMi)} / ${fmtMem(c.memCapMi)}`} />
                             <div className="mon-trend"><LiveChart type="line" data={memTrend} options={lineOptions(100, xMin, xMax)} height={130} /></div>
                         </div>
                     </div>
 
                     {/* Nodes */}
-                    <div className="mon-section-title">Nodes</div>
-                    <div className="mon-nodes">
+                    <div className="mon-section-title">{t('nav:item.nodes')}</div>
+                    <div className="ov-nodes">
                         {(snap.nodes ?? []).map((n) => {
-                            const cp = pct(n.cpuMillis, n.cpuCapMillis);
-                            const mp = pct(n.memMi, n.memCapMi);
                             const isSel = selected?.id === `node/${n.name}`;
                             return (
-                                <div key={n.name} className={`mon-node${isSel ? ' mon-node--sel' : ''}`}
+                                <button key={n.name} type="button" className={`ov-node ov-node--button${isSel ? ' is-selected' : ''}`}
+                                    aria-pressed={isSel}
                                     onClick={() => select({ cat: 'node', kind: 'node', name: n.name, namespace: '', id: `node/${n.name}`, label: n.name })}>
-                                    <div className="mon-node__name">{n.name}</div>
-                                    <div className="mon-node__row"><span>CPU</span><UsageBarChart p={cp} /><span>{cp.toFixed(0)}%</span></div>
-                                    <div className="mon-node__row"><span>MEM</span><UsageBarChart p={mp} /><span>{mp.toFixed(0)}%</span></div>
-                                </div>
+                                    <span className="ov-node__name" title={n.name}>{n.name}</span>
+                                    <div className="ov-node__gauges">
+                                        <Gauge compact label={t('resources:column.cpu')} value={pct(n.cpuMillis, n.cpuCapMillis)} />
+                                        <Gauge compact label={t('panels:monitoring.memory')} value={pct(n.memMi, n.memCapMi)} />
+                                    </div>
+                                </button>
                             );
                         })}
                     </div>
 
                     {/* Top consumers */}
                     <div className="mon-consumers-head">
-                        <div
-                            className={`mon-switch mon-switch--${mode}`}
-                            role="switch"
-                            aria-checked={mode === 'workloads'}
-                            tabIndex={0}
-                            onClick={() => setMode((m) => (m === 'pods' ? 'workloads' : 'pods'))}
-                            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setMode((m) => (m === 'pods' ? 'workloads' : 'pods')); } }}
-                            title={t('panels:monitoring.switchTooltip')}
-                        >
-                            <span className="mon-switch__thumb" />
-                            <button type="button" className={`mon-switch__opt${mode === 'pods' ? ' is-active' : ''}`} onClick={(e) => { e.stopPropagation(); setMode('pods'); }}>{t('panels:monitoring.pods')}</button>
-                            <button type="button" className={`mon-switch__opt${mode === 'workloads' ? ' is-active' : ''}`} onClick={(e) => { e.stopPropagation(); setMode('workloads'); }}>{t('panels:monitoring.workloads')}</button>
-                        </div>
+                        <Segmented
+                            value={mode}
+                            onChange={setMode}
+                            ariaLabel={t('panels:monitoring.switchTooltip')}
+                            options={MODES.map((m) => ({ value: m, label: t(`panels:monitoring.${m}`) }))}
+                        />
                     </div>
                     <DataTable value={rows} size="small" dataKey="_id" scrollable scrollHeight="340px"
                         removableSort sortField="cpuMillis" sortOrder={-1}
@@ -295,7 +295,7 @@ export default function MonitoringDashboard({ clusterName, api }: { clusterName:
                         onRowClick={(e) => {
                             const r = e.data as models.ResourceUsage;
                             if (mode === 'pods') select(podSel(r));
-                            else select({ cat: 'workload', kind: r.kind, name: r.name, namespace: r.namespace, id: `wl/${r.kind}/${r.namespace}/${r.name}`, label: `${r.kind} · ${r.namespace}/${r.name}` });
+                            else select({ cat: 'workload', kind: r.kind, name: r.name, namespace: r.namespace, id: `wl/${r.kind}/${r.namespace}/${r.name}`, label: `${r.namespace}/${r.name}` });
                         }}
                         emptyMessage={t('panels:monitoring.noData')}>
                         {mode === 'workloads' && <Column field="kind" header={t('resources:column.kind')} sortable filter filterPlaceholder={t('resources:column.kind')} style={{ width: 120 }} />}
@@ -342,8 +342,8 @@ function DetailDrawer({ snap, selected, series, cpuCap, memCap, windowMin, onSel
 
     const xMax = Date.now();
     const xMin = xMax - windowMin * 60_000;
-    const cpuTrend = { datasets: [{ label: 'CPU (m)', data: series.map((p) => ({ x: p.t, y: p.cpu })), borderColor: themeColor('--teal'), backgroundColor: themeAlpha('--teal', 0.15), fill: true }] };
-    const memTrend = { datasets: [{ label: 'Mem (MiB)', data: series.map((p) => ({ x: p.t, y: p.mem })), borderColor: themeColor('--blue'), backgroundColor: themeAlpha('--blue', 0.12), fill: true }] };
+    const cpuTrend = { datasets: [{ label: 'CPU (m)', data: series.map((p) => ({ x: p.t, y: p.cpu })), borderColor: themeColor('--accent'), backgroundColor: themeAlpha('--accent', 0.08), fill: true }] };
+    const memTrend = { datasets: [{ label: 'Mem (MiB)', data: series.map((p) => ({ x: p.t, y: p.mem })), borderColor: themeColor('--info'), backgroundColor: themeAlpha('--info', 0.08), fill: true }] };
 
     let breakdown: JSX.Element | null = null;
     if (selected.cat === 'pod') {

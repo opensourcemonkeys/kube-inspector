@@ -106,7 +106,8 @@
       "successDetail": "{{target}} deleted",
       "failSummary": "Delete failed",
       "failDetail": "{{target}} could not be deleted"
-    }
+    },
+    "more": "and {{count}} more"
   },
   "namespace": {
     "createTitle": "Create Namespace",
@@ -128,7 +129,9 @@
   },
   "cronjob": {
     "title": "CronJob List",
-    "empty": "No cronjobs found"
+    "empty": "No cronjobs found",
+    "stateActive": "Active",
+    "stateSuspended": "Suspended"
   },
   "daemonset": {
     "title": "DaemonSet List",
@@ -245,7 +248,8 @@
         "liveness": "Liveness",
         "readiness": "Readiness"
       }
-    }
+    },
+    "execPick": "Choose a container ({{count}})"
   },
   "replicaset": {
     "title": "ReplicaSet List",
@@ -288,5 +292,9 @@
       "critical": "Critical",
       "full": "Full"
     }
+  },
+  "list": {
+    "filteredCount": "{{shown}} of {{total}}",
+    "noMatch": "Nothing matches the current filters"
   }
 }

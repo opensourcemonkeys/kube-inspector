@@ -49,7 +49,7 @@ PANEL_TIMEOUT = 15  # seconds — panels mount synchronously but allow for poll 
 
 def _open_pods_list(driver):
     """Navigate to the Pods list and wait for its DataTable to render."""
-    navigate_to(driver, "WORKLOADS", "Pods")
+    navigate_to(driver, "Workloads", "Pods")
     wait_for_tab(driver, "Pods", timeout=PANEL_TIMEOUT)
     wait_for_panel_heading(driver, "Pod List", timeout=PANEL_TIMEOUT)
     wait_for_datatable(driver, timeout=PANEL_TIMEOUT)

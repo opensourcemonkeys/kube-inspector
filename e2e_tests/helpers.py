@@ -28,7 +28,7 @@ DEFAULT_TIMEOUT = 20  # seconds
 
 def expand_sidebar_group(driver, group_label: str, timeout: int = DEFAULT_TIMEOUT) -> None:
     """
-    Expand a sidebar section (e.g. 'WORKLOADS') if it is currently collapsed.
+    Expand a sidebar section (e.g. 'Workloads') if it is currently collapsed.
 
     The toggle button carries `aria-expanded` so we can detect current state
     and only click when actually collapsed.
@@ -220,14 +220,15 @@ def select_datatable_row(driver, cell_text: str, timeout: int = DEFAULT_TIMEOUT)
 
 def click_delete_selected_button(driver, timeout: int = DEFAULT_TIMEOUT) -> None:
     """
-    Click the 'Delete Selected' toolbar button inside the active panel.
-    The button is enabled only when at least one row is checked.
+    Click the list toolbar's delete button inside the active panel.
+
+    The button only exists while at least one row is checked, and its label
+    carries the count ("Delete 3") and is translated, so it is found by its
+    stable class rather than by text.
     """
     wait = WebDriverWait(driver, timeout)
     btn = wait.until(EC.element_to_be_clickable((
-        By.XPATH,
-        "//button[not(@disabled)"
-        " and .//*[contains(@class,'p-button-label') and text()='Delete Selected']]",
+        By.XPATH, "//button[contains(@class,'rlv-delete') and not(@disabled)]",
     )))
     btn.click()
 

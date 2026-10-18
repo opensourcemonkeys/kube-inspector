@@ -1,10 +1,10 @@
-import { lazy, useEffect, useRef } from 'react';
-import { VscDashboard } from 'react-icons/vsc';
+import { lazy, useEffect, useRef, useState } from 'react';
 import { DockviewReact, DockviewReadyEvent, DockviewApi } from 'dockview';
 import 'dockview/dist/styles/dockview.css';
 import { useTabContext, renderPanelTitle } from '../../contexts/TabContext';
 import { useT } from '../../i18n/useT';
 import { useClusterContext } from '../../contexts/ClusterContext';
+import { HOME_ITEM } from '../menu/menuItems';
 import { initialPanel, onDragHover, onDragLeave, onPanelFromWindow } from '../../lib/shellWindows';
 import {
     dragHover,
@@ -66,8 +66,18 @@ const components = Object.fromEntries(
 export default function DockviewContainer() {
     const t = useT();
     const { registerApi, openTab, openReceivedPanel, openApplyYaml } = useTabContext();
-    const { activeCluster } = useClusterContext();
+    const { activeCluster, loaded } = useClusterContext();
     const apiRef = useRef<DockviewApi | null>(null);
+    // The start screen waits for the cluster list. onReady fires before
+    // ClusterContext has read the active cluster, so opening Overview there
+    // pinned it to cluster "" — a tab titled "Overview" with a dangling "•",
+    // and a second "Overview • <cluster>" as soon as the sidebar was used.
+    const [startScreenPending, setStartScreenPending] = useState(false);
+    useEffect(() => {
+        if (!startScreenPending || !loaded) return;
+        setStartScreenPending(false);
+        openTab({ view: HOME_ITEM.view, clusterName: activeCluster, icon: HOME_ITEM.icon });
+    }, [startScreenPending, loaded, activeCluster, openTab]);
 
     // Place a panel dropped in from another window at the spot dockview's
     // overlay was showing. `takeDroppedPanel` is non-null only for our own
@@ -150,7 +160,7 @@ export default function DockviewContainer() {
         // everything else starts on Overview.
         const seed = initialPanel();
         if (seed) openReceivedPanel(seed);
-        else openTab({ view: 'overview', clusterName: activeCluster, icon: <VscDashboard size={16} /> });
+        else setStartScreenPending(true);
     };
 
     // Double-clicking the empty strip of a tab bar opens a blank YAML editor in

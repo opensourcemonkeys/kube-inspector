@@ -23,6 +23,9 @@ vi.mock('@monaco-editor/react', async () => {
             rec.values.push(props.value);
             return React.createElement('div', { 'data-testid': 'monaco' });
         },
+        // useMonacoTheme re-skins through the loader; never resolving keeps
+        // the theme out of a test about what the editor is seeded with.
+        loader: { init: () => new Promise(() => {}) },
     };
 });
 

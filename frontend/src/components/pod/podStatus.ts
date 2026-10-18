@@ -14,11 +14,11 @@ export const BENIGN_WAITING = new Set(['', 'ContainerCreating', 'PodInitializing
 //   grey   finished cleanly (a completed init container or job)
 //   red    waiting on a fault (CrashLoopBackOff, ImagePullBackOff, ...) or exited with an error
 export const containerDotColor = (c: models.ContainerStatusInfo) => {
-    if (c.ready) return 'var(--green)';
-    if (c.state === 'Terminated') return c.reason === 'Completed' ? 'var(--ink3)' : 'var(--red)';
-    if (c.state === 'Running') return 'var(--amber)';
-    if (c.state === 'Waiting' && BENIGN_WAITING.has(c.reason)) return 'var(--blue)';
-    return 'var(--red)';
+    if (c.ready) return 'var(--ok)';
+    if (c.state === 'Terminated') return c.reason === 'Completed' ? 'var(--ink-3)' : 'var(--err)';
+    if (c.state === 'Running') return 'var(--warn)';
+    if (c.state === 'Waiting' && BENIGN_WAITING.has(c.reason)) return 'var(--info)';
+    return 'var(--err)';
 };
 
 // Live usage formatting, mirroring the Monitoring dashboard.

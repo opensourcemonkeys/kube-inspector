@@ -6,7 +6,6 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { MultiSelect } from 'primereact/multiselect';
 import { Splitter, SplitterPanel } from 'primereact/splitter';
-import { Tag } from 'primereact/tag';
 import { Toast } from 'primereact/toast';
 import { VscClose, VscRefresh, VscSearch, VscTrash } from 'react-icons/vsc';
 import { DeleteObject } from '../../../wailsjs/go/controller_app/App';
@@ -16,6 +15,10 @@ import InstanceTable, { InstanceRow } from './InstanceTable';
 import { useCrdExplorer } from './useCrdExplorer';
 import './crd.css';
 import { useT } from '../../i18n/useT';
+import RowAction from '../shared/RowAction';
+
+/** As in ResourceListView: past this many names the dialog says "and N more". */
+const DELETE_LIST_MAX = 8;
 
 const CRD_GROUP = 'apiextensions.k8s.io';
 const CRD_RESOURCE = 'customresourcedefinitions';
@@ -128,26 +131,23 @@ export default function CrdListComponent({ clusterName, api }: { clusterName: st
     };
 
     const deleteDialogFooter = (
-        <div className="flex justify-content-end gap-2">
+        <div className="dlg-actions">
             <Button label={t('action.cancel')} icon={<VscClose size={16} />} text onClick={() => setDeleteTarget(null)} disabled={deleting} />
             <Button label={t('action.delete')} icon={<VscTrash size={16} />} severity="danger" onClick={confirmDelete} loading={deleting} />
         </div>
     );
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="crd-root">
             <Toast ref={toast} position="bottom-right" />
 
             <div className="crd-toolbar">
-                <h3>{t('panels:crd.title')}</h3>
-                <Tag
-                    value={
-                        explorer.matchCount === explorer.crds.length
-                            ? `${explorer.crds.length} CRDs`
-                            : `${explorer.matchCount} / ${explorer.crds.length} CRDs`
-                    }
-                    severity="info"
-                />
+                <h3 className="rlv-toolbar__title">{t('panels:crd.title')}</h3>
+                <span className="rlv-toolbar__count">
+                    {explorer.matchCount === explorer.crds.length
+                        ? explorer.crds.length
+                        : `${explorer.matchCount} / ${explorer.crds.length}`}
+                </span>
                 <span className="crd-toolbar__search">
                     <VscSearch size={14} />
                     <InputText
@@ -171,23 +171,20 @@ export default function CrdListComponent({ clusterName, api }: { clusterName: st
                     onChange={(e) => explorer.setScopes(e.value ?? [])}
                     placeholder={t('panels:crd.anyScope')}
                     maxSelectedLabels={1}
-                    className="p-inputtext-sm"
-                    style={{ minWidth: '10rem' }}
+                    className="p-inputtext-sm crd-toolbar__scope"
                 />
-                <Button
-                    icon={<VscRefresh size={16} />}
-                    text
-                    severity="secondary"
-                    style={{ marginLeft: 'auto' }}
-                    loading={explorer.catalogLoading || explorer.countsLoading}
-                    onClick={explorer.refreshCatalog}
-                    tooltip={t('panels:crd.refreshDefinitions')}
-                    tooltipOptions={{ position: 'left' }}
-                />
+                <span className="crd-toolbar__end">
+                    <RowAction
+                        icon={<VscRefresh size={15} />}
+                        label={t('panels:crd.refreshDefinitions')}
+                        loading={explorer.catalogLoading || explorer.countsLoading}
+                        onClick={explorer.refreshCatalog}
+                    />
+                </span>
             </div>
 
-            <div style={{ flex: 1, minHeight: 0 }}>
-                <Splitter className="crd-splitter" style={{ height: '100%' }}>
+            <div className="crd-body">
+                <Splitter className="crd-splitter">
                     <SplitterPanel size={28} minSize={15} className="crd-splitter__pane">
                         <CrdTree
                             groups={explorer.groups}
@@ -238,24 +235,27 @@ export default function CrdListComponent({ clusterName, api }: { clusterName: st
             <Dialog
                 header={t('resources:crd.deleteTitle')}
                 visible={!!deleteTarget}
-                style={{ width: '32rem' }}
+                className="rlv-delete-dialog"
                 modal
                 footer={deleteDialogFooter}
                 onHide={() => { if (!deleting) setDeleteTarget(null); }}
             >
                 {deleteTarget && (
                     <>
-                        <p className="m-0 mb-3">
+                        <p className="rlv-delete-dialog__body">
                             {t('panels:crd.deleteBody', { count: deleteTarget.items.length, label: deleteTarget.label })}
                             {deleteTarget.kind === 'crd' && t('panels:crd.deleteAlsoRemoves')}
                         </p>
-                        <ul className="m-0 pl-3">
-                            {deleteTarget.items.map((item) => (
+                        <ul className="rlv-delete-dialog__list">
+                            {deleteTarget.items.slice(0, DELETE_LIST_MAX).map((item) => (
                                 <li key={`${item.namespace}/${item.name}`}>
                                     {item.namespace ? `${item.namespace}/` : ''}{item.name}
                                 </li>
                             ))}
                         </ul>
+                        {deleteTarget.items.length > DELETE_LIST_MAX && (
+                            <p className="rlv-delete-dialog__more">{t('resources:delete.more', { count: deleteTarget.items.length - DELETE_LIST_MAX })}</p>
+                        )}
                     </>
                 )}
             </Dialog>

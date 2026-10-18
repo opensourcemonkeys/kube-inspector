@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { OverlayPanel } from 'primereact/overlaypanel';
-import { Button } from 'primereact/button';
-import { VscArrowSwap, VscGlobe, VscCopy, VscClose } from 'react-icons/vsc';
+import { VscGlobe, VscCopy, VscClose } from 'react-icons/vsc';
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 import { StopPortForward } from '../../../wailsjs/go/controller_app/App';
 import {
@@ -12,6 +11,8 @@ import {
 } from '../../stores/portForwardStore';
 import { writeClipboard } from '../../lib/clipboard';
 import { useT } from '../../i18n/useT';
+import StatusLamp, { type LampTone } from '../shared/StatusLamp';
+import RowAction from '../shared/RowAction';
 
 /**
  * Live tunnel count in the title bar.
@@ -24,6 +25,8 @@ import { useT } from '../../i18n/useT';
  * It appears only when there is something to report; an empty pill would be
  * permanent title-bar furniture that says nothing.
  */
+const PF_TONE: Record<string, LampTone> = { ready: 'ok', starting: 'info', reconnecting: 'warn', error: 'err' };
+
 export default function PortForwardPill({ onOpenPanel }: { onOpenPanel: () => void }) {
     const t = useT();
     const forwards = usePortForwardStore((s) => s.forwards);
@@ -57,49 +60,30 @@ export default function PortForwardPill({ onOpenPanel }: { onOpenPanel: () => vo
                 onClick={(e) => overlay.current?.toggle(e)}
                 onDoubleClick={onOpenPanel}
             >
-                <VscArrowSwap size={12} />
-                {t('panels:portForward.pill', { count: forwards.length })}
+                <StatusLamp
+                    label={t('panels:portForward.pill', { count: forwards.length })}
+                    tone={failed ? 'err' : unsettled ? 'warn' : 'ok'}
+                />
             </button>
 
             <OverlayPanel ref={overlay} className="pf-overlay">
                 <div className="pf-overlay__list">
                     {forwards.map((f) => (
                         <div key={f.id} className="pf-overlay__row">
-                            <span className={`pf-overlay__dot pf-overlay__dot--${f.status}`} />
+                            <StatusLamp markOnly label={f.status} tone={PF_TONE[f.status] ?? 'idle'} />
                             <span className="pf-overlay__addr">{forwardAddress(f)}</span>
                             <span className="pf-overlay__target">
                                 {f.resource_kind}/{f.resource_name}
                             </span>
                             <span className="pf-overlay__actions">
                                 {isWebForward(f) && (
-                                    <Button
-                                        icon={<VscGlobe size={13} />}
-                                        text
-                                        size="small"
-                                        severity="secondary"
-                                        style={{ padding: '0.15rem' }}
-                                        aria-label={t('panels:portForward.openInBrowser')}
-                                        onClick={() => BrowserOpenURL(forwardUrl(f))}
-                                    />
+                                    <RowAction icon={<VscGlobe size={13} />} label={t('panels:portForward.openInBrowser')}
+                                        onClick={() => BrowserOpenURL(forwardUrl(f))} />
                                 )}
-                                <Button
-                                    icon={<VscCopy size={13} />}
-                                    text
-                                    size="small"
-                                    severity="secondary"
-                                    style={{ padding: '0.15rem' }}
-                                    aria-label={t('panels:portForward.copyAddress')}
-                                    onClick={() => void writeClipboard(forwardAddress(f))}
-                                />
-                                <Button
-                                    icon={<VscClose size={13} />}
-                                    text
-                                    size="small"
-                                    severity="danger"
-                                    style={{ padding: '0.15rem' }}
-                                    aria-label={t('panels:portForward.stop')}
-                                    onClick={() => void stop(f.id)}
-                                />
+                                <RowAction icon={<VscCopy size={13} />} label={t('panels:portForward.copyAddress')}
+                                    onClick={() => void writeClipboard(forwardAddress(f))} />
+                                <RowAction icon={<VscClose size={13} />} label={t('panels:portForward.stop')} severity="danger"
+                                    onClick={() => void stop(f.id)} />
                             </span>
                         </div>
                     ))}

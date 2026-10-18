@@ -35,7 +35,7 @@ class TestMainFlow:
     def test_sidebar_workloads_section_is_visible(self, driver):
         """
         The left sidebar (id='tour-sidebar') must be rendered and the
-        WORKLOADS section header must be visible and clickable.
+        Workloads section header must be visible and clickable.
         """
         wait = WebDriverWait(driver, TIMEOUT)
 
@@ -43,39 +43,39 @@ class TestMainFlow:
         sidebar = wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "#tour-sidebar")))
         assert sidebar.is_displayed(), "Sidebar nav is not visible"
 
-        # The WORKLOADS section badge label
+        # The Workloads section badge label
         workloads_label = wait.until(
             EC.visibility_of_element_located(
-                (By.XPATH, "//*[contains(@class,'sidebar-section__badge-label') and text()='WORKLOADS']")
+                (By.XPATH, "//*[contains(@class,'sidebar-section__badge-label') and text()='Workloads']")
             )
         )
-        assert workloads_label.is_displayed(), "WORKLOADS section label is not visible"
+        assert workloads_label.is_displayed(), "Workloads section label is not visible"
 
     def test_sidebar_cluster_section_is_visible(self, driver):
         """
-        The CLUSTER section of the sidebar must also be present, confirming
+        The Cluster section of the sidebar must also be present, confirming
         all nav groups are rendered.
         """
         wait = WebDriverWait(driver, TIMEOUT)
         cluster_label = wait.until(
             EC.visibility_of_element_located(
-                (By.XPATH, "//*[contains(@class,'sidebar-section__badge-label') and text()='CLUSTER']")
+                (By.XPATH, "//*[contains(@class,'sidebar-section__badge-label') and text()='Cluster']")
             )
         )
-        assert cluster_label.is_displayed(), "CLUSTER section label is not visible"
+        assert cluster_label.is_displayed(), "Cluster section label is not visible"
 
     def test_sidebar_workloads_toggle_expands_items(self, driver):
         """
-        Clicking the WORKLOADS section toggle should reveal the Pods menu
+        Clicking the Workloads section toggle should reveal the Pods menu
         item (the default expanded group on first load). If it's already
         expanded, the item is immediately present.
         """
         wait = WebDriverWait(driver, TIMEOUT)
 
-        # Ensure WORKLOADS toggle is present
+        # Ensure Workloads toggle is present
         toggle = wait.until(
             EC.element_to_be_clickable(
-                (By.XPATH, "//button[contains(@class,'sidebar-section__toggle') and .//*[text()='WORKLOADS']]")
+                (By.XPATH, "//button[contains(@class,'sidebar-section__toggle') and .//*[text()='Workloads']]")
             )
         )
 
@@ -89,4 +89,4 @@ class TestMainFlow:
                 (By.XPATH, "//button[contains(@class,'sidebar-item') and .//*[text()='Pods']]")
             )
         )
-        assert pods_item.is_displayed(), "Pods menu item is not visible after expanding WORKLOADS"
+        assert pods_item.is_displayed(), "Pods menu item is not visible after expanding Workloads"

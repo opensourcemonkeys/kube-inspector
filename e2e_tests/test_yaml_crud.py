@@ -83,7 +83,7 @@ def _try_delete_via_ui(driver: object, name: str, namespace: str) -> None:
     never masks the original test failure.
     """
     try:
-        navigate_to(driver, "CONFIG & SECURITY", "ConfigMaps")
+        navigate_to(driver, "Config & Secrets", "ConfigMaps")
         wait_for_panel_heading(driver, "ConfigMap List", timeout=8)
         time.sleep(0.5)  # allow active panel to paint
 
@@ -174,7 +174,7 @@ class TestConfigMapCRUD:
         wait_for_toast_gone(driver, timeout=8)
 
         # ── Step 5: Navigate to the ConfigMaps list panel ────────────────────
-        navigate_to(driver, "CONFIG & SECURITY", "ConfigMaps")
+        navigate_to(driver, "Config & Secrets", "ConfigMaps")
         wait_for_panel_heading(driver, "ConfigMap List", timeout=10)
 
         # ── Step 6: Filter by name and verify the ConfigMap appears ──────────
@@ -190,16 +190,15 @@ class TestConfigMapCRUD:
         # ── Step 7: Select the row via its checkbox ───────────────────────────
         select_datatable_row(driver, name)
 
-        # Verify 'Delete Selected' became enabled after selecting the row.
+        # Verify the delete button appeared after selecting the row (it does
+        # not exist while nothing is selected).
         WebDriverWait(driver, 5).until(
             EC.element_to_be_clickable((
-                By.XPATH,
-                "//button[not(@disabled)"
-                " and .//*[contains(@class,'p-button-label') and text()='Delete Selected']]",
+                By.XPATH, "//button[contains(@class,'rlv-delete') and not(@disabled)]",
             ))
         )
 
-        # ── Step 8: Click 'Delete Selected' ──────────────────────────────────
+        # ── Step 8: Click the delete button ──────────────────────────────────
         click_delete_selected_button(driver)
 
         # ── Step 9: Handle the PrimeReact confirmation Dialog ─────────────────

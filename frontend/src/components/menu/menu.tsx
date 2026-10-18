@@ -1,26 +1,20 @@
 import { useState, useEffect } from 'react';
-import { VscChevronDown, VscTable, VscGlobe, VscSettings, VscFolder, VscExtensions, VscShield } from 'react-icons/vsc';
+import { VscChevronDown } from 'react-icons/vsc';
 import { useTabContext } from '../../contexts/TabContext';
 import { useClusterContext } from '../../contexts/ClusterContext';
-import { NAV_GROUPS, VIEW_GROUP, NavItem } from './menuItems';
+import { useActiveViewStore } from '../../stores/activeViewStore';
+import { NAV_GROUPS, VIEW_GROUP, HOME_ITEM, NavItem } from './menuItems';
 import { useT } from '../../i18n/useT';
 
 const SIDEBAR_STATE_KEY = 'kube-sidebar-state';
-
-const GROUP_ICONS: Record<string, React.ReactNode> = {
-    workloads:  <VscTable size={13} />,
-    networking: <VscGlobe size={13} />,
-    config:     <VscSettings size={13} />,
-    security:   <VscShield size={13} />,
-    storage:    <VscFolder size={13} />,
-    cluster:    <VscExtensions size={13} />,
-};
 
 export default function SideMenu() {
     const t = useT();
     const { openTab } = useTabContext();
     const { activeCluster } = useClusterContext();
-    const [activeView, setActiveView] = useState('pods');
+    // The focused panel's view, not the last item clicked here: switching tabs,
+    // closing one, or a panel arriving from another window all move it.
+    const activeView = useActiveViewStore((s) => s.view);
     const [expanded, setExpanded] = useState<Record<string, boolean>>(() => {
         try {
             const saved = JSON.parse(localStorage.getItem(SIDEBAR_STATE_KEY) ?? '{}');
@@ -29,7 +23,6 @@ export default function SideMenu() {
     });
 
     const navigate = (item: NavItem) => {
-        setActiveView(item.view);
         // No title: openTab resolves it from the view so the tab re-labels itself
         // when the language changes (see TabContext).
         openTab({ view: item.view, clusterName: activeCluster, icon: item.icon });
@@ -43,8 +36,10 @@ export default function SideMenu() {
         });
     };
 
+    // Reveal the active item when its group is collapsed — otherwise focusing a
+    // tab could mark an item nobody can see.
     useEffect(() => {
-        const grp = VIEW_GROUP[activeView];
+        const grp = activeView ? VIEW_GROUP[activeView] : undefined;
         if (!grp) return;
         setExpanded(prev => {
             if (prev[grp]) return prev;
@@ -54,42 +49,51 @@ export default function SideMenu() {
         });
     }, [activeView]);
 
+    const itemButton = (item: NavItem) => {
+        const active = activeView === item.view;
+        return (
+            <button
+                key={item.view}
+                className={`sidebar-item${active ? ' sidebar-item--active' : ''}`}
+                onClick={() => navigate(item)}
+                title={t(item.labelKey)}
+                aria-current={active ? 'page' : undefined}
+            >
+                <span className="sidebar-item__icon">{item.icon}</span>
+                <span className="sidebar-item__label">{t(item.labelKey)}</span>
+            </button>
+        );
+    };
+
     return (
         <nav id="tour-sidebar" className="sidebar-nav">
-            {NAV_GROUPS.map(group => (
-                <div key={group.key} className="sidebar-section">
-                    <button
-                        className="sidebar-section__toggle"
-                        onClick={() => toggleGroup(group.key)}
-                        aria-expanded={expanded[group.key]}
-                    >
-                        <VscChevronDown
-                            className="sidebar-section__chevron"
-                            style={{ transform: expanded[group.key] ? 'rotate(0deg)' : 'rotate(-90deg)' }}
-                            size={11}
-                        />
-                        <span className="sidebar-section__badge">
-                            <span className="sidebar-section__badge-icon">{GROUP_ICONS[group.key]}</span>
+            <div className="sidebar-home">{itemButton(HOME_ITEM)}</div>
+            {NAV_GROUPS.map(group => {
+                // Always a boolean: a group never opened has no entry, and an
+                // undefined aria-expanded drops the attribute, so a screen
+                // reader was never told the group could be expanded.
+                const open = !!expanded[group.key];
+                return (
+                    <div key={group.key} className="sidebar-section">
+                        <button
+                            className="sidebar-section__toggle"
+                            onClick={() => toggleGroup(group.key)}
+                            aria-expanded={open}
+                        >
+                            <VscChevronDown
+                                className={`sidebar-section__chevron${open ? '' : ' sidebar-section__chevron--closed'}`}
+                                size={12}
+                            />
                             <span className="sidebar-section__badge-label">{t(group.labelKey)}</span>
-                        </span>
-                    </button>
-                    {expanded[group.key] && (
-                        <div className="sidebar-section__items">
-                            {group.items.map(item => (
-                                <button
-                                    key={item.view}
-                                    className={`sidebar-item${activeView === item.view ? ' sidebar-item--active' : ''}`}
-                                    onClick={() => navigate(item)}
-                                    title={t(item.labelKey)}
-                                >
-                                    <span className="sidebar-item__icon">{item.icon}</span>
-                                    <span className="sidebar-item__label">{t(item.labelKey)}</span>
-                                </button>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            ))}
+                        </button>
+                        {open && (
+                            <div className="sidebar-section__items">
+                                {group.items.map(itemButton)}
+                            </div>
+                        )}
+                    </div>
+                );
+            })}
         </nav>
     );
 }

@@ -10,9 +10,21 @@
     "portForward": "Проброс порта",
     "retry": "Повторить",
     "expandAll": "Развернуть все",
-    "collapseAll": "Свернуть все"
+    "collapseAll": "Свернуть все",
+    "logs": "Логи",
+    "exec": "Открыть shell",
+    "edit": "Изменить",
+    "deleteCount": "Удалить: {{count}}",
+    "remove": "Удалить"
   },
   "filter": {
     "all": "Все"
+  },
+  "status": {
+    "loading": "Загрузка…"
+  },
+  "value": {
+    "yes": "Да",
+    "no": "Нет"
   }
 }

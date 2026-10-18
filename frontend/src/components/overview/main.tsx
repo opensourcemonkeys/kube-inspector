@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
-import { Message } from 'primereact/message';
-import { VscCircleLarge, VscCopy, VscSync, VscServer, VscTypeHierarchySub, VscDashboard } from 'react-icons/vsc';
+import { VscDashboard } from 'react-icons/vsc';
 
 import {
     GetMetricsSnapshot, GetNodes, GetClusterCounts,
@@ -9,25 +8,30 @@ import {
 import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import { usePanelActive } from '../../lib/usePanelActive';
-import { fmtCpu, fmtMem, pct, getUsageColor, CssBar } from '../../lib/usage';
+import { fmtCpu, fmtMem, pct } from '../../lib/usage';
 import { errText } from '../../lib/errText';
 import ErrorBanner from '../shared/ErrorBanner';
+import Gauge from '../shared/Gauge';
+import NoMetrics from '../shared/NoMetrics';
+import StatusLamp from '../shared/StatusLamp';
+import { NAV_ITEMS, type ViewKey } from '../menu/menuItems';
 import { useT } from '../../i18n/useT';
 
 // A count tile does not need 5s granularity, and this tick is three cluster
 // round trips wide.
 const POLL_MS = 15000;
 
-// Clickable count tiles — each opens the matching resource view. `view`/`title`/`icon`
-// mirror the entries in menu/menuItems.tsx so tiles and the sidebar stay in sync.
-type TileDef = { key: keyof Counts; view: string; title: string; icon: JSX.Element };
-const TILES: TileDef[] = [
-    { key: 'pods',        view: 'pods',        title: 'Pods',        icon: <VscCircleLarge /> },
-    { key: 'deployments', view: 'deployments', title: 'Deployments', icon: <VscCopy /> },
-    { key: 'services',    view: 'services',    title: 'Services',    icon: <VscSync /> },
-    { key: 'nodes',       view: 'nodes',       title: 'Nodes',       icon: <VscServer /> },
-    { key: 'namespaces',  view: 'namespaces',  title: 'Namespaces',  icon: <VscTypeHierarchySub /> },
+// The readouts across the top — each opens its list. Label and icon come from
+// the sidebar's own entries (menu/menuItems.tsx), so they are translated and can
+// never drift from it.
+const READOUTS: { key: keyof Counts; view: ViewKey }[] = [
+    { key: 'pods',        view: 'pods' },
+    { key: 'deployments', view: 'deployments' },
+    { key: 'services',    view: 'services' },
+    { key: 'nodes',       view: 'nodes' },
+    { key: 'namespaces',  view: 'namespaces' },
 ];
+const navItem = (view: ViewKey) => NAV_ITEMS.find((i) => i.view === view)!;
 
 type Counts = models.ClusterCounts;
 
@@ -77,8 +81,8 @@ export default function OverviewDashboard({ clusterName, api }: { clusterName: s
         return () => window.clearInterval(id);
     }, [active, tick]);
 
-    const openView = (t: TileDef) =>
-        openTab({ view: t.view, clusterName, icon: t.icon });
+    const openView = (view: ViewKey) =>
+        openTab({ view, clusterName, icon: navItem(view).icon });
 
     const c = snap?.cluster;
     const cpuPct = c ? pct(c.cpuMillis, c.cpuCapMillis) : 0;
@@ -87,75 +91,64 @@ export default function OverviewDashboard({ clusterName, api }: { clusterName: s
     return (
         <div className="mon-root">
             <div className="mon-header">
-                <VscDashboard /> <span>{t('panels:overview.label')}</span><span className="mon-cluster">• {clusterName}</span>
+                <VscDashboard /> <span>{t('panels:overview.label')}</span>{clusterName && <span className="mon-cluster">{clusterName}</span>}
             </div>
 
-            <ErrorBanner
-                message={error}
-                onRetry={tick}
-                busy={refreshing}
-                stale={counts !== null}
-                context={`Overview (${clusterName})`}
-            />
+            {counts !== null && (
+                <ErrorBanner message={error} onRetry={tick} busy={refreshing} stale context={`Overview (${clusterName})`} />
+            )}
+            {error && counts === null ? (
+                <ErrorBanner block message={error} onRetry={tick} busy={refreshing} cluster={clusterName} context={`Overview (${clusterName})`} />
+            ) : (<>
 
-            {/* Resource count tiles */}
-            <div className="ov-tiles">
-                {TILES.map((t) => (
-                    <button key={t.key} className="ov-tile" onClick={() => openView(t)} title={`Open ${t.title}`}>
-                        <span className="ov-tile__icon">{t.icon}</span>
-                        <span className="ov-tile__num">{counts ? counts[t.key] : '—'}</span>
-                        <span className="ov-tile__label">{t.title}</span>
+            {/* One strip of readouts rather than five identical cards: the
+                numbers are what matters, side by side, divided like the faces
+                of a panel meter. */}
+            <div className="ov-readouts">
+                {READOUTS.map((r) => (
+                    <button key={r.key} type="button" className="ov-readout" onClick={() => openView(r.view)}>
+                        <span className="ov-readout__num">{counts ? counts[r.key] : '—'}</span>
+                        <span className="ov-readout__label">{t(navItem(r.view).labelKey)}</span>
                     </button>
                 ))}
             </div>
 
-            {/* Cluster CPU / Memory */}
             <div className="mon-section-title">{t('panels:overview.clusterCapacity')}</div>
             {snap && !snap.metricsAvailable ? (
-                <Message severity="warn" text={t('panels:overview.noMetricsServer')} />
+                <NoMetrics />
             ) : (
-                <div className="mon-grid">
-                    <div className="mon-card">
-                        <div className="mon-card__head"><span>{t('panels:overview.clusterCpu')}</span><b>{c ? `${fmtCpu(c.cpuMillis)} / ${fmtCpu(c.cpuCapMillis)}` : '—'}</b></div>
-                        <div className="mon-card__pct" style={{ color: getUsageColor(cpuPct) }}>{cpuPct.toFixed(0)}%</div>
-                        <CssBar p={cpuPct} />
-                    </div>
-                    <div className="mon-card">
-                        <div className="mon-card__head"><span>{t('panels:overview.clusterMemory')}</span><b>{c ? `${fmtMem(c.memMi)} / ${fmtMem(c.memCapMi)}` : '—'}</b></div>
-                        <div className="mon-card__pct" style={{ color: getUsageColor(memPct) }}>{memPct.toFixed(0)}%</div>
-                        <CssBar p={memPct} />
-                    </div>
+                <div className="ov-gauges">
+                    <Gauge label={t('panels:overview.clusterCpu')} value={cpuPct}
+                        detail={c ? `${fmtCpu(c.cpuMillis)} / ${fmtCpu(c.cpuCapMillis)}` : undefined} />
+                    <Gauge label={t('panels:overview.clusterMemory')} value={memPct}
+                        detail={c ? `${fmtMem(c.memMi)} / ${fmtMem(c.memCapMi)}` : undefined} />
                 </div>
             )}
 
-            {/* Nodes */}
-            <div className="mon-section-title">Nodes</div>
-            <div className="mon-nodes">
+            <div className="mon-section-title">{t('nav:item.nodes')}</div>
+            <div className="ov-nodes">
                 {(nodes ?? []).map((n) => {
-                    const cp = pct(n.cpu_usage_millis, n.cpu_capacity_millis);
-                    const mp = pct(n.mem_usage_mi, n.mem_capacity_mi);
                     const ready = n.status === 'Ready';
                     return (
-                        <div key={n.name} className="mon-node" style={{ cursor: 'default' }}>
-                            <div className="ov-node__head">
-                                <span className="mon-node__name" title={n.name}>{n.name}</span>
-                                <span className={`ov-badge ${ready ? 'ov-badge--ok' : 'ov-badge--err'}`}>{n.status}</span>
-                                {n.unschedulable && <span className="ov-badge ov-badge--warn">{t('panels:overview.cordoned')}</span>}
-                            </div>
-                            <div className="ov-node__meta">{n.kubelet_version}</div>
+                        <div key={n.name} className="ov-node">
+                            <StatusLamp label={n.status} tone={ready ? 'ok' : 'err'} />
+                            <span className="ov-node__name" title={n.name}>{n.name}</span>
+                            <span className="ov-node__version">{n.kubelet_version}</span>
+                            {n.unschedulable && <StatusLamp label={t('panels:overview.cordoned')} tone="warn" />}
                             {n.metrics_available ? (
-                                <>
-                                    <div className="mon-node__row"><span>CPU</span><CssBar p={cp} /><span>{cp.toFixed(0)}%</span></div>
-                                    <div className="mon-node__row"><span>MEM</span><CssBar p={mp} /><span>{mp.toFixed(0)}%</span></div>
-                                </>
+                                <div className="ov-node__gauges">
+                                    <Gauge compact label={t('resources:column.cpu')} value={pct(n.cpu_usage_millis, n.cpu_capacity_millis)} />
+                                    <Gauge compact label={t('panels:monitoring.memory')} value={pct(n.mem_usage_mi, n.mem_capacity_mi)} />
+                                </div>
                             ) : (
-                                <div className="ov-node__meta">{t('panels:overview.metricsUnavailable')}</div>
+                                <span className="ov-node__nometrics">{t('panels:overview.metricsUnavailable')}</span>
                             )}
                         </div>
                     );
                 })}
                 {nodes && nodes.length === 0 && <div className="mon-empty">{t('panels:overview.noNodes')}</div>}
             </div>
+            </>)}
         </div>
     );
 }

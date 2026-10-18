@@ -19,6 +19,19 @@ const devToken = () => ({
     html.replace('<head>', '<head><script>window.__KUBE_INS_RPC__="dev";</script>'),
 })
 
+// lara-dark-cyan ships its own Inter (two variable woff2, ~0.7MB) through
+// @font-face. Nothing asks for that family — the app is Plex — so the files
+// were never fetched, yet Vite still copied them into every build. Dropping
+// the two @font-face blocks before Vite resolves their url()s keeps them out.
+const stripLaraFonts = () => ({
+  name: 'kube-ins-strip-lara-fonts',
+  enforce: 'pre' as const,
+  transform(code: string, id: string) {
+    if (!id.includes('lara-dark-cyan/theme.css')) return undefined
+    return { code: code.replace(/@font-face\s*\{[^}]*\}/g, ''), map: null }
+  },
+})
+
 // Vendor chunks. Without these, Rollup hoists every shared dependency of the
 // lazy panels back into one chunk and the code splitting buys nothing: the
 // libraries below are exactly the weight the app used to pay at launch.
@@ -29,7 +42,6 @@ const VENDOR_CHUNKS: Record<string, string[]> = {
   reactflow: ['reactflow', '@reactflow/', '@dagrejs/dagre'],
   charts: ['chart.js'],
   xterm: ['@xterm/'],
-  mui: ['@mui/', '@emotion/'],
   primereact: ['primereact'],
 }
 
@@ -46,7 +58,7 @@ const vendorChunk = (id: string): string | undefined => {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), devToken()],
+  plugins: [react(), devToken(), stripLaraFonts()],
   build: {
     rollupOptions: {
       output: { manualChunks: (id) => vendorChunk(id) },

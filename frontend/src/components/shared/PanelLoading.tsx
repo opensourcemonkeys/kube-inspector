@@ -1,4 +1,4 @@
-import CircularProgress from '@mui/material/CircularProgress';
+import Spinner from './Spinner';
 
 /**
  * Centred spinner for a panel region whose content has not arrived yet.
@@ -11,16 +11,8 @@ import CircularProgress from '@mui/material/CircularProgress';
  */
 export default function PanelLoading() {
     return (
-        <div
-            style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
-                color: 'var(--text-color-secondary)',
-            }}
-        >
-            <CircularProgress size={24} />
+        <div className="panel-loading dark-display">
+            <Spinner size={22} />
         </div>
     );
 }

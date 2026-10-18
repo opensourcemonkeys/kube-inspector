@@ -29,7 +29,9 @@
     "author": "Автор",
     "dependencies": "Зависимости",
     "diagnostics": "Диагностика",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "title": "О Kube Inspector",
+    "version": "Версия"
   },
   "update": {
     "titleAvailable": "Доступно обновление",
@@ -71,7 +73,10 @@
       "removed": "Удалено",
       "deprecated": "Устарело",
       "security": "Безопасность"
-    }
+    },
+    "installed": "Установлена",
+    "available": "Доступна",
+    "progressLabel": "Ход обновления"
   },
   "tour": {
     "welcome": {
@@ -99,13 +104,14 @@
       "content": "Откройте интерактивный сеанс терминала. Выполняйте команды kubectl, изучайте ресурсы и работайте с кластером прямо из приложения."
     },
     "done": {
-      "title": "Всё готово!",
+      "title": "Всё готово",
       "content": "Теперь вы знаете основы Kube Inspector. Двойной щелчок по строке в списке ресурсов открывает её YAML, а кнопка логов в строках нагрузок включает потоковый просмотр логов."
     },
     "previous": "Назад",
     "next": "Далее",
     "finish": "Готово",
-    "skip": "Пропустить тур"
+    "skip": "Пропустить тур",
+    "stepOf": "Шаг {{current}} из {{total}}"
   },
   "diagnostics": {
     "tab": {
@@ -148,7 +154,13 @@
     "logLevel": "Уровень логов",
     "healthChecks": "Проверки работоспособности",
     "rerunning": "Выполняется…",
-    "rerun": "Повторить проверки"
+    "rerun": "Повторить проверки",
+    "checkStatus": {
+      "ok": "Пройдено",
+      "warn": "Предупреждение",
+      "fail": "Не пройдено",
+      "skip": "Пропущено"
+    }
   },
   "trivy": {
     "tab": {
@@ -178,14 +190,29 @@
     "imagePlaceholder": "nginx:1.25",
     "scanImage": "Сканировать образ",
     "exportHtml": "Экспорт в HTML",
-    "title": "Сканирование безопасности"
+    "title": "Сканирование безопасности",
+    "logStartK8s": "Запуск сканирования ресурсов Kubernetes…",
+    "logListing": "Получение списка образов pod…",
+    "logScanning": "Сканирование {{image}} ({{current}} из {{total}})",
+    "logFirstRun": "Первое сканирование загружает базу уязвимостей.",
+    "logDone": "Готово. Находок: {{findings}}, просканировано образов: {{images}}",
+    "logNoImages": "Образы для сканирования не найдены.",
+    "logCancelled": "Сканирование отменено.",
+    "logQueued": "Образов в очереди: {{count}}",
+    "toastK8sFailed": "Сканирование Kubernetes не удалось",
+    "toastListFailed": "Не удалось получить список образов",
+    "toastScanIssue": "Проблема сканирования: {{image}}",
+    "toastScanFailed": "Не удалось просканировать {{image}}",
+    "toastNoVulns": "Уязвимости не найдены",
+    "toastEnterImage": "Укажите образ",
+    "toastEnterImageHint": "Например, nginx:1.25 или registry/repo:tag",
+    "total": "Всего"
   },
   "monitoring": {
     "switchTooltip": "Переключить Pods / нагрузки",
     "noData": "Нет данных.",
     "label": "Мониторинг ресурсов",
     "loading": "Загрузка метрик…",
-    "noMetricsServer": "В этом кластере нет metrics-server — использование ресурсов показать невозможно. Установите metrics-server, чтобы включить мониторинг.",
     "timeWindow": "Временное окно",
     "clusterCpu": "CPU кластера",
     "clusterMemory": "Память кластера",
@@ -240,7 +267,8 @@
     "localPortHint": "(пусто = выбрать автоматически)",
     "automatic": "Автоматически",
     "inUse": "Порт {{port}} уже занят — предлагается {{suggested}}.",
-    "loopbackOnly": "Привязан только к 127.0.0.1 — из вашей сети недоступен."
+    "loopbackOnly": "Привязан только к 127.0.0.1 — из вашей сети недоступен.",
+    "custom": "Другой…"
   },
   "cluster": {
     "select": "Выберите кластер…",
@@ -276,16 +304,16 @@
     "valid": "Корректно",
     "invalid": "Некорректно",
     "previewEmpty": "Вставьте или перетащите kubeconfig, чтобы увидеть здесь его кластеры, contexts и адреса.",
-    "clusters": "кластеров",
-    "contexts": "contexts",
-    "users": "пользователей",
+    "clusters": "Кластеры",
+    "contexts": "Контексты",
+    "users": "Пользователи",
     "currentContext": "Текущий context",
-    "noServerEndpoint": "адрес сервера не указан",
+    "noServerEndpoint": "Адрес сервера не указан",
     "save": "Сохранить"
   },
   "cliMode": {
-    "badge": "РЕЖИМ CLI",
-    "subtitle": "— терминальный интерфейс",
+    "badge": "Режим CLI",
+    "subtitle": "Терминальный интерфейс",
     "exit": "Выйти из режима CLI"
   },
   "logs": {
@@ -384,7 +412,16 @@
     "clusterAria": "Целевой кластер",
     "clear": "Очистить",
     "apply": "Применить",
-    "output": "Вывод"
+    "output": "Вывод",
+    "emptyTitle": "Нечего применять",
+    "emptyDetail": "Редактор пуст.",
+    "noClusterTitle": "Кластер не выбран",
+    "noClusterDetail": "Перед применением выберите целевой кластер.",
+    "applied": "Применено",
+    "appliedDetail": "Применено к {{cluster}}.",
+    "failed": "Не удалось применить",
+    "closeOutput": "Закрыть вывод",
+    "resizeOutput": "Изменить размер вывода"
   },
   "describe": {
     "refresh": "Обновить",
@@ -416,7 +453,7 @@
   },
   "configMapEditor": {
     "addKey": "Добавить ключ",
-    "empty": "Записей данных нет. Нажмите «Добавить ключ»."
+    "empty": "В этом ConfigMap нет ключей."
   },
   "crd": {
     "loading": "Загрузка CRDs…",
@@ -480,7 +517,9 @@
     "podSelector": "Pod: {{selector}}",
     "ipBlock": "IP: {{block}}",
     "except": "кроме: {{value}}",
-    "resizeDivider": "Переместить разделитель"
+    "resizeDivider": "Переместить разделитель",
+    "blocked": "Заблокировано",
+    "allPorts": "все порты"
   },
   "node": {
     "drain": "Drain",
@@ -498,16 +537,24 @@
     "version": "Версия",
     "cpuCap": "Ёмкость CPU",
     "memCap": "Ёмкость памяти",
-    "noMetricsServer": "Metrics Server недоступен — использование CPU/RAM показать нельзя",
     "drainWarning": "Сначала node будет переведён в <1>cordon</1> (помечен как недоступный для планирования), затем будут вытеснены все поды, кроме DaemonSet и mirror-подов.",
     "drainTarget": "Node: <1>{{name}}</1>",
     "title": "Список Nodes",
-    "empty": "В этом кластере нет ни одного node."
+    "empty": "В этом кластере нет ни одного node.",
+    "readyCount": "Готово: {{ready}} из {{total}}",
+    "toastCordoned": "Узел закрыт для планирования",
+    "toastCordonedDetail": "{{name}} больше не принимает новые pod",
+    "toastCordonFailed": "Не удалось выполнить cordon",
+    "toastUncordoned": "Узел снова открыт для планирования",
+    "toastUncordonedDetail": "{{name}} снова принимает новые pod",
+    "toastUncordonFailed": "Не удалось выполнить uncordon",
+    "toastDrained": "Drain завершён",
+    "toastDrainedDetail": "Pod на {{name}} выселены",
+    "toastDrainFailed": "Не удалось выполнить drain"
   },
   "overview": {
     "label": "Обзор",
     "clusterCapacity": "Ёмкость кластера",
-    "noMetricsServer": "В этом кластере нет metrics-server — использование ресурсов показать невозможно. Установите metrics-server, чтобы включить его.",
     "clusterCpu": "CPU кластера",
     "clusterMemory": "Память кластера",
     "cordoned": "Закрыт для планирования",
@@ -524,33 +571,50 @@
     "copyAddress": "Копировать адрес",
     "restart": "Перезапустить",
     "dismiss": "Скрыть",
-    "stop": "Остановить"
+    "stop": "Остановить",
+    "status": {
+      "ready": "Готов",
+      "starting": "Запуск",
+      "reconnecting": "Переподключение",
+      "error": "Ошибка",
+      "stopped": "Остановлен"
+    },
+    "attempt": "попытка {{n}}",
+    "toastStopFailed": "Не удалось остановить переадресацию",
+    "toastRestarted": "Переадресация перезапущена",
+    "toastRestartFailed": "Не удалось перезапустить переадресацию",
+    "toastCopied": "Адрес скопирован",
+    "toastCopyFailed": "Не удалось скопировать"
   },
   "editYaml": "Изменить YAML",
   "roleEditor": {
     "addRule": "Добавить правило",
-    "empty": "Правил нет. Нажмите «Добавить правило»."
+    "empty": "У этой роли нет правил."
   },
   "roleBindingEditor": {
     "addSubject": "Добавить субъект",
-    "empty": "Субъектов нет. Нажмите «Добавить субъект»."
+    "empty": "У этой привязки нет субъектов."
   },
   "secretEditor": {
     "addKey": "Добавить ключ",
-    "empty": "Записей данных нет. Нажмите «Добавить ключ»."
+    "empty": "В этом Secret нет ключей.",
+    "showValue": "Показать значение",
+    "hideValue": "Скрыть значение",
+    "masked": "Значение скрыто"
   },
   "roleMap": {
     "label": "Карта ролей безопасности",
     "refresh": "Обновить",
-    "none": "нет",
-    "noMatches": "совпадений нет",
+    "none": "Нет",
+    "noMatches": "Совпадений нет",
     "clearFocus": "Сбросить фокус",
-    "tip": "подсказка: щелчок подсвечивает связи · двойной щелчок открывает подробности",
-    "legendGrants": "предоставляет",
+    "tip": "Подсказка: щелчок подсвечивает связи; двойной щелчок открывает подробности",
+    "legendGrants": "Предоставляет",
     "accessibleObjects": "Доступные объекты ({{count}})",
     "filterObjects": "Фильтр объектов…",
     "describe": "Describe",
-    "viewEditYaml": "Просмотреть / изменить YAML"
+    "viewEditYaml": "Просмотреть / изменить YAML",
+    "allOf": "Все ({{count}})"
   },
   "ai": {
     "backToChat": "Назад к чату",
@@ -571,7 +635,7 @@
     "catalogError": "Не удалось загрузить каталог: {{error}}",
     "cancel": "Отмена",
     "showSizes": "Показать размеры",
-    "installed": "установлено",
+    "installed": "Установлено",
     "loadingSizes": "загрузка размеров…",
     "sizesError": "Не удалось загрузить размеры — используйте поле выше, чтобы получить конкретный тег.",
     "noTags": "Теги не найдены.",
@@ -589,6 +653,22 @@
     "noModelPlaceholder": "Сначала установите/выберите модель",
     "stop": "Остановить",
     "send": "Отправить",
-    "mutating": "изменяющее"
+    "mutating": "Изменяющее",
+    "workingFor": "Выполняется ({{seconds}} с)",
+    "you": "Вы",
+    "downloadModel": "Скачать {{name}}",
+    "pullStarting": "Запуск…",
+    "pullFailed": "Ошибка: {{error}}",
+    "requestFailed": "Запрос не выполнен.",
+    "toolStatus": {
+      "running": "Выполняется",
+      "done": "Готово",
+      "declined": "Отклонено",
+      "error": "Ошибка"
+    }
+  },
+  "metrics": {
+    "unavailableTitle": "Нет данных об использовании",
+    "unavailableHint": "В этом кластере нет metrics-server. Установите его, чтобы видеть использование CPU и памяти."
   }
 }

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { VscWarning, VscClearAll } from 'react-icons/vsc';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Tag } from 'primereact/tag';
+import StatusLamp from '../shared/StatusLamp';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { MultiSelect } from 'primereact/multiselect';
@@ -16,15 +16,18 @@ import { usePanelActive } from '../../lib/usePanelActive';
 import { useDeferredMount } from '../../lib/useDeferredMount';
 import { errText } from '../../lib/errText';
 import ErrorBanner from '../shared/ErrorBanner';
-import { ProgressSpinner } from 'primereact/progressspinner';
+import { ListSkeleton } from '../shared/PanelSkeleton';
+import { ROW_HEIGHT } from '../../lib/tableMetrics';
 import { useT } from '../../i18n/useT';
+import CountCell from '../shared/CountCell';
 
 type TagSeverity = 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast';
 
 const getTypeSeverity = (type: string): TagSeverity => {
     switch (type) {
         case 'Warning': return 'warning';
-        case 'Normal':  return 'success';
+        // A normal event reports nothing about health: an idle ring, not a green lamp.
+        case 'Normal':  return 'secondary';
         default:        return 'secondary';
     }
 };
@@ -154,10 +157,13 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
     const ev = selectedEvent;
 
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.6rem 1rem', borderBottom: '1px solid var(--surface-border)', flexShrink: 0 }}>
-                <h3 style={{ margin: 0 }}>{t('panels:events.title')}</h3>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.5rem' }}>
+        <div className="rlv-root">
+            <div className="rlv-toolbar">
+                <h3 className="rlv-toolbar__title">{t('panels:events.title')}</h3>
+                {showTable && !(error && events.length === 0) && (
+                    <span className="rlv-toolbar__count">{displayedEvents.length}</span>
+                )}
+                <div className="rlv-toolbar__actions">
                     <Button
                         label={t('panels:events.warningsOnly')}
                         icon={<VscWarning size={16} />}
@@ -171,6 +177,7 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
                         icon={<VscClearAll size={16} />}
                         text
                         severity="secondary"
+                        aria-label={t('action.clearFilters')}
                         onClick={() => setFilters(defaultEventFilters())}
                         tooltip={t('action.clearFilters')}
                         tooltipOptions={{ position: 'left' }}
@@ -178,19 +185,28 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
                 </div>
             </div>
 
-            <ErrorBanner
-                message={error}
-                onRetry={loadEvents}
-                busy={refreshing}
-                stale={events.length > 0}
-                context={`Events (${clusterName})`}
-            />
+            {events.length > 0 && (
+                <ErrorBanner
+                    message={error}
+                    onRetry={loadEvents}
+                    busy={refreshing}
+                    stale
+                    context={`Events (${clusterName})`}
+                />
+            )}
 
-            <div ref={tableWrapRef} style={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+            <div ref={tableWrapRef} className="ktable-fill">
             {!showTable ? (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <ProgressSpinner style={{ width: 40, height: 40 }} strokeWidth="4" />
-                </div>
+                <ListSkeleton />
+            ) : error && events.length === 0 ? (
+                <ErrorBanner
+                    block
+                    message={error}
+                    onRetry={loadEvents}
+                    busy={refreshing}
+                    cluster={clusterName}
+                    context={`Events (${clusterName})`}
+                />
             ) : (
             <DataTable
                 // Remount once a measured pixel height is available so the virtual
@@ -201,13 +217,11 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
                 filters={filters}
                 onFilter={(e) => setFilters(e.filters)}
                 filterDisplay="row"
-                stripedRows
-                showGridlines
                 resizableColumns
                 scrollable
                 scrollHeight={scrollHeight}
-                virtualScrollerOptions={{ itemSize: 46 }}
-                emptyMessage={error ? ' ' : t('panels:events.empty')}
+                virtualScrollerOptions={{ itemSize: ROW_HEIGHT }}
+                emptyMessage={<div className="rlv-empty"><span>{t('panels:events.empty')}</span></div>}
                 sortField="last_timestamp"
                 sortOrder={-1}
                 onRowDoubleClick={(e: any) => setSelectedEvent(e.data as models.EventInfo)}
@@ -221,7 +235,7 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
                     showFilterMenu={false}
                     style={{ minWidth: '8rem' }}
                     body={(row: models.EventInfo) => (
-                        <Tag value={row.type || '-'} severity={getTypeSeverity(row.type)} />
+                        <StatusLamp label={row.type || '-'} severity={getTypeSeverity(row.type)} />
                     )}
                     filterElement={(options: ColumnFilterElementTemplateOptions) => (
                         <MultiSelect value={options.value} options={typeOptions} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
@@ -287,7 +301,7 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
                         const msg = row.message || '';
                         const truncated = msg.length > 40 ? msg.slice(0, 40) + '…' : msg;
                         return (
-                            <span style={{ fontSize: '12px', color: row.type === 'Warning' ? 'var(--yellow)' : 'inherit' }}>
+                            <span className={`event-msg${row.type === 'Warning' ? ' event-msg--warn' : ''}`}>
                                 {truncated}
                             </span>
                         );
@@ -300,7 +314,7 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
                     style={{ minWidth: '6rem' }}
                     body={(row: models.EventInfo) => (
                         row.count > 1
-                            ? <Tag value={String(row.count)} severity="secondary" />
+                            ? <CountCell value={String(row.count)} />
                             : <span>{row.count}</span>
                     )}
                 />
@@ -317,75 +331,33 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
 
             <Dialog
                 header={
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                        {ev && <Tag value={ev.type} severity={getTypeSeverity(ev.type)} />}
+                    <div className="dlg-title-row">
+                        {ev && <StatusLamp label={ev.type} severity={getTypeSeverity(ev.type)} />}
                         <span>{ev?.reason}</span>
                     </div>
                 }
                 visible={!!selectedEvent}
-                style={{ width: '42rem' }}
+                className="event-dialog"
                 modal
                 onHide={() => setSelectedEvent(null)}
             >
                 {ev && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', fontSize: '13px' }}>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>Namespace</span>
-                            <span>{ev.namespace}</span>
+                    <>
+                        <dl className="dlg-facts">
+                            <dt>Namespace</dt><dd>{ev.namespace}</dd>
+                            <dt>{t('resources:column.object')}</dt><dd>{ev.object_kind} / {ev.object}</dd>
+                            <dt>{t('resources:column.reason')}</dt><dd>{ev.reason}</dd>
+                            <dt>{t('resources:column.count')}</dt><dd>{ev.count}</dd>
+                            <dt>{t('panels:events.firstSeen')}</dt><dd>{formatTime(ev.first_timestamp)}</dd>
+                            <dt>{t('resources:column.lastSeen')}</dt><dd>{formatTime(ev.last_timestamp)}</dd>
+                        </dl>
+                        <h3 className="dlg-section">{t('resources:column.message')}</h3>
+                        <div className={`event-message${ev.type === 'Warning' ? ' event-message--warn' : ''}`}>
+                            {ev.message || '-'}
                         </div>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>{t('resources:column.object')}</span>
-                            <span>{ev.object_kind} / {ev.object}</span>
-                        </div>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>{t('resources:column.reason')}</span>
-                            <span>{ev.reason}</span>
-                        </div>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>{t('resources:column.count')}</span>
-                            <span>{ev.count}</span>
-                        </div>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>{t('panels:events.firstSeen')}</span>
-                            <span>{formatTime(ev.first_timestamp)}</span>
-                        </div>
-                        <div style={rowStyle}>
-                            <span style={labelStyle}>{t('resources:column.lastSeen')}</span>
-                            <span>{formatTime(ev.last_timestamp)}</span>
-                        </div>
-                        <div style={{ borderTop: '1px solid var(--surface-border)', paddingTop: '0.8rem' }}>
-                            <span style={{ ...labelStyle, display: 'block', marginBottom: '0.4rem' }}>{t('resources:column.message')}</span>
-                            <div style={{
-                                background: 'var(--surface-ground)',
-                                border: '1px solid var(--surface-border)',
-                                borderRadius: '6px',
-                                padding: '0.7rem 0.9rem',
-                                fontSize: '12px',
-                                lineHeight: '1.6',
-                                wordBreak: 'break-word',
-                                whiteSpace: 'pre-wrap',
-                                color: ev.type === 'Warning' ? 'var(--yellow)' : 'var(--ink)',
-                            }}>
-                                {ev.message || '-'}
-                            </div>
-                        </div>
-                    </div>
+                    </>
                 )}
             </Dialog>
         </div>
     );
 }
-
-const rowStyle: React.CSSProperties = {
-    display: 'flex',
-    gap: '0.5rem',
-    alignItems: 'baseline',
-    borderBottom: '1px solid var(--surface-border)',
-    paddingBottom: '0.5rem',
-};
-
-const labelStyle: React.CSSProperties = {
-    color: 'var(--ink3)',
-    minWidth: '7rem',
-    flexShrink: 0,
-};

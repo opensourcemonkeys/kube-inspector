@@ -27,7 +27,9 @@
     "author": "Geliştirici",
     "dependencies": "Bağımlılıklar",
     "diagnostics": "Tanılama",
-    "close": "Kapat"
+    "close": "Kapat",
+    "title": "Kube Inspector hakkında",
+    "version": "Sürüm"
   },
   "update": {
     "titleAvailable": "Güncelleme mevcut",
@@ -69,7 +71,10 @@
       "removed": "Kaldırıldı",
       "deprecated": "Kullanımdan kalkıyor",
       "security": "Güvenlik"
-    }
+    },
+    "installed": "Kurulu",
+    "available": "Yeni sürüm",
+    "progressLabel": "Güncelleme ilerlemesi"
   },
   "tour": {
     "welcome": {
@@ -77,19 +82,19 @@
       "content": "Bu kısa tur uygulamanın temel özelliklerini gösterecek. Adımlar arasında gezinmek için ok düğmelerini kullanın, çıkmak için istediğiniz an Atla'ya basın."
     },
     "cluster": {
-      "title": "Küme Yapılandırması",
+      "title": "Küme yapılandırması",
       "content": "Kubernetes kümelerinizi buradan seçin veya aralarında geçiş yapın. Yeni bir küme eklemek için + düğmesini, etkin olanı düzenlemek için kalemi, kaynak grafiğini görmek için grafik simgesini kullanın."
     },
     "sidebar": {
-      "title": "Kaynak Gezgini",
+      "title": "Kaynak gezgini",
       "content": "Tüm Kubernetes kaynaklarına kenar çubuğundan göz atın. Kaynaklar İş Yükleri, Ağ, Yapılandırma ve Güvenlik, Depolama ve Küme kategorilerinde gruplanır. Panel olarak açmak için herhangi bir öğeye tıklayın."
     },
     "workspace": {
-      "title": "Ana Çalışma Alanı",
+      "title": "Ana çalışma alanı",
       "content": "Kaynak panelleri burada açılır. Sekmeleri sürükleyerek yeniden düzenleyebilir, çalışma alanını yatay veya dikey bölebilir ve aradaki ayraçları sürükleyerek panelleri yeniden boyutlandırabilirsiniz."
     },
     "yaml": {
-      "title": "YAML Düzenleyici",
+      "title": "YAML düzenleyici",
       "content": "Kümenize doğrudan ham YAML uygulayın. Kubernetes manifest'lerini yapıştırın veya yazın, sonra Uygula'ya tıklayın. Çok belgeli YAML dosyalarını (--- ile ayrılmış) destekler."
     },
     "terminal": {
@@ -97,13 +102,14 @@
       "content": "Etkileşimli bir terminal oturumu açın. kubectl komutlarını çalıştırın, kaynakları inceleyin ve kümenizle doğrudan uygulamanın içinden etkileşin."
     },
     "done": {
-      "title": "Her şey hazır!",
+      "title": "Her şey hazır",
       "content": "Artık Kube Inspector'ın temellerini biliyorsunuz. Bir kaynak listesindeki herhangi bir satıra çift tıklayarak YAML'ını görün, iş yükü satırlarındaki log düğmesiyle canlı log akışını izleyin."
     },
     "previous": "Önceki",
     "next": "Sonraki",
     "finish": "Bitir",
-    "skip": "Turu Atla"
+    "skip": "Turu atla",
+    "stepOf": "Adım {{current}} / {{total}}"
   },
   "diagnostics": {
     "tab": {
@@ -146,7 +152,13 @@
     "logLevel": "Log seviyesi",
     "healthChecks": "Sağlık kontrolleri",
     "rerunning": "Çalışıyor…",
-    "rerun": "Kontrolleri yeniden çalıştır"
+    "rerun": "Kontrolleri yeniden çalıştır",
+    "checkStatus": {
+      "ok": "Geçti",
+      "warn": "Uyarı",
+      "fail": "Başarısız",
+      "skip": "Atlandı"
+    }
   },
   "trivy": {
     "tab": {
@@ -176,14 +188,29 @@
     "imagePlaceholder": "nginx:1.25",
     "scanImage": "İmajı tara",
     "exportHtml": "HTML olarak dışa aktar",
-    "title": "Güvenlik Taraması"
+    "title": "Güvenlik Taraması",
+    "logStartK8s": "Kubernetes kaynak taraması başlatılıyor…",
+    "logListing": "Pod imajları listeleniyor…",
+    "logScanning": "{{image}} taranıyor ({{total}} içinden {{current}})",
+    "logFirstRun": "İlk tarama zafiyet veritabanını indirir.",
+    "logDone": "Tamamlandı. Bulgu: {{findings}}, taranan imaj: {{images}}",
+    "logNoImages": "Taranacak imaj bulunamadı.",
+    "logCancelled": "Tarama iptal edildi.",
+    "logQueued": "Sıradaki imaj: {{count}}",
+    "toastK8sFailed": "Kubernetes taraması başarısız",
+    "toastListFailed": "İmajlar listelenemedi",
+    "toastScanIssue": "Tarama sorunu: {{image}}",
+    "toastScanFailed": "{{image}} taranamadı",
+    "toastNoVulns": "Zafiyet bulunamadı",
+    "toastEnterImage": "Bir imaj girin",
+    "toastEnterImageHint": "Örneğin nginx:1.25 veya registry/repo:tag",
+    "total": "Toplam"
   },
   "monitoring": {
     "switchTooltip": "Pod / İş Yükü değiştir",
     "noData": "Veri yok.",
     "label": "Kaynak İzleme",
     "loading": "Metrikler yükleniyor…",
-    "noMetricsServer": "Bu kümede metrics-server yok — kaynak kullanımı gösterilemiyor. İzlemeyi etkinleştirmek için metrics-server kurun.",
     "timeWindow": "Zaman aralığı",
     "clusterCpu": "Küme CPU",
     "clusterMemory": "Küme Belleği",
@@ -238,7 +265,8 @@
     "localPortHint": "(boş = otomatik seçilir)",
     "automatic": "Otomatik",
     "inUse": "{{port}} portu zaten kullanımda — {{suggested}} öneriliyor.",
-    "loopbackOnly": "Yalnızca 127.0.0.1'e bağlı — ağınızdan erişilemez."
+    "loopbackOnly": "Yalnızca 127.0.0.1'e bağlı — ağınızdan erişilemez.",
+    "custom": "Özel…"
   },
   "cluster": {
     "select": "Küme seç…",
@@ -251,10 +279,10 @@
   },
   "clusterModal": {
     "closeOverlay": "Pencereyi kapat",
-    "editTitle": "Kümeyi Düzenle",
-    "addTitle": "Küme Ekle",
+    "editTitle": "Kümeyi düzenle",
+    "addTitle": "Küme ekle",
     "close": "Kapat",
-    "configName": "Yapılandırma Adı",
+    "configName": "Yapılandırma adı",
     "configNamePlaceholder": "örn. production, staging, local",
     "configNameLocked": "Yapılandırma adı değiştirilemez",
     "useDetectedName": "Algılanan adı kullan",
@@ -266,25 +294,25 @@
     "autoColorTooltip": "Rengi küme adından türet",
     "autoColor": "Otomatik",
     "colorHint": "Seçicide, kenar çubuğunda ve sekmelerinde bu kümenin yanında gösterilir.",
-    "kubeconfigContent": "Kubeconfig İçeriği",
+    "kubeconfigContent": "Kubeconfig içeriği",
     "browseFile": "Dosya seç",
     "kubeconfigPlaceholder": "Kubeconfig YAML'ınızı buraya yapıştırın ya da bir dosya bırakın…",
     "dropToLoad": "Yüklemek için kubeconfig bırakın",
-    "detectedConfiguration": "Algılanan Yapılandırma",
+    "detectedConfiguration": "Algılanan yapılandırma",
     "valid": "Geçerli",
     "invalid": "Geçersiz",
     "previewEmpty": "Kümelerini, context'lerini ve uç noktalarını burada önizlemek için bir kubeconfig yapıştırın veya bırakın.",
-    "clusters": "küme",
-    "contexts": "context",
-    "users": "kullanıcı",
-    "currentContext": "Geçerli Context",
-    "noServerEndpoint": "sunucu uç noktası yok",
+    "clusters": "Küme",
+    "contexts": "Context",
+    "users": "Kullanıcı",
+    "currentContext": "Geçerli context",
+    "noServerEndpoint": "Sunucu uç noktası yok",
     "save": "Kaydet"
   },
   "cliMode": {
-    "badge": "CLI MODU",
-    "subtitle": "— terminal arayüzü",
-    "exit": "CLI Modundan Çık"
+    "badge": "CLI modu",
+    "subtitle": "Terminal arayüzü",
+    "exit": "CLI modundan çık"
   },
   "logs": {
     "label": "Loglar",
@@ -380,7 +408,16 @@
     "clusterAria": "Hedef küme",
     "clear": "Temizle",
     "apply": "Uygula",
-    "output": "Çıktı"
+    "output": "Çıktı",
+    "emptyTitle": "Uygulanacak bir şey yok",
+    "emptyDetail": "Editör boş.",
+    "noClusterTitle": "Küme seçilmedi",
+    "noClusterDetail": "Uygulamadan önce hedef kümeyi seçin.",
+    "applied": "Uygulandı",
+    "appliedDetail": "{{cluster}} üzerine uygulandı.",
+    "failed": "Uygulanamadı",
+    "closeOutput": "Çıktıyı kapat",
+    "resizeOutput": "Çıktıyı yeniden boyutlandır"
   },
   "describe": {
     "refresh": "Yenile",
@@ -411,8 +448,8 @@
     "legendIngress": "ingress"
   },
   "configMapEditor": {
-    "addKey": "Anahtar Ekle",
-    "empty": "Veri girdisi yok. Eklemek için 'Anahtar Ekle'ye tıklayın."
+    "addKey": "Anahtar ekle",
+    "empty": "Bu ConfigMap'te anahtar yok."
   },
   "crd": {
     "loading": "CRD'ler yükleniyor…",
@@ -472,7 +509,9 @@
     "podSelector": "Pod: {{selector}}",
     "ipBlock": "IP: {{block}}",
     "except": "hariç: {{value}}",
-    "resizeDivider": "Ayracı yeniden boyutlandır"
+    "resizeDivider": "Ayracı yeniden boyutlandır",
+    "blocked": "Engellendi",
+    "allPorts": "tüm portlar"
   },
   "node": {
     "drain": "Drain",
@@ -490,16 +529,24 @@
     "version": "Sürüm",
     "cpuCap": "CPU Kapasitesi",
     "memCap": "Bellek Kapasitesi",
-    "noMetricsServer": "Metrics Server yok — CPU/RAM kullanımı görüntülenemiyor",
     "drainWarning": "Bu işlem önce node'u <1>cordon</1>'lar (zamanlanamaz olarak işaretler), ardından DaemonSet ve mirror pod'lar dışındaki tüm pod'ları tahliye eder.",
     "drainTarget": "Node: <1>{{name}}</1>",
     "title": "Node Listesi",
-    "empty": "Bu kümede node bulunamadı."
+    "empty": "Bu kümede node bulunamadı.",
+    "readyCount": "{{total}} node içinden {{ready}} hazır",
+    "toastCordoned": "Cordon uygulandı",
+    "toastCordonedDetail": "{{name}} artık yeni pod kabul etmiyor",
+    "toastCordonFailed": "Cordon başarısız",
+    "toastUncordoned": "Cordon kaldırıldı",
+    "toastUncordonedDetail": "{{name}} yeniden pod kabul ediyor",
+    "toastUncordonFailed": "Cordon kaldırılamadı",
+    "toastDrained": "Drain tamamlandı",
+    "toastDrainedDetail": "{{name}} üzerindeki pod'lar tahliye edildi",
+    "toastDrainFailed": "Drain başarısız"
   },
   "overview": {
     "label": "Genel Bakış",
     "clusterCapacity": "Küme kapasitesi",
-    "noMetricsServer": "Bu kümede metrics-server yok — kaynak kullanımı gösterilemiyor. Etkinleştirmek için metrics-server kurun.",
     "clusterCpu": "Küme CPU",
     "clusterMemory": "Küme Belleği",
     "cordoned": "Cordon'lu",
@@ -516,33 +563,50 @@
     "copyAddress": "Adresi kopyala",
     "restart": "Yeniden başlat",
     "dismiss": "Kapat",
-    "stop": "Durdur"
+    "stop": "Durdur",
+    "status": {
+      "ready": "Hazır",
+      "starting": "Başlatılıyor",
+      "reconnecting": "Yeniden bağlanıyor",
+      "error": "Hata",
+      "stopped": "Durduruldu"
+    },
+    "attempt": "{{n}}. deneme",
+    "toastStopFailed": "Yönlendirme durdurulamadı",
+    "toastRestarted": "Yönlendirme yeniden başlatıldı",
+    "toastRestartFailed": "Yönlendirme yeniden başlatılamadı",
+    "toastCopied": "Adres kopyalandı",
+    "toastCopyFailed": "Kopyalanamadı"
   },
   "editYaml": "YAML Düzenle",
   "roleEditor": {
-    "addRule": "Kural Ekle",
-    "empty": "Kural yok. Eklemek için 'Kural Ekle'ye tıklayın."
+    "addRule": "Kural ekle",
+    "empty": "Bu rolde kural yok."
   },
   "roleBindingEditor": {
-    "addSubject": "Özne Ekle",
-    "empty": "Özne yok. Eklemek için 'Özne Ekle'ye tıklayın."
+    "addSubject": "Özne ekle",
+    "empty": "Bu bağlamada özne yok."
   },
   "secretEditor": {
-    "addKey": "Anahtar Ekle",
-    "empty": "Veri girdisi yok. Eklemek için 'Anahtar Ekle'ye tıklayın."
+    "addKey": "Anahtar ekle",
+    "empty": "Bu Secret'ta anahtar yok.",
+    "showValue": "Değeri göster",
+    "hideValue": "Değeri gizle",
+    "masked": "Değer gizli"
   },
   "roleMap": {
     "label": "Güvenlik Rol Haritası",
     "refresh": "Yenile",
-    "none": "yok",
-    "noMatches": "eşleşme yok",
+    "none": "Yok",
+    "noMatches": "Eşleşme yok",
     "clearFocus": "Odağı temizle",
-    "tip": "ipucu: bağlantıları vurgulamak için tıklayın · ayrıntılar için çift tıklayın",
-    "legendGrants": "verir",
+    "tip": "İpucu: bağlantıları vurgulamak için tıklayın; ayrıntılar için çift tıklayın",
+    "legendGrants": "Verir",
     "accessibleObjects": "Erişilebilir nesneler ({{count}})",
     "filterObjects": "Nesneleri filtrele…",
     "describe": "Describe",
-    "viewEditYaml": "YAML Görüntüle / Düzenle"
+    "viewEditYaml": "YAML Görüntüle / Düzenle",
+    "allOf": "Tümü ({{count}})"
   },
   "ai": {
     "backToChat": "Sohbete dön",
@@ -563,7 +627,7 @@
     "catalogError": "Katalog yüklenemedi: {{error}}",
     "cancel": "İptal",
     "showSizes": "Boyutları göster",
-    "installed": "kurulu",
+    "installed": "Kurulu",
     "loadingSizes": "boyutlar yükleniyor…",
     "sizesError": "Boyutlar yüklenemedi — belirli bir etiketi çekmek için yukarıdaki kutuyu kullanın.",
     "noTags": "Etiket bulunamadı.",
@@ -571,7 +635,7 @@
     "noModelsMatch": "Eşleşen model yok.",
     "noToolSupport": "<1>{{model}}</1> araç çağırmayı yerel olarak desteklemiyor — daha az güvenilir olabilecek bir uyumluluk modu kullanılıyor. En iyi sonuç için <3>Modelleri yönet</3>'i açıp araç destekli bir model seçin (örn. <5>llama3.1</5>, <7>qwen2.5</7>).",
     "noModelsInstalled": "Kurulu model yok. <3>llama3.1</3> gibi araç destekli bir model edinmek için <1>Modelleri yönet</1> (indirme simgesi) bölümünü açın.",
-    "emptyChat": "Kümeniz hakkında soru sorun — örn. \"kube-system'deki pod'ları listele\" ya da \"X pod'u neden çöküyor?\". Onayınızla silme/ölçekleme/uygulama da yapabilirim.",
+    "emptyChat": "Etkin küme hakkında soru sorun, örneğin \"kube-system içindeki pod'ları listele\" ya da \"X pod'u neden çöküyor?\". Silme, ölçekleme ve uygulama işlemleri onayınızı bekler.",
     "working": "çalışıyor",
     "workingEllipsis": "çalışıyor…",
     "approveAction": "İşlemi onayla:",
@@ -581,6 +645,22 @@
     "noModelPlaceholder": "Önce bir model kurun/seçin",
     "stop": "Durdur",
     "send": "Gönder",
-    "mutating": "değiştirici"
+    "mutating": "Değiştirici",
+    "workingFor": "Çalışıyor ({{seconds}} sn)",
+    "you": "Siz",
+    "downloadModel": "{{name}} indir",
+    "pullStarting": "Başlatılıyor…",
+    "pullFailed": "Hata: {{error}}",
+    "requestFailed": "İstek başarısız oldu.",
+    "toolStatus": {
+      "running": "Çalışıyor",
+      "done": "Tamamlandı",
+      "declined": "Reddedildi",
+      "error": "Başarısız"
+    }
+  },
+  "metrics": {
+    "unavailableTitle": "Kullanım verisi yok",
+    "unavailableHint": "Bu kümede metrics-server yok. CPU ve bellek kullanımını görmek için kurun."
   }
 }

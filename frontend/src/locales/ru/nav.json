@@ -1,11 +1,11 @@
 {
   "group": {
-    "workloads": "НАГРУЗКИ",
-    "networking": "СЕТЬ",
-    "config": "КОНФИГУРАЦИЯ И SECRETS",
-    "security": "БЕЗОПАСНОСТЬ",
-    "storage": "ХРАНИЛИЩЕ",
-    "cluster": "КЛАСТЕР"
+    "workloads": "Нагрузки",
+    "networking": "Сеть",
+    "config": "Конфигурация и Secrets",
+    "security": "Безопасность",
+    "storage": "Хранилище",
+    "cluster": "Кластер"
   },
   "item": {
     "pods": "Pods",

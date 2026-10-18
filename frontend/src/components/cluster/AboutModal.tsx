@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { VscCloud } from 'react-icons/vsc';
 import { Dialog } from 'primereact/dialog';
+import { Button } from 'primereact/button';
 import { GetAppInfo } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
@@ -21,6 +21,11 @@ const DEP_LABELS: Record<string, string> = {
     'sigs.k8s.io/yaml': 'YAML',
 };
 
+/**
+ * What is running, as a plain fact sheet: the same dialog frame as every other
+ * dialog, the version first and in mono because it is what gets copied into a
+ * bug report. No centred logo-in-a-box, no version pill.
+ */
 export default function AboutModal({ visible, onHide, onDiagnostics }: Props) {
     const t = useT();
     const [info, setInfo] = useState<models.AppInfo | null>(null);
@@ -31,70 +36,54 @@ export default function AboutModal({ visible, onHide, onDiagnostics }: Props) {
         }
     }, [visible]);
 
+    const footer = (
+        <div className="dlg-actions">
+            {onDiagnostics && (
+                <Button label={t('panels:about.diagnostics')} text size="small" onClick={() => { onHide(); onDiagnostics(); }} />
+            )}
+            <Button label={t('panels:about.close')} severity="secondary" size="small" onClick={onHide} />
+        </div>
+    );
+
     return (
         <Dialog
             visible={visible}
             onHide={onHide}
-            header={null}
-            closable={false}
+            header={t('panels:about.title')}
+            footer={footer}
             modal
+            dismissableMask
             className="about-modal"
-            style={{ width: '440px' }}
         >
-            <div className="about-modal__content">
-                <div className="about-modal__logo">
-                    <VscCloud className="about-modal__logo-icon" />
-                </div>
-                <h2 className="about-modal__title">Kube Inspector</h2>
+            <p className="about-modal__desc">{t('panels:about.description')}</p>
+
+            <dl className="dlg-facts">
+                <dt>{t('panels:about.version')}</dt>
+                <dd className="dlg-facts__mono">{info?.app_version ?? '—'}</dd>
+                <dt>{t('panels:about.author')}</dt>
+                {/* eslint-disable-next-line i18next/no-literal-string -- a person's name */}
+                <dd>Hakan Yorulmaz</dd>
                 {info && (
-                    <div className="about-modal__version">{info.app_version}</div>
-                )}
-                <p className="about-modal__desc">{t('panels:about.description')}</p>
-
-                <div className="about-modal__meta">
-                    <div className="about-modal__meta-row">
-                        <span className="about-modal__meta-label">{t('panels:about.author')}</span>
-                        {/* eslint-disable-next-line i18next/no-literal-string -- a person's name */}
-                        <span className="about-modal__meta-value">Hakan Yorulmaz</span>
-                    </div>
-                    {info && (
-                        <div className="about-modal__meta-row">
-                            <span className="about-modal__meta-label">Go</span>
-                            <span className="about-modal__meta-value">{info.go_version}</span>
-                        </div>
-                    )}
-                </div>
-
-                {(info?.dependencies?.length ?? 0) > 0 && (
                     <>
-                        <div className="about-modal__section-title">{t('panels:about.dependencies')}</div>
-                        <div className="about-modal__meta">
-                            {info!.dependencies.map(dep => (
-                                <div key={dep.name} className="about-modal__meta-row">
-                                    <span className="about-modal__meta-label">
-                                        {DEP_LABELS[dep.name] ?? dep.name.split('/').pop()}
-                                    </span>
-                                    <span className="about-modal__meta-value">{dep.version}</span>
-                                </div>
-                            ))}
-                        </div>
+                        <dt>Go</dt>
+                        <dd className="dlg-facts__mono">{info.go_version}</dd>
                     </>
                 )}
+            </dl>
 
-                <div className="about-modal__actions">
-                    {onDiagnostics && (
-                        <button
-                            className="about-modal__close-btn about-modal__close-btn--ghost"
-                            onClick={() => { onHide(); onDiagnostics(); }}
-                        >
-                            {t('panels:about.diagnostics')}
-                        </button>
-                    )}
-                    <button className="about-modal__close-btn" onClick={onHide}>
-                        {t('panels:about.close')}
-                    </button>
-                </div>
-            </div>
+            {(info?.dependencies?.length ?? 0) > 0 && (
+                <>
+                    <h3 className="dlg-section">{t('panels:about.dependencies')}</h3>
+                    <dl className="dlg-facts">
+                        {info!.dependencies.map((dep) => (
+                            <div key={dep.name} className="dlg-facts__row">
+                                <dt>{DEP_LABELS[dep.name] ?? dep.name.split('/').pop()}</dt>
+                                <dd className="dlg-facts__mono">{dep.version}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </>
+            )}
         </Dialog>
     );
 }

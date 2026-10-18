@@ -66,11 +66,11 @@ export default function ConfirmActionDialog({
         <Dialog
             header={header}
             visible={visible}
-            style={{ width: '30rem' }}
+            className="confirm-dialog"
             modal
             onHide={close}
             footer={
-                <div className="flex justify-content-end gap-2">
+                <div className="dlg-actions">
                     <Button label={t('action.cancel')} icon={<VscClose size={16} />} text onClick={close} disabled={busy} />
                     <Button
                         label={confirmLabel}
@@ -82,14 +82,10 @@ export default function ConfirmActionDialog({
                 </div>
             }
         >
-            <div className="flex flex-column gap-2">
-                <span>{message}</span>
-                {warning && (
-                    <span style={{ color: 'var(--amber)', fontSize: '0.85rem' }}>{warning}</span>
-                )}
-                {error && (
-                    <span style={{ color: 'var(--red)', fontSize: '0.8rem', wordBreak: 'break-word' }}>{error}</span>
-                )}
+            <div className="dlg-form">
+                <p className="dlg-message">{message}</p>
+                {warning && <p className="dlg-note dlg-note--warn">{warning}</p>}
+                {error && <p className="dlg-error">{error}</p>}
             </div>
         </Dialog>
     );

@@ -47,7 +47,7 @@ export default function IngressClassListComponent({ clusterName, api }: { cluste
                             <MultiSelect value={options.value} options={buildInOptions('controller')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column field="is_default" header={t('resources:column.default')} sortable style={{ minWidth: '8rem' }}
-                        body={(row: models.IngressClassInfo) => (row.is_default ? <Tag value="Default" severity="success" /> : <span style={{ color: 'var(--ink3)' }}>—</span>)} />
+                        body={(row: models.IngressClassInfo) => (row.is_default ? <Tag value="Default" /> : <span className="cell-empty">—</span>)} />
                 </>
             )}
         />

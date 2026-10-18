@@ -1,7 +1,6 @@
 import type { DockviewPanelApi } from 'dockview';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { GetIngresses, DeleteIngress } from '../../../wailsjs/go/controller_app/App';
@@ -99,13 +98,13 @@ export default function IngressListComponent({ clusterName, api }: { clusterName
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('_paths')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
-                    <Column field="address" header={t('resources:column.address')} sortable filter filterField="address" showFilterMenu={false} style={{ minWidth: '12rem' }}
+                    <Column bodyClassName="cell-mono" field="address" header={t('resources:column.address')} sortable filter filterField="address" showFilterMenu={false} style={{ minWidth: '12rem' }}
                         body={(row: IngressRow) => row.address || '-'}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('address')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column field="tls" header={t('resources:column.tls')} sortable style={{ minWidth: '6rem' }}
-                        body={(row: IngressRow) => <Tag value={row.tls ? 'Yes' : 'No'} severity={row.tls ? 'success' : 'secondary'} />} />
+                        body={(row: IngressRow) => (row.tls ? t('value.yes') : t('value.no'))} />
                 </>
             )}
         />

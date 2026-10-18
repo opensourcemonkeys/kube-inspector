@@ -8,6 +8,9 @@ export interface ChatMessage {
     content: string;
     // Tool-activity lines attached to an assistant turn (rendered console-style).
     tools?: ToolLine[];
+    // Why the turn ended early, shown as a fault line under whatever text had
+    // already streamed. Older persisted messages carry it inline in `content`.
+    error?: string;
 }
 
 export interface ToolLine {

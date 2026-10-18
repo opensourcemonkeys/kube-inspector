@@ -1,11 +1,11 @@
 {
   "group": {
-    "workloads": "İŞ YÜKLERİ",
-    "networking": "AĞ",
-    "config": "YAPILANDIRMA VE SECRET'LAR",
-    "security": "GÜVENLİK",
-    "storage": "DEPOLAMA",
-    "cluster": "KÜME"
+    "workloads": "İş yükleri",
+    "networking": "Ağ",
+    "config": "Yapılandırma ve Secret'lar",
+    "security": "Güvenlik",
+    "storage": "Depolama",
+    "cluster": "Küme"
   },
   "item": {
     "pods": "Pods",

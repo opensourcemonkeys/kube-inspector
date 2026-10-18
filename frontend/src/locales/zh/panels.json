@@ -26,7 +26,9 @@
     "author": "作者",
     "dependencies": "依赖项",
     "diagnostics": "诊断",
-    "close": "关闭"
+    "close": "关闭",
+    "title": "关于 Kube Inspector",
+    "version": "版本"
   },
   "update": {
     "titleAvailable": "有可用更新",
@@ -68,7 +70,10 @@
       "removed": "移除",
       "deprecated": "弃用",
       "security": "安全"
-    }
+    },
+    "installed": "已安装",
+    "available": "可用",
+    "progressLabel": "更新进度"
   },
   "tour": {
     "welcome": {
@@ -96,13 +101,14 @@
       "content": "打开一个交互式终端会话。运行 kubectl 命令、查看资源，直接在应用内与集群交互。"
     },
     "done": {
-      "title": "一切就绪！",
+      "title": "一切就绪",
       "content": "你已经掌握了 Kube Inspector 的基础用法。双击资源列表中的任意行可查看其 YAML，点击工作负载行上的日志按钮可实时查看日志。"
     },
     "previous": "上一步",
     "next": "下一步",
     "finish": "完成",
-    "skip": "跳过导览"
+    "skip": "跳过导览",
+    "stepOf": "第 {{current}} 步，共 {{total}} 步"
   },
   "diagnostics": {
     "tab": {
@@ -145,7 +151,13 @@
     "logLevel": "日志级别",
     "healthChecks": "健康检查",
     "rerunning": "执行中…",
-    "rerun": "重新执行检查"
+    "rerun": "重新执行检查",
+    "checkStatus": {
+      "ok": "通过",
+      "warn": "警告",
+      "fail": "失败",
+      "skip": "已跳过"
+    }
   },
   "trivy": {
     "tab": {
@@ -175,14 +187,29 @@
     "imagePlaceholder": "nginx:1.25",
     "scanImage": "扫描镜像",
     "exportHtml": "导出 HTML",
-    "title": "安全扫描"
+    "title": "安全扫描",
+    "logStartK8s": "正在启动 Kubernetes 资源扫描…",
+    "logListing": "正在列出 Pod 镜像…",
+    "logScanning": "正在扫描 {{image}}（{{current}}/{{total}}）",
+    "logFirstRun": "首次扫描会下载漏洞数据库。",
+    "logDone": "完成。发现：{{findings}}，已扫描镜像：{{images}}",
+    "logNoImages": "未找到可扫描的镜像。",
+    "logCancelled": "扫描已取消。",
+    "logQueued": "排队镜像：{{count}}",
+    "toastK8sFailed": "Kubernetes 扫描失败",
+    "toastListFailed": "无法列出镜像",
+    "toastScanIssue": "扫描问题：{{image}}",
+    "toastScanFailed": "无法扫描 {{image}}",
+    "toastNoVulns": "未发现漏洞",
+    "toastEnterImage": "请输入镜像",
+    "toastEnterImageHint": "例如 nginx:1.25 或 registry/repo:tag",
+    "total": "合计"
   },
   "monitoring": {
     "switchTooltip": "切换 Pods / 工作负载",
     "noData": "暂无数据。",
     "label": "资源监控",
     "loading": "正在加载指标…",
-    "noMetricsServer": "此集群没有 metrics-server — 无法显示资源用量。安装 metrics-server 即可启用监控。",
     "timeWindow": "时间范围",
     "clusterCpu": "集群 CPU",
     "clusterMemory": "集群内存",
@@ -237,7 +264,8 @@
     "localPortHint": "（留空 = 自动选择）",
     "automatic": "自动",
     "inUse": "端口 {{port}} 已被占用 — 建议使用 {{suggested}}。",
-    "loopbackOnly": "仅绑定到 127.0.0.1 — 网络中的其他主机无法访问。"
+    "loopbackOnly": "仅绑定到 127.0.0.1 — 网络中的其他主机无法访问。",
+    "custom": "自定义…"
   },
   "cluster": {
     "select": "选择集群…",
@@ -273,16 +301,16 @@
     "valid": "有效",
     "invalid": "无效",
     "previewEmpty": "粘贴或拖入一个 kubeconfig，即可在此预览其集群、context 和端点。",
-    "clusters": "个集群",
-    "contexts": "个 context",
-    "users": "个用户",
+    "clusters": "集群",
+    "contexts": "Context",
+    "users": "用户",
     "currentContext": "当前 Context",
     "noServerEndpoint": "没有服务器端点",
     "save": "保存"
   },
   "cliMode": {
     "badge": "CLI 模式",
-    "subtitle": "— 终端界面",
+    "subtitle": "终端界面",
     "exit": "退出 CLI 模式"
   },
   "logs": {
@@ -378,7 +406,16 @@
     "clusterAria": "目标集群",
     "clear": "清空",
     "apply": "应用",
-    "output": "输出"
+    "output": "输出",
+    "emptyTitle": "没有可应用的内容",
+    "emptyDetail": "编辑器为空。",
+    "noClusterTitle": "未选择集群",
+    "noClusterDetail": "应用前请选择目标集群。",
+    "applied": "已应用",
+    "appliedDetail": "已应用到 {{cluster}}。",
+    "failed": "应用失败",
+    "closeOutput": "关闭输出",
+    "resizeOutput": "调整输出大小"
   },
   "describe": {
     "refresh": "刷新",
@@ -410,7 +447,7 @@
   },
   "configMapEditor": {
     "addKey": "添加键",
-    "empty": "没有数据条目。点击“添加键”即可添加。"
+    "empty": "此 ConfigMap 没有键。"
   },
   "crd": {
     "loading": "正在加载 CRD…",
@@ -468,7 +505,9 @@
     "podSelector": "Pod：{{selector}}",
     "ipBlock": "IP：{{block}}",
     "except": "除外：{{value}}",
-    "resizeDivider": "拖动分隔线"
+    "resizeDivider": "拖动分隔线",
+    "blocked": "已阻止",
+    "allPorts": "所有端口"
   },
   "node": {
     "drain": "Drain",
@@ -486,16 +525,24 @@
     "version": "版本",
     "cpuCap": "CPU 容量",
     "memCap": "内存容量",
-    "noMetricsServer": "Metrics Server 不可用 — 无法查看 CPU/内存用量",
     "drainWarning": "此操作会先对该 node 执行 <1>cordon</1>（标记为不可调度），然后驱逐除 DaemonSet 和 mirror Pod 之外的所有 Pod。",
     "drainTarget": "Node：<1>{{name}}</1>",
     "title": "Node 列表",
-    "empty": "此集群中未找到 Node。"
+    "empty": "此集群中未找到 Node。",
+    "readyCount": "{{total}} 个中 {{ready}} 个就绪",
+    "toastCordoned": "已 Cordon",
+    "toastCordonedDetail": "{{name}} 不再接受新的 Pod",
+    "toastCordonFailed": "Cordon 失败",
+    "toastUncordoned": "已 Uncordon",
+    "toastUncordonedDetail": "{{name}} 重新接受新的 Pod",
+    "toastUncordonFailed": "Uncordon 失败",
+    "toastDrained": "Drain 完成",
+    "toastDrainedDetail": "{{name}} 上的 Pod 已被驱逐",
+    "toastDrainFailed": "Drain 失败"
   },
   "overview": {
     "label": "概览",
     "clusterCapacity": "集群容量",
-    "noMetricsServer": "此集群没有 metrics-server — 无法显示资源用量。安装 metrics-server 即可启用。",
     "clusterCpu": "集群 CPU",
     "clusterMemory": "集群内存",
     "cordoned": "已设为不可调度",
@@ -512,20 +559,36 @@
     "copyAddress": "复制地址",
     "restart": "重启",
     "dismiss": "忽略",
-    "stop": "停止"
+    "stop": "停止",
+    "status": {
+      "ready": "就绪",
+      "starting": "正在启动",
+      "reconnecting": "正在重连",
+      "error": "错误",
+      "stopped": "已停止"
+    },
+    "attempt": "第 {{n}} 次",
+    "toastStopFailed": "无法停止转发",
+    "toastRestarted": "转发已重启",
+    "toastRestartFailed": "无法重启转发",
+    "toastCopied": "地址已复制",
+    "toastCopyFailed": "复制失败"
   },
   "editYaml": "编辑 YAML",
   "roleEditor": {
     "addRule": "添加规则",
-    "empty": "没有规则。点击“添加规则”即可添加。"
+    "empty": "此角色没有规则。"
   },
   "roleBindingEditor": {
     "addSubject": "添加主体",
-    "empty": "没有主体。点击“添加主体”即可添加。"
+    "empty": "此绑定没有主体。"
   },
   "secretEditor": {
     "addKey": "添加键",
-    "empty": "没有数据条目。点击“添加键”即可添加。"
+    "empty": "此 Secret 没有键。",
+    "showValue": "显示值",
+    "hideValue": "隐藏值",
+    "masked": "值已隐藏"
   },
   "roleMap": {
     "label": "安全角色图",
@@ -533,12 +596,13 @@
     "none": "无",
     "noMatches": "没有匹配项",
     "clearFocus": "清除聚焦",
-    "tip": "提示：单击可高亮关联 · 双击查看详情",
+    "tip": "提示：单击可高亮关联；双击查看详情",
     "legendGrants": "授予",
     "accessibleObjects": "可访问的对象（{{count}}）",
     "filterObjects": "筛选对象…",
     "describe": "Describe",
-    "viewEditYaml": "查看 / 编辑 YAML"
+    "viewEditYaml": "查看 / 编辑 YAML",
+    "allOf": "全部（{{count}}）"
   },
   "ai": {
     "backToChat": "返回聊天",
@@ -577,6 +641,22 @@
     "noModelPlaceholder": "请先安装/选择一个模型",
     "stop": "停止",
     "send": "发送",
-    "mutating": "写操作"
+    "mutating": "写操作",
+    "workingFor": "处理中（{{seconds}} 秒）",
+    "you": "你",
+    "downloadModel": "下载 {{name}}",
+    "pullStarting": "正在开始…",
+    "pullFailed": "错误：{{error}}",
+    "requestFailed": "请求失败。",
+    "toolStatus": {
+      "running": "运行中",
+      "done": "完成",
+      "declined": "已拒绝",
+      "error": "失败"
+    }
+  },
+  "metrics": {
+    "unavailableTitle": "无使用数据",
+    "unavailableHint": "此集群没有 metrics-server。安装后即可查看 CPU 和内存使用情况。"
   }
 }

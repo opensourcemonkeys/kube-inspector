@@ -2,7 +2,6 @@ import type { DockviewPanelApi } from 'dockview';
 import { VscSettings } from 'react-icons/vsc';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Button } from 'primereact/button';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { GetRoles, DeleteRole } from '../../../wailsjs/go/controller_app/App';
@@ -10,6 +9,7 @@ import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
 import { useT } from '../../i18n/useT';
+import RowAction from '../shared/RowAction';
 
 const defaultFilters: DataTableFilterMeta = {
     name:      { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -46,7 +46,7 @@ export default function RoleListComponent({ clusterName, api }: { clusterName: s
                     <Column field="created_at" header={t('resources:column.created')} sortable style={{ minWidth: '12rem' }} />
                     <Column header="" style={{ width: '4rem', textAlign: 'center' }}
                         body={(row: models.RoleInfo) => (
-                            <Button icon={<VscSettings size={16} />} text size="small" severity="secondary" style={{ padding: '0.2rem', fontSize: '0.7rem' }}
+                            <RowAction icon={<VscSettings size={15} />} label={t('action.edit')}
                                 onClick={() => openRoleEditor({ clusterName, name: row.name, namespace: row.namespace, referencePanel })} />
                         )} />
                 </>

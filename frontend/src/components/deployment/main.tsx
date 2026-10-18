@@ -1,8 +1,7 @@
 import type { DockviewPanelApi } from 'dockview';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
-import { Button } from 'primereact/button';
+import StatusLamp from '../shared/StatusLamp';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { VscListFlat } from 'react-icons/vsc';
@@ -11,6 +10,8 @@ import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
 import { useT } from '../../i18n/useT';
+import CountCell from '../shared/CountCell';
+import RowAction from '../shared/RowAction';
 
 const getReplicasSeverity = (ready: number, total: number): 'success' | 'warning' | 'danger' => {
     if (total === 0) return 'warning';
@@ -63,17 +64,17 @@ export default function DeploymentListComponent({ clusterName, api }: { clusterN
                             <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column field="status" header={t('resources:column.status')} sortable filter filterField="status" showFilterMenu={false} style={{ minWidth: '10rem' }}
-                        body={(row: models.DeploymentInfo) => <Tag value={row.status} severity={getStatusSeverity(row.status)} />}
+                        body={(row: models.DeploymentInfo) => <StatusLamp label={row.status} severity={getStatusSeverity(row.status)} />}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('status')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column header={t('resources:column.replicas')} sortable sortField="replicas" style={{ minWidth: '9rem' }}
                         body={(row: models.DeploymentInfo) => (
-                            <Tag value={`${row.ready_replicas} / ${row.replicas}`} severity={getReplicasSeverity(row.ready_replicas, row.replicas)} />
+                            <CountCell value={`${row.ready_replicas} / ${row.replicas}`} severity={getReplicasSeverity(row.ready_replicas, row.replicas)} />
                         )} />
                     <Column header="" style={{ width: '3rem', textAlign: 'center' }}
                         body={(row: models.DeploymentInfo) => (
-                            <Button icon={<VscListFlat size={16} />} text size="small" severity="secondary" style={{ padding: '0.2rem', fontSize: '0.7rem' }}
+                            <RowAction icon={<VscListFlat size={15} />} label={t('action.logs')}
                                 onClick={() => openLogPanel({ clusterName, resourceKind: 'deployment', name: row.name, namespace: row.namespace, referencePanel })} />
                         )} />
                 </>

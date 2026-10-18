@@ -25,7 +25,7 @@ from helpers import navigate_to, wait_for_tab, wait_for_panel_heading
 #
 # Tuple: (group_label, sidebar_item_label, expected_h3_text, has_datatable)
 #
-# group_label         — .sidebar-section__badge-label text (e.g. 'WORKLOADS')
+# group_label         — .sidebar-section__badge-label text (e.g. 'Workloads')
 # sidebar_item_label  — .sidebar-item__label text (e.g. 'Pods')
 # expected_h3_text    — exact text of the <h3> in the list component's JSX
 # has_datatable       — False for components that use a custom layout instead
@@ -38,37 +38,37 @@ from helpers import navigate_to, wait_for_tab, wait_for_panel_heading
 # ─────────────────────────────────────────────────────────────────────────────
 NAV_ITEMS = [
     # ── Workloads ──────────────────────────────────────────────────────────
-    ("WORKLOADS",         "Pods",             "Pod List",            True),
-    ("WORKLOADS",         "Deployments",      "Deployment List",     True),
-    ("WORKLOADS",         "StatefulSets",     "StatefulSet List",    True),
-    ("WORKLOADS",         "ReplicaSets",      "ReplicaSet List",     True),
-    ("WORKLOADS",         "DaemonSets",       "DaemonSet List",      True),
-    ("WORKLOADS",         "Jobs",             "Job List",            True),
-    ("WORKLOADS",         "CronJobs",         "CronJob List",        True),
+    ("Workloads",         "Pods",             "Pod List",            True),
+    ("Workloads",         "Deployments",      "Deployment List",     True),
+    ("Workloads",         "StatefulSets",     "StatefulSet List",    True),
+    ("Workloads",         "ReplicaSets",      "ReplicaSet List",     True),
+    ("Workloads",         "DaemonSets",       "DaemonSet List",      True),
+    ("Workloads",         "Jobs",             "Job List",            True),
+    ("Workloads",         "CronJobs",         "CronJob List",        True),
     # ── Networking ─────────────────────────────────────────────────────────
-    ("NETWORKING",        "Services",         "Service List",        True),
-    ("NETWORKING",        "Ingresses",        "Ingress List",        True),
-    ("NETWORKING",        "Ingress Classes",  "Ingress Class List",  True),
-    ("NETWORKING",        "Endpoints",        "Endpoint List",       True),
-    ("NETWORKING",        "Network Policies", "Network Policy List", True),
+    ("Networking",        "Services",         "Service List",        True),
+    ("Networking",        "Ingresses",        "Ingress List",        True),
+    ("Networking",        "Ingress Classes",  "Ingress Class List",  True),
+    ("Networking",        "Endpoints",        "Endpoint List",       True),
+    ("Networking",        "Network Policies", "Network Policy List", True),
     # ── Config & Security ──────────────────────────────────────────────────
-    ("CONFIG & SECURITY", "ConfigMaps",       "ConfigMap List",      True),
-    ("CONFIG & SECURITY", "Secrets",          "Secret List",         True),
-    ("CONFIG & SECURITY", "Service Accounts", "Service Account List",True),
-    ("CONFIG & SECURITY", "Roles",            "Role List",           True),
-    ("CONFIG & SECURITY", "Role Bindings",    "Role Binding List",   True),
+    ("Config & Secrets", "ConfigMaps",       "ConfigMap List",      True),
+    ("Config & Secrets", "Secrets",          "Secret List",         True),
+    ("Security", "Service Accounts", "Service Account List",True),
+    ("Security", "Roles",            "Role List",           True),
+    ("Security", "Role Bindings",    "Role Binding List",   True),
     # ── Storage ────────────────────────────────────────────────────────────
-    ("STORAGE",           "Persistent Volumes", "Persistent Volumes",True),
-    ("STORAGE",           "Volume Claims",      "Volume Claims",     True),
-    ("STORAGE",           "Storage Classes",    "Storage Classes",   True),
+    ("Storage",           "Persistent Volumes", "Persistent Volumes",True),
+    ("Storage",           "Volume Claims",      "Volume Claims",     True),
+    ("Storage",           "Storage Classes",    "Storage Classes",   True),
     # ── Cluster ────────────────────────────────────────────────────────────
     # Nodes renders NodeCard components (card grid), not a PrimeReact DataTable
-    ("CLUSTER",           "Nodes",            "Node List",           False),
-    ("CLUSTER",           "Namespaces",       "Namespace List",      True),
-    ("CLUSTER",           "Events",           "Event List",          True),
+    ("Cluster",           "Nodes",            "Node List",           False),
+    ("Cluster",           "Namespaces",       "Namespace List",      True),
+    ("Cluster",           "Events",           "Event List",          True),
     # Resource Quotas renders card-based layout rather than DataTable
-    ("CLUSTER",           "Resource Quotas",  "Resource Quotas",     False),
-    ("CLUSTER",           "Limit Ranges",     "Limit Range List",    True),
+    ("Cluster",           "Resource Quotas",  "Resource Quotas",     False),
+    ("Cluster",           "Limit Ranges",     "Limit Range List",    True),
 ]
 
 PANEL_TIMEOUT = 10  # seconds; panels mount synchronously in React
@@ -126,6 +126,6 @@ class TestNavigationResourceQuotas:
 
     def test_resource_quotas_panel_renders(self, driver):
         """Resource Quotas panel must open and display its heading without crashing."""
-        navigate_to(driver, "CLUSTER", "Resource Quotas")
+        navigate_to(driver, "Cluster", "Resource Quotas")
         wait_for_tab(driver, "Resource Quotas", timeout=PANEL_TIMEOUT)
         wait_for_panel_heading(driver, "Resource Quotas", timeout=PANEL_TIMEOUT)

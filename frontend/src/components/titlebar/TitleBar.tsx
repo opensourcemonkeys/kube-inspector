@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { VscChromeMinimize, VscChromeMaximize, VscChromeRestore, VscChromeClose, VscCloudUpload, VscCloudDownload, VscTerminal, VscQuestion, VscInfo, VscHubot, VscLayoutSidebarLeft, VscCheck, VscSymbolColor, VscScreenFull, VscPulse, VscArrowSwap, VscGlobe, VscWarning } from 'react-icons/vsc';
+import { VscChromeMinimize, VscChromeMaximize, VscChromeRestore, VscChromeClose, VscCloudUpload, VscCloudDownload, VscTerminal, VscQuestion, VscInfo, VscHubot, VscLayoutSidebarLeft, VscCheck, VscSymbolColor, VscScreenFull, VscPulse, VscArrowSwap, VscGlobe } from 'react-icons/vsc';
 import { Menubar } from 'primereact/menubar';
 import { MenuItem } from 'primereact/menuitem';
 import {
@@ -16,6 +16,7 @@ import { useAiChatStore } from '../../stores/aiChatStore';
 import { useThemeStore, THEMES } from '../../stores/themeStore';
 import { useLocaleStore, LOCALES } from '../../stores/localeStore';
 import { useT } from '../../i18n/useT';
+import StatusLamp from '../shared/StatusLamp';
 import { useNextStep } from 'nextstepjs';
 import AboutModal from '../cluster/AboutModal';
 import UpdateModal from './UpdateModal';
@@ -205,12 +206,13 @@ function TitleBar({ onToggleSidebar, sidebarOpen = true, onToggleCli }: TitleBar
 
                 {/* Logo + title (fixed left) */}
                 <div className="tb-brand">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ color: 'var(--teal)' }}>
+                    <svg className="tb-logo" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                         <path d="M12 2.5 L20 7 V17 L12 21.5 L4 17 V7 Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
                         <path d="M12 12 V21.5 M4 7 L12 12 L20 7" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round" opacity="0.7"/>
                         <circle cx="12" cy="8.6" r="1.7" fill="currentColor"/>
                     </svg>
-                    <span className="tb-title">KUBE INSPECTOR</span>
+                    {/* The product name, set as a wordmark — not tracked-out capitals. */}
+                    <span className="tb-title">Kube Inspector</span>
                 </div>
 
                 {/* Menu bar (left, after logo). PrimeReact 10.9.7 has no
@@ -245,8 +247,7 @@ function TitleBar({ onToggleSidebar, sidebarOpen = true, onToggleCli }: TitleBar
                         title={t('nav:window.updateFailed')}
                         onClick={() => setUpdateOpen(true)}
                     >
-                        <VscWarning size={12} />
-                        {t('nav:window.updateFailed')}
+                        <StatusLamp label={t('nav:window.updateFailed')} tone="warn" />
                     </button>
                 )}
 
@@ -257,7 +258,7 @@ function TitleBar({ onToggleSidebar, sidebarOpen = true, onToggleCli }: TitleBar
                         title={t('nav:window.updateTooltip', { version: update.latestVersion })}
                         onClick={() => setUpdateOpen(true)}
                     >
-                        <VscCloudDownload size={12} />
+                        <span className="tb-update__mark" aria-hidden="true" />
                         {t('nav:window.updateAvailable')}
                     </button>
                 )}

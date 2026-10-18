@@ -27,7 +27,9 @@
     "author": "Author",
     "dependencies": "Dependencies",
     "diagnostics": "Diagnostics",
-    "close": "Close"
+    "close": "Close",
+    "title": "About Kube Inspector",
+    "version": "Version"
   },
   "update": {
     "titleAvailable": "Update available",
@@ -69,7 +71,10 @@
       "removed": "Removed",
       "deprecated": "Deprecated",
       "security": "Security"
-    }
+    },
+    "installed": "Installed",
+    "available": "Available",
+    "progressLabel": "Update progress"
   },
   "tour": {
     "welcome": {
@@ -77,19 +82,19 @@
       "content": "This quick tour will show you the key features of the app. Use the arrow buttons to navigate between steps, or press Skip to exit at any time."
     },
     "cluster": {
-      "title": "Cluster Configuration",
+      "title": "Cluster configuration",
       "content": "Select or switch between your Kubernetes clusters here. Use the + button to add a new cluster, the pencil to edit the active one, and the graph icon to view the resource graph."
     },
     "sidebar": {
-      "title": "Resource Explorer",
+      "title": "Resource explorer",
       "content": "Browse all Kubernetes resources from the sidebar. Resources are grouped into Workloads, Networking, Config & Security, Storage, and Cluster categories. Click any item to open it as a panel."
     },
     "workspace": {
-      "title": "Main Workspace",
+      "title": "Main workspace",
       "content": "Resource panels open here. You can drag tabs to rearrange them, split the workspace horizontally or vertically, and resize panels by dragging the dividers between them."
     },
     "yaml": {
-      "title": "YAML Editor",
+      "title": "YAML editor",
       "content": "Apply raw YAML directly to your cluster. Paste or write Kubernetes manifests and click Apply. Supports multi-document YAML files (separated by ---)."
     },
     "terminal": {
@@ -97,13 +102,14 @@
       "content": "Open an interactive terminal session. Run kubectl commands, inspect resources, and interact with your cluster directly from within the app."
     },
     "done": {
-      "title": "You're all set!",
+      "title": "You're all set",
       "content": "You now know the essentials of Kube Inspector. Double-click any row in a resource list to view its YAML, and use the log button on workload rows to stream live logs."
     },
     "previous": "Previous",
     "next": "Next",
     "finish": "Finish",
-    "skip": "Skip Tour"
+    "skip": "Skip tour",
+    "stepOf": "Step {{current}} of {{total}}"
   },
   "diagnostics": {
     "tab": {
@@ -146,7 +152,13 @@
     "logLevel": "Log level",
     "healthChecks": "Health checks",
     "rerunning": "Running…",
-    "rerun": "Re-run checks"
+    "rerun": "Re-run checks",
+    "checkStatus": {
+      "ok": "Passed",
+      "warn": "Warning",
+      "fail": "Failed",
+      "skip": "Skipped"
+    }
   },
   "trivy": {
     "tab": {
@@ -176,14 +188,29 @@
     "imagePlaceholder": "nginx:1.25",
     "scanImage": "Scan image",
     "exportHtml": "Export HTML",
-    "title": "Security Scan"
+    "title": "Security Scan",
+    "logStartK8s": "Starting the Kubernetes resource scan…",
+    "logListing": "Listing pod images…",
+    "logScanning": "Scanning {{image}} ({{current}} of {{total}})",
+    "logFirstRun": "The first scan downloads the vulnerability database.",
+    "logDone": "Done. Findings: {{findings}}, images scanned: {{images}}",
+    "logNoImages": "No images found to scan.",
+    "logCancelled": "Scan cancelled.",
+    "logQueued": "Images queued: {{count}}",
+    "toastK8sFailed": "Kubernetes scan failed",
+    "toastListFailed": "Could not list images",
+    "toastScanIssue": "Scan issue: {{image}}",
+    "toastScanFailed": "Failed to scan {{image}}",
+    "toastNoVulns": "No vulnerabilities found",
+    "toastEnterImage": "Enter an image",
+    "toastEnterImageHint": "For example nginx:1.25 or registry/repo:tag",
+    "total": "Total"
   },
   "monitoring": {
     "switchTooltip": "Switch Pods / Workloads",
     "noData": "No data.",
     "label": "Resource Monitoring",
     "loading": "Loading metrics…",
-    "noMetricsServer": "metrics-server is not available on this cluster — resource usage cannot be shown. Install metrics-server to enable monitoring.",
     "timeWindow": "Time window",
     "clusterCpu": "Cluster CPU",
     "clusterMemory": "Cluster Memory",
@@ -238,7 +265,8 @@
     "localPortHint": "(empty = pick one automatically)",
     "automatic": "Automatic",
     "inUse": "Port {{port}} is already in use — suggesting {{suggested}}.",
-    "loopbackOnly": "Bound to 127.0.0.1 only — not reachable from your network."
+    "loopbackOnly": "Bound to 127.0.0.1 only — not reachable from your network.",
+    "custom": "Custom…"
   },
   "cluster": {
     "select": "Select cluster…",
@@ -251,10 +279,10 @@
   },
   "clusterModal": {
     "closeOverlay": "Close modal",
-    "editTitle": "Edit Cluster",
-    "addTitle": "Add Cluster",
+    "editTitle": "Edit cluster",
+    "addTitle": "Add cluster",
     "close": "Close",
-    "configName": "Config Name",
+    "configName": "Config name",
     "configNamePlaceholder": "e.g. production, staging, local",
     "configNameLocked": "Config name cannot be changed",
     "useDetectedName": "Use detected name",
@@ -266,25 +294,25 @@
     "autoColorTooltip": "Derive the color from the cluster name",
     "autoColor": "Auto",
     "colorHint": "Shown next to this cluster in the selector, the sidebar and its tabs.",
-    "kubeconfigContent": "Kubeconfig Content",
+    "kubeconfigContent": "Kubeconfig content",
     "browseFile": "Browse file",
     "kubeconfigPlaceholder": "Paste your kubeconfig YAML here, or drop a file…",
     "dropToLoad": "Drop kubeconfig to load",
-    "detectedConfiguration": "Detected Configuration",
+    "detectedConfiguration": "Detected configuration",
     "valid": "Valid",
     "invalid": "Invalid",
     "previewEmpty": "Paste or drop a kubeconfig to preview its clusters, contexts and endpoints here.",
-    "clusters": "clusters",
-    "contexts": "contexts",
-    "users": "users",
-    "currentContext": "Current Context",
-    "noServerEndpoint": "no server endpoint",
+    "clusters": "Clusters",
+    "contexts": "Contexts",
+    "users": "Users",
+    "currentContext": "Current context",
+    "noServerEndpoint": "No server endpoint",
     "save": "Save"
   },
   "cliMode": {
-    "badge": "CLI MODE",
-    "subtitle": "— terminal UI",
-    "exit": "Exit CLI Mode"
+    "badge": "CLI mode",
+    "subtitle": "Terminal UI",
+    "exit": "Exit CLI mode"
   },
   "logs": {
     "label": "Logs",
@@ -380,7 +408,16 @@
     "clusterAria": "Target cluster",
     "clear": "Clear",
     "apply": "Apply",
-    "output": "Output"
+    "output": "Output",
+    "emptyTitle": "Nothing to apply",
+    "emptyDetail": "The editor is empty.",
+    "noClusterTitle": "No cluster selected",
+    "noClusterDetail": "Pick a target cluster before applying.",
+    "applied": "Applied",
+    "appliedDetail": "Applied to {{cluster}}.",
+    "failed": "Apply failed",
+    "closeOutput": "Close output",
+    "resizeOutput": "Resize output"
   },
   "describe": {
     "refresh": "Refresh",
@@ -411,8 +448,8 @@
     "legendIngress": "ingress"
   },
   "configMapEditor": {
-    "addKey": "Add Key",
-    "empty": "No data entries. Click 'Add Key' to add one."
+    "addKey": "Add key",
+    "empty": "This ConfigMap has no keys."
   },
   "crd": {
     "loading": "Loading CRDs…",
@@ -472,7 +509,9 @@
     "podSelector": "Pod: {{selector}}",
     "ipBlock": "IP: {{block}}",
     "except": "except: {{value}}",
-    "resizeDivider": "Resize divider"
+    "resizeDivider": "Resize divider",
+    "blocked": "Blocked",
+    "allPorts": "all ports"
   },
   "node": {
     "drain": "Drain",
@@ -488,18 +527,26 @@
     "shellTarget": "Node: <1>{{name}}</1>",
     "editYaml": "Edit YAML",
     "version": "Version",
-    "cpuCap": "CPU Cap",
-    "memCap": "MEM Cap",
-    "noMetricsServer": "Metrics Server not available — CPU/RAM usage unavailable",
+    "cpuCap": "CPU capacity",
+    "memCap": "Memory capacity",
     "drainWarning": "This will first <1>cordon</1> the node (mark it unschedulable), then evict all pods except DaemonSet and mirror pods.",
     "drainTarget": "Node: <1>{{name}}</1>",
     "title": "Node List",
-    "empty": "No nodes found in this cluster."
+    "empty": "No nodes found in this cluster.",
+    "readyCount": "{{ready}} of {{total}} ready",
+    "toastCordoned": "Cordoned",
+    "toastCordonedDetail": "{{name}} no longer accepts new pods",
+    "toastCordonFailed": "Cordon failed",
+    "toastUncordoned": "Uncordoned",
+    "toastUncordonedDetail": "{{name}} accepts new pods again",
+    "toastUncordonFailed": "Uncordon failed",
+    "toastDrained": "Drain complete",
+    "toastDrainedDetail": "Pods on {{name}} were evicted",
+    "toastDrainFailed": "Drain failed"
   },
   "overview": {
     "label": "Overview",
     "clusterCapacity": "Cluster capacity",
-    "noMetricsServer": "metrics-server is not available on this cluster — resource usage cannot be shown. Install metrics-server to enable it.",
     "clusterCpu": "Cluster CPU",
     "clusterMemory": "Cluster Memory",
     "cordoned": "Cordoned",
@@ -516,40 +563,57 @@
     "copyAddress": "Copy address",
     "restart": "Restart",
     "dismiss": "Dismiss",
-    "stop": "Stop"
+    "stop": "Stop",
+    "status": {
+      "ready": "Ready",
+      "starting": "Starting",
+      "reconnecting": "Reconnecting",
+      "error": "Error",
+      "stopped": "Stopped"
+    },
+    "attempt": "attempt {{n}}",
+    "toastStopFailed": "Could not stop the forward",
+    "toastRestarted": "Forward restarted",
+    "toastRestartFailed": "Could not restart the forward",
+    "toastCopied": "Address copied",
+    "toastCopyFailed": "Copy failed"
   },
   "editYaml": "Edit YAML",
   "roleEditor": {
-    "addRule": "Add Rule",
-    "empty": "No rules. Click 'Add Rule' to add one."
+    "addRule": "Add rule",
+    "empty": "This role has no rules."
   },
   "roleBindingEditor": {
-    "addSubject": "Add Subject",
-    "empty": "No subjects. Click 'Add Subject' to add one."
+    "addSubject": "Add subject",
+    "empty": "This binding has no subjects."
   },
   "secretEditor": {
-    "addKey": "Add Key",
-    "empty": "No data entries. Click 'Add Key' to add one."
+    "addKey": "Add key",
+    "empty": "This Secret has no keys.",
+    "showValue": "Show value",
+    "hideValue": "Hide value",
+    "masked": "Value hidden"
   },
   "roleMap": {
     "label": "Security Role Map",
     "refresh": "Refresh",
-    "none": "none",
-    "noMatches": "no matches",
+    "none": "None",
+    "noMatches": "No matches",
     "clearFocus": "Clear focus",
-    "tip": "tip: click to highlight connections · double-click for details",
-    "legendGrants": "grants",
+    "tip": "Click a node to highlight its chain; double-click for details",
+    "legendGrants": "Grants",
     "accessibleObjects": "Accessible objects ({{count}})",
     "filterObjects": "Filter objects…",
     "describe": "Describe",
-    "viewEditYaml": "View / Edit YAML"
+    "viewEditYaml": "View / Edit YAML",
+    "allOf": "All ({{count}})"
   },
   "ai": {
     "backToChat": "Back to chat",
     "models": "Models",
     "refresh": "Refresh",
     "assistant": "Assistant",
-    "modelPlaceholder": "model",
+    "modelPlaceholder": "Model",
     "manageModels": "Manage models",
     "clearChat": "Clear chat",
     "close": "Close",
@@ -563,15 +627,15 @@
     "catalogError": "Couldn't load catalog: {{error}}",
     "cancel": "Cancel",
     "showSizes": "Show sizes",
-    "installed": "installed",
-    "loadingSizes": "loading sizes…",
+    "installed": "Installed",
+    "loadingSizes": "Loading sizes…",
     "sizesError": "Couldn't load sizes — use the box above to pull a specific tag.",
     "noTags": "No tags found.",
     "pullError": "error",
     "noModelsMatch": "No models match.",
     "noToolSupport": "<1>{{model}}</1> doesn't natively support tool calling — using a compatibility mode that may be less reliable. For best results open <3>Manage models</3> and pick a tool-capable model (e.g. <5>llama3.1</5>, <7>qwen2.5</7>).",
     "noModelsInstalled": "No models installed. Open <1>Manage models</1> (the download icon) to get a tool-capable model like <3>llama3.1</3>.",
-    "emptyChat": "Ask about your cluster — e.g. \"list pods in kube-system\" or \"why is pod X crashing?\". I can also delete/scale/apply with your approval.",
+    "emptyChat": "Ask about the active cluster, for example \"list pods in kube-system\" or \"why is pod X crashing?\". Deleting, scaling and applying wait for your approval.",
     "working": "working",
     "workingEllipsis": "working…",
     "approveAction": "Approve action:",
@@ -581,6 +645,22 @@
     "noModelPlaceholder": "Install/select a model first",
     "stop": "Stop",
     "send": "Send",
-    "mutating": "mutating"
+    "mutating": "Mutating",
+    "workingFor": "Working ({{seconds}} s)",
+    "you": "You",
+    "downloadModel": "Download {{name}}",
+    "pullStarting": "Starting…",
+    "pullFailed": "Error: {{error}}",
+    "requestFailed": "The request failed.",
+    "toolStatus": {
+      "running": "Running",
+      "done": "Done",
+      "declined": "Declined",
+      "error": "Failed"
+    }
+  },
+  "metrics": {
+    "unavailableTitle": "No usage data",
+    "unavailableHint": "This cluster has no metrics-server. Install it to see CPU and memory usage."
   }
 }

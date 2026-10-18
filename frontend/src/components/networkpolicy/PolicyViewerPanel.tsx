@@ -6,16 +6,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 
 import { VscShield, VscPackage, VscCircleSlash, VscArrowRight, VscArrowLeft, VscDiscard, VscCheck } from 'react-icons/vsc';
-import { CircularProgress } from '@mui/material';
 import { IDockviewPanelProps } from 'dockview';
 import ReactFlow, {
-    Background,
-    Controls,
-    MiniMap,
     Node,
     Edge,
     MarkerType,
-    BackgroundVariant,
     Handle,
     Position,
     NodeProps,
@@ -27,13 +22,15 @@ import Editor, { OnMount } from '@monaco-editor/react';
 // Configures @monaco-editor/react to use the bundled Monaco. Side-effect
 // import: this panel is lazily loaded, so Monaco arrives with it.
 import '../../lib/monacoBootstrap';
-import { themeAlpha, themeColor, useThemeVersion } from '../../lib/themeColors';
+import { themeColor, useThemeVersion, type ThemeVar } from '../../lib/themeColors';
+import GraphChrome from '../shared/GraphChrome';
+import Spinner from '../shared/Spinner';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import type * as monaco from 'monaco-editor';
 import { GetNetworkPolicyDetail, GetNetworkPolicyYaml, ParseNetworkPolicyYaml, UpdateNetworkPolicyYaml } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
-import { MONOLITH_THEME } from '../../lib/monacoTheme';
+import { MONACO_BASE_OPTIONS, MONACO_THEME, defineMonacoTheme, useMonacoTheme } from '../../lib/monacoTheme';
 import { useT, type TFn } from '../../i18n/useT';
 import PanelLoading from '../shared/PanelLoading';
 
@@ -45,79 +42,36 @@ interface PolicyViewerPanelParams {
 
 // ── Node styles ───────────────────────────────────────────────────────────────
 //
-// Built per call rather than as module constants, and resolved through
-// `themeColor`/`themeAlpha` rather than written as `var(--x)`: reactflow passes
-// some of these straight through to SVG *attributes* (edge markers, the minimap,
-// the dot background), and a CSS variable never resolves in an attribute. The
-// graph builder runs on every render and the panel subscribes to the theme, so
-// switching palettes repaints it.
+// Every node is a .graph-flow-node; its category colour rides `--kind`. The
+// HTML of a node takes var() fine — only edges and the minimap, which are SVG
+// attributes, need a resolved colour (themeColor below and in GraphChrome).
+// Categories, not statuses: ingress was --info and egress --warn before, which
+// read as "fine" and "careful". Only a deny is a real state, so it keeps --err.
 
-const nodePolicy = (): React.CSSProperties => ({
-    background: 'var(--panel2)',
-    border: `2px solid ${themeColor('--violet')}`,
-    borderRadius: 10,
-    padding: '10px 16px',
-    color: 'var(--ink)',
-    fontFamily: 'var(--font-family)',
-    width: 220,
-    textAlign: 'center',
+const flowNode = (kind: ThemeVar, size: React.CSSProperties) => ({
+    className: 'graph-flow-node',
+    style: { ['--kind' as string]: `var(${kind})`, ...size } as React.CSSProperties,
 });
 
-const nodeIngress = (): React.CSSProperties => ({
-    background: themeAlpha('--blue', 0.18),
-    border: `1.5px solid ${themeColor('--blue')}`,
-    borderRadius: 8,
-    padding: '8px 14px',
-    color: themeColor('--blue'),
-    fontFamily: 'var(--font-family)',
-    minWidth: 180,
-    fontSize: 12,
-});
-
-const nodeEgress = (): React.CSSProperties => ({
-    background: themeAlpha('--amber', 0.18),
-    border: `1.5px solid ${themeColor('--amber')}`,
-    borderRadius: 8,
-    padding: '8px 14px',
-    color: themeColor('--amber'),
-    fontFamily: 'var(--font-family)',
-    minWidth: 180,
-    fontSize: 12,
-});
-
-const nodeDeny = (): React.CSSProperties => ({
-    background: themeAlpha('--red', 0.18),
-    border: `2px solid ${themeColor('--red')}`,
-    borderRadius: 8,
-    padding: '8px 14px',
-    color: themeColor('--red'),
-    fontFamily: 'var(--font-family)',
-    minWidth: 180,
-    fontSize: 12,
-    textAlign: 'center',
-});
-
-const nodePods = (): React.CSSProperties => ({
-    background: themeAlpha('--green', 0.18),
-    border: `1.5px solid ${themeColor('--green')}`,
-    borderRadius: 8,
-    padding: '8px 14px',
-    color: themeColor('--green'),
-    fontFamily: 'var(--font-family)',
-    width: 220,
-    textAlign: 'center',
-    fontSize: 12,
-});
+// The minimap's colour for a node, from the id scheme buildGraph uses.
+const kindOfNode = (id: string): ThemeVar =>
+    id === 'policy' ? '--cat-2'
+    : id === 'pods' ? '--cat-3'
+    : id.startsWith('ingress') ? '--cat-1'
+    : id.startsWith('egress') ? '--cat-4'
+    : id.startsWith('deny') ? '--err'
+    : '--ink-3';
 
 // ── Custom policy node (left target + right source + bottom source) ───────────
 
 function PolicyNodeComponent({ data }: NodeProps) {
     return (
         <>
-            <Handle type="target" position={Position.Left} id="left" style={{ background: 'var(--violet)', borderColor: 'var(--violet)' }} />
+            <Handle type="target" position={Position.Left} id="left" />
             {data.label}
-            <Handle type="source" position={Position.Right} id="right" style={{ background: 'var(--violet)', borderColor: 'var(--violet)' }} />
-            <Handle type="source" position={Position.Bottom} id="bottom" style={{ background: 'var(--green)', borderColor: 'var(--green)' }} />
+            <Handle type="source" position={Position.Right} id="right" />
+            {/* Toward the affected pods, so in their colour. */}
+            <Handle type="source" position={Position.Bottom} id="bottom" className="graph-handle--pods" />
         </>
     );
 }
@@ -143,25 +97,17 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
         data: {
             label: (
                 <div>
-                    <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>
-                        <VscShield size={13} style={{ marginRight: 6, verticalAlign: 'middle' }} />
+                    <div className="graph-node__name">
+                        <VscShield size={13} />
                         {detail.name}
                     </div>
-                    <div style={{ fontSize: 11, opacity: 0.7 }}>{detail.namespace}</div>
+                    <div className="graph-node__sub">{detail.namespace}</div>
                     {(detail.policy_types ?? []).length > 0 && (
-                        <div style={{ marginTop: 6, display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap' }}>
-                            {detail.policy_types.map((t) => (
-                                <span
-                                    key={t}
-                                    style={{
-                                        background: t === 'Ingress' ? themeAlpha('--blue', 0.3) : themeAlpha('--amber', 0.3),
-                                        color: t === 'Ingress' ? themeColor('--blue') : themeColor('--amber'),
-                                        borderRadius: 4,
-                                        padding: '1px 6px',
-                                        fontSize: 10,
-                                    }}
-                                >
-                                    {t}
+                        <div className="graph-node__chips">
+                            {detail.policy_types.map((pt) => (
+                                <span key={pt} className="graph-node__chip graph-node__chip--kind"
+                                    style={{ ['--kind' as string]: pt === 'Ingress' ? 'var(--cat-1)' : 'var(--cat-4)' }}>
+                                    {pt}
                                 </span>
                             ))}
                         </div>
@@ -169,7 +115,7 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
                 </div>
             ),
         },
-        style: nodePolicy(),
+        ...flowNode('--cat-2', { width: 220 }),
     });
 
     nodes.push({
@@ -180,15 +126,15 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
         data: {
             label: (
                 <div>
-                    <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                        <VscPackage size={13} style={{ marginRight: 6, verticalAlign: 'middle' }} />{' '}
+                    <div className="graph-node__name">
+                        <VscPackage size={13} />{' '}
                         {t('panels:policy.affectedPods')}
                     </div>
-                    <div style={{ fontSize: 11 }}>{detail.pod_selector || t('panels:policy.allPods')}</div>
+                    <div className="graph-node__sub">{detail.pod_selector || t('panels:policy.allPods')}</div>
                 </div>
             ),
         },
-        style: nodePods(),
+        ...flowNode('--cat-3', { width: 220 }),
     });
 
     edges.push({
@@ -197,9 +143,8 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
         target: 'pods',
         sourceHandle: 'bottom',
         type: 'straight',
-        animated: true,
-        style: { stroke: themeColor('--green'), strokeDasharray: '4 3' },
-        markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--green') },
+        style: { stroke: themeColor('--cat-3'), strokeDasharray: '4 3' },
+        markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--cat-3') },
     });
 
     const policyTypes = detail.policy_types ?? [];
@@ -216,27 +161,26 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
             data: {
                 label: (
                     <div>
-                        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>
-                            <VscCircleSlash size={13} color="var(--red)" style={{ marginRight: 6, verticalAlign: 'middle' }} />{' '}
+                        <div className="graph-node__name">
+                            <VscCircleSlash size={13} className="graph-node__deny" />{' '}
                             {t('panels:policy.denyAllIngress')}
                         </div>
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>{t('panels:policy.denyAllIngressHint')}</div>
+                        <div className="graph-node__sub">{t('panels:policy.denyAllIngressHint')}</div>
                     </div>
                 ),
             },
-            style: nodeDeny(),
+            ...flowNode('--err', { minWidth: 180 }),
         });
         edges.push({
             id: 'deny-ingress-edge',
             source: 'deny-ingress',
             target: 'policy',
             targetHandle: 'left',
-            animated: false,
-            style: { stroke: themeColor('--red'), strokeDasharray: '6 3' },
-            markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--red') },
-            label: '✕ blocked',
-            labelStyle: { fill: themeColor('--red'), fontSize: 10, fontWeight: 700 },
-            labelBgStyle: { fill: themeAlpha('--red', 0.18), opacity: 0.9 },
+            style: { stroke: themeColor('--err'), strokeDasharray: '6 3' },
+            markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--err') },
+            label: t('panels:policy.blocked'),
+            labelStyle: { fill: themeColor('--err'), fontSize: 11, fontWeight: 500 },
+            labelBgStyle: { fill: themeColor('--bezel'), fillOpacity: 0.9 },
         });
     }
 
@@ -250,27 +194,26 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
             data: {
                 label: (
                     <div>
-                        <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>
-                            <VscCircleSlash size={13} color="var(--red)" style={{ marginRight: 6, verticalAlign: 'middle' }} />{' '}
+                        <div className="graph-node__name">
+                            <VscCircleSlash size={13} className="graph-node__deny" />{' '}
                             {t('panels:policy.denyAllEgress')}
                         </div>
-                        <div style={{ fontSize: 11, opacity: 0.8 }}>{t('panels:policy.denyAllEgressHint')}</div>
+                        <div className="graph-node__sub">{t('panels:policy.denyAllEgressHint')}</div>
                     </div>
                 ),
             },
-            style: nodeDeny(),
+            ...flowNode('--err', { minWidth: 180 }),
         });
         edges.push({
             id: 'deny-egress-edge',
             source: 'policy',
             target: 'deny-egress',
             sourceHandle: 'right',
-            animated: false,
-            style: { stroke: themeColor('--red'), strokeDasharray: '6 3' },
-            markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--red') },
-            label: '✕ blocked',
-            labelStyle: { fill: themeColor('--red'), fontSize: 10, fontWeight: 700 },
-            labelBgStyle: { fill: themeAlpha('--red', 0.18), opacity: 0.9 },
+            style: { stroke: themeColor('--err'), strokeDasharray: '6 3' },
+            markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--err') },
+            label: t('panels:policy.blocked'),
+            labelStyle: { fill: themeColor('--err'), fontSize: 11, fontWeight: 500 },
+            labelBgStyle: { fill: themeColor('--bezel'), fillOpacity: 0.9 },
         });
     }
 
@@ -278,7 +221,7 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
 
     ingress.forEach((rule, i) => {
         const nodeId = `ingress-${i}`;
-        const ports = (rule.ports ?? []).join(', ') || 'all ports';
+        const ports = (rule.ports ?? []).join(', ') || t('panels:policy.allPorts');
         nodes.push({
             id: nodeId,
             type: 'input',
@@ -287,19 +230,19 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
             data: {
                 label: (
                     <div>
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                            <VscArrowRight size={13} style={{ marginRight: 6, verticalAlign: 'middle' }} />{' '}
+                        <div className="graph-node__name">
+                            <VscArrowRight size={13} />{' '}
                             {t('panels:policy.ingressRule', { n: i + 1 })}
                         </div>
-                        <div style={{ fontSize: 11, marginBottom: 3, opacity: 0.9 }}>{t('panels:policy.ports', { ports })}</div>
+                        <div className="graph-node__sub">{t('panels:policy.ports', { ports })}</div>
                         {(rule.peers ?? []).map((p, pi) => (
-                            <div key={pi} style={{ marginTop: 3 }}>
-                                {p.namespace_selector && <div style={{ fontSize: 10, opacity: 0.75 }}>{t('panels:policy.namespaceSelector', { selector: p.namespace_selector })}</div>}
-                                {p.pod_selector && <div style={{ fontSize: 10, opacity: 0.75 }}>{t('panels:policy.podSelector', { selector: p.pod_selector })}</div>}
-                                {p.ip_block && <div style={{ fontSize: 10, opacity: 0.75 }}>{t('panels:policy.ipBlock', { block: p.ip_block })}</div>}
+                            <div key={pi} className="graph-node__peer">
+                                {p.namespace_selector && <div className="graph-node__meta">{t('panels:policy.namespaceSelector', { selector: p.namespace_selector })}</div>}
+                                {p.pod_selector && <div className="graph-node__meta">{t('panels:policy.podSelector', { selector: p.pod_selector })}</div>}
+                                {p.ip_block && <div className="graph-node__meta">{t('panels:policy.ipBlock', { block: p.ip_block })}</div>}
                                 {(p.ip_block_except ?? []).map((exc, ei) => (
-                                    <div key={ei} style={{ fontSize: 10, color: 'var(--red)', marginTop: 1 }}>
-                                        <VscCircleSlash size={9} style={{ marginRight: 3, verticalAlign: 'middle' }} />{' '}
+                                    <div key={ei} className="graph-node__meta graph-node__meta--err">
+                                        <VscCircleSlash size={9} />{' '}
                                         {t('panels:policy.except', { value: exc })}
                                     </div>
                                 ))}
@@ -308,7 +251,7 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
                     </div>
                 ),
             },
-            style: nodeIngress(),
+            ...flowNode('--cat-1', { minWidth: 180 }),
         });
 
         edges.push({
@@ -316,9 +259,8 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
             source: nodeId,
             target: 'policy',
             targetHandle: 'left',
-            animated: true,
-            style: { stroke: themeColor('--blue') },
-            markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--blue') },
+            style: { stroke: themeColor('--cat-1') },
+            markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--cat-1') },
         });
     });
 
@@ -326,7 +268,7 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
 
     egress.forEach((rule, i) => {
         const nodeId = `egress-${i}`;
-        const ports = (rule.ports ?? []).join(', ') || 'all ports';
+        const ports = (rule.ports ?? []).join(', ') || t('panels:policy.allPorts');
         nodes.push({
             id: nodeId,
             type: 'output',
@@ -335,19 +277,19 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
             data: {
                 label: (
                     <div>
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                            <VscArrowLeft size={13} style={{ marginRight: 6, verticalAlign: 'middle' }} />{' '}
+                        <div className="graph-node__name">
+                            <VscArrowLeft size={13} />{' '}
                             {t('panels:policy.egressRule', { n: i + 1 })}
                         </div>
-                        <div style={{ fontSize: 11, marginBottom: 3, opacity: 0.9 }}>{t('panels:policy.ports', { ports })}</div>
+                        <div className="graph-node__sub">{t('panels:policy.ports', { ports })}</div>
                         {(rule.peers ?? []).map((p, pi) => (
-                            <div key={pi} style={{ marginTop: 3 }}>
-                                {p.namespace_selector && <div style={{ fontSize: 10, opacity: 0.75 }}>{t('panels:policy.namespaceSelector', { selector: p.namespace_selector })}</div>}
-                                {p.pod_selector && <div style={{ fontSize: 10, opacity: 0.75 }}>{t('panels:policy.podSelector', { selector: p.pod_selector })}</div>}
-                                {p.ip_block && <div style={{ fontSize: 10, opacity: 0.75 }}>{t('panels:policy.ipBlock', { block: p.ip_block })}</div>}
+                            <div key={pi} className="graph-node__peer">
+                                {p.namespace_selector && <div className="graph-node__meta">{t('panels:policy.namespaceSelector', { selector: p.namespace_selector })}</div>}
+                                {p.pod_selector && <div className="graph-node__meta">{t('panels:policy.podSelector', { selector: p.pod_selector })}</div>}
+                                {p.ip_block && <div className="graph-node__meta">{t('panels:policy.ipBlock', { block: p.ip_block })}</div>}
                                 {(p.ip_block_except ?? []).map((exc, ei) => (
-                                    <div key={ei} style={{ fontSize: 10, color: 'var(--red)', marginTop: 1 }}>
-                                        <VscCircleSlash size={9} style={{ marginRight: 3, verticalAlign: 'middle' }} />{' '}
+                                    <div key={ei} className="graph-node__meta graph-node__meta--err">
+                                        <VscCircleSlash size={9} />{' '}
                                         {t('panels:policy.except', { value: exc })}
                                     </div>
                                 ))}
@@ -356,7 +298,7 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
                     </div>
                 ),
             },
-            style: nodeEgress(),
+            ...flowNode('--cat-4', { minWidth: 180 }),
         });
 
         edges.push({
@@ -364,9 +306,8 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
             source: 'policy',
             target: nodeId,
             sourceHandle: 'right',
-            animated: true,
-            style: { stroke: themeColor('--amber') },
-            markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--amber') },
+            style: { stroke: themeColor('--cat-4') },
+            markerEnd: { type: MarkerType.ArrowClosed, color: themeColor('--cat-4') },
         });
     });
 
@@ -376,6 +317,7 @@ function buildGraph(detail: models.NetworkPolicyDetail, t: TFn): { nodes: Node[]
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function PolicyViewerPanel({ params }: IDockviewPanelProps<PolicyViewerPanelParams>) {
+    useMonacoTheme();
     const t = useT();
     // The graph's colors are resolved values (reactflow puts several of them in
     // SVG attributes), so a re-render is what repaints it after a theme switch.
@@ -518,19 +460,13 @@ export default function PolicyViewerPanel({ params }: IDockviewPanelProps<Policy
     };
 
     return (
-        <div
-            ref={containerRef}
-            style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', background: 'var(--app)' }}
-        >
+        <div ref={containerRef} className="graph-root">
             <Toast ref={toast} position="bottom-right" />
 
             {/* Toolbar */}
-            <div className="yaml-editor-toolbar flex align-items-center justify-content-between" style={{ flexShrink: 0 }}>
-                <span className="yaml-editor-toolbar__label flex align-items-center gap-1">
-                    <VscShield size={14} />
-                    {namespace}/{name}
-                </span>
-                <div className="flex align-items-center gap-1">
+            <div className="panel-toolbar">
+                <span className="panel-toolbar__label"><VscShield /> {namespace}/{name}</span>
+                <div className="panel-toolbar__actions">
                     <Button
                         label={t('panels:yaml.revert')}
                         icon={<VscDiscard size={16} />}
@@ -551,11 +487,9 @@ export default function PolicyViewerPanel({ params }: IDockviewPanelProps<Policy
             </div>
 
             {/* Top: ReactFlow */}
-            <div style={{ flex: `0 0 ${splitPct}%`, minHeight: 0, overflow: 'hidden', position: 'relative' }}>
+            <div className="graph-canvas graph-canvas--split" style={{ flexBasis: `${splitPct}%` }}>
                 {graphLoading ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--text-color-secondary)' }}>
-                        <CircularProgress size={24} />
-                    </div>
+                    <div className="graph-canvas__loading"><Spinner size={22} /></div>
                 ) : (
                     <ReactFlow
                         nodes={nodes}
@@ -569,23 +503,8 @@ export default function PolicyViewerPanel({ params }: IDockviewPanelProps<Policy
                         nodesConnectable={false}
                         elementsSelectable
                         onlyRenderVisibleElements
-                        style={{ background: 'var(--app)' }}
                     >
-                        <Background variant={BackgroundVariant.Dots} gap={20} size={1} color={themeColor('--line')} />
-                        <Controls
-                            style={{
-                                background: 'var(--panel2)',
-                                border: '1px solid var(--surface-border)',
-                                borderRadius: 8,
-                            }}
-                        />
-                        <MiniMap
-                            style={{
-                                background: 'var(--panel2)',
-                                border: '1px solid var(--surface-border)',
-                            }}
-                            nodeColor={themeColor('--violet')}
-                        />
+                        <GraphChrome nodeColor={(n) => kindOfNode(n.id)} />
                     </ReactFlow>
                 )}
             </div>
@@ -596,36 +515,25 @@ export default function PolicyViewerPanel({ params }: IDockviewPanelProps<Policy
                 aria-label={t('panels:policy.resizeDivider')}
                 onMouseDown={handleDividerMouseDown}
                 onKeyDown={handleDividerKeyDown}
-                style={{
-                    flexShrink: 0,
-                    height: 6,
-                    cursor: 'row-resize',
-                    background: 'var(--line)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    userSelect: 'none',
-                    border: 'none',
-                    padding: 0,
-                    width: '100%',
-                }}
+                className="graph-divider"
             >
-                <div style={{ width: 40, height: 3, borderRadius: 2, background: 'var(--ink3)' }} />
+                <span className="graph-divider__grip" />
             </button>
 
             {/* Bottom: YAML Editor */}
-            <div style={{ flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            <div className="graph-editor">
                 {yaml === null ? <PanelLoading /> : <Editor
                     height="100%"
                     defaultLanguage="yaml"
                     language="yaml"
                     value={yaml}
-                    theme={MONOLITH_THEME}
+                    theme={MONACO_THEME}
+                    beforeMount={defineMonacoTheme}
                     onMount={handleMount}
                     onChange={handleChange}
                     options={{
+                        ...MONACO_BASE_OPTIONS,
                         minimap: { enabled: true },
-                        fontSize: 13,
                         scrollBeyondLastLine: false,
                         wordWrap: 'on',
                         automaticLayout: true,

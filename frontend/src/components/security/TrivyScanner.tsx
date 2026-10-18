@@ -4,7 +4,6 @@ import { VscPlay, VscShield, VscLinkExternal, VscExport, VscStopCircle } from 'r
 
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
@@ -26,8 +25,7 @@ import {
 } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
-import { themeAlpha } from '../../lib/themeColors';
-import type { ThemeVar } from '../../lib/themeColors';
+import StatusLamp from '../shared/StatusLamp';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -103,20 +101,6 @@ const SEVERITY_ORDER: Record<string, number> = {
     CRITICAL: 5, HIGH: 4, MEDIUM: 3, LOW: 2, UNKNOWN: 1,
 };
 const SEVERITIES = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'UNKNOWN'];
-/**
- * Severity ramp, as palette variables so alternate themes re-skin it.
- *
- * Variables rather than colors because the tiles below tint their background
- * from the same entry, and `var(--red)` cannot be given an alpha by string
- * concatenation the way a hex could — `themeAlpha` does it instead.
- *
- * CRITICAL and HIGH share the palette's red and are told apart by the tile
- * label; there is no second red to spend that would read on every theme.
- */
-const SEVERITY_VAR: Record<string, ThemeVar> = {
-    CRITICAL: '--red', HIGH: '--red', MEDIUM: '--amber',
-    LOW: '--blue', UNKNOWN: '--ink3',
-};
 
 function severitySeverity(sev: string): 'danger' | 'warning' | 'info' | undefined {
     switch (sev) {
@@ -166,8 +150,10 @@ const escapeHtml = (s: string) =>
 
 // ─── SeverityTag ──────────────────────────────────────────────────────────────
 
+// A severity is a state of the finding, so a lamp: ■ critical/high, ▲ medium,
+// ◆ low, ○ unknown — the shape says it before the colour does.
 function SeverityTag({ sev }: { sev: string }) {
-    return <Tag value={sev} severity={severitySeverity(sev)} />;
+    return <StatusLamp label={sev} severity={severitySeverity(sev)} />;
 }
 
 // ─── Finding detail modal ─────────────────────────────────────────────────────
@@ -208,9 +194,9 @@ type DetailFinding = {
 function DetailRow({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
     if (!value) return null;
     return (
-        <div className="flex flex-column gap-1">
-            <span className="text-color-secondary text-xs uppercase font-semibold">{label}</span>
-            <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: mono ? 'monospace' : undefined }}>{value}</span>
+        <div className="trivy-detail">
+            <span className="trivy-detail__label">{label}</span>
+            <span className={`trivy-detail__value${mono ? ' trivy-detail__value--mono' : ''}`}>{value}</span>
         </div>
     );
 }
@@ -221,18 +207,18 @@ function FindingDetailDialog({ finding, onHide }: { finding: DetailFinding | nul
     const res = finding.resource;
     const resourceLine = [res.kind, res.namespace ? `${res.namespace}/${res.name}` : res.name]
         .filter(Boolean)
-        .join('  •  ');
+        .join(' ');
     return (
         <Dialog
             visible={!!finding}
             onHide={onHide}
             dismissableMask
-            style={{ width: 'min(960px, 94vw)' }}
+            className="trivy-detail-dialog"
             header={
-                <div className="flex align-items-center gap-2 flex-wrap">
+                <div className="trivy-detail-head">
                     <SeverityTag sev={finding.severity} />
-                    {finding.idLabel && <span className="font-semibold">{finding.idLabel}</span>}
-                    <span className="text-color-secondary">{finding.title}</span>
+                    {finding.idLabel && <span className="trivy-detail-head__id">{finding.idLabel}</span>}
+                    <span className="trivy-detail-head__title">{finding.title}</span>
                 </div>
             }
         >
@@ -241,25 +227,18 @@ function FindingDetailDialog({ finding, onHide }: { finding: DetailFinding | nul
                 <DetailRow label={t('panels:trivy.detailDescription')} value={finding.description} />
                 <DetailRow label={t('panels:trivy.detailDetails')} value={finding.details} mono={finding.kind === 'secret'} />
 
-                <div
-                    className="flex flex-column gap-1 p-3 border-round"
-                    style={{ background: 'rgba(74, 123, 181, 0.12)', border: '1px solid rgba(74, 123, 181, 0.4)' }}
-                >
-                    <span className="text-xs uppercase font-semibold" style={{ color: 'var(--blue)' }}>
-                        {t('panels:trivy.recommendation')}
-                    </span>
-                    <span style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                        {finding.recommendation || t('panels:trivy.noRemediation')}
-                    </span>
+                <div className="trivy-rec">
+                    <span className="trivy-detail__label">{t('panels:trivy.recommendation')}</span>
+                    <span className="trivy-detail__value">{finding.recommendation || t('panels:trivy.noRemediation')}</span>
                 </div>
 
                 {finding.references.length > 0 && (
                     <div className="flex flex-column gap-1">
-                        <span className="text-color-secondary text-xs uppercase font-semibold">{t('panels:trivy.references')}</span>
+                        <span className="trivy-detail__label">{t('panels:trivy.references')}</span>
                         <ul className="m-0 pl-3 flex flex-column gap-1">
                             {finding.references.map((url) => (
                                 <li key={url}>
-                                    <a className="text-primary cursor-pointer" style={{ wordBreak: 'break-all' }} onClick={() => BrowserOpenURL(url)}>
+                                    <a className="trivy-link" onClick={() => BrowserOpenURL(url)}>
                                         {url}
                                     </a>
                                 </li>
@@ -345,63 +324,39 @@ function vulnToFinding(r: VulnRow): DetailFinding {
 
 type SummaryCategory = { label: string; counts: Record<string, number> };
 
-// A count cell — colored by its severity, dimmed when zero.
-function SeverityCount({ sev, value }: { sev: string; value: number }) {
-    const active = value > 0;
-    return (
-        <div
-            className="flex flex-column align-items-center justify-content-center border-round py-2 px-1"
-            style={{
-                background: active ? themeAlpha(SEVERITY_VAR[sev], 0.13) : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${active ? themeAlpha(SEVERITY_VAR[sev], 0.4) : 'rgba(255,255,255,0.06)'}`,
-                minWidth: 0,
-            }}
-        >
-            <span
-                className="font-semibold"
-                style={{ fontSize: '1.1rem', lineHeight: 1.1, color: active ? `var(${SEVERITY_VAR[sev]})` : 'var(--ink)', opacity: active ? 1 : 0.4 }}
-            >
-                {value}
-            </span>
-            <span className="text-xs uppercase font-semibold mt-1" style={{ color: `var(${SEVERITY_VAR[sev]})`, opacity: active ? 0.85 : 0.35 }}>
-                {sev}
-            </span>
-        </div>
-    );
-}
-
-// Aligned grid of all finding categories: one row per category, one column per
-// severity (plus a Total), so the counts line up neatly instead of wrapping.
+// Aligned table of all finding categories: one row per category, one column
+// per severity plus a total. A readout, not a wall of tinted tiles: a count is
+// only coloured when it is non-zero, and the header carries each severity's
+// lamp, so the colour is never the only cue.
 function SummaryGrid({ categories }: { categories: SummaryCategory[] }) {
+    const t = useT();
     const visible = categories.filter((c) => Object.values(c.counts).reduce((a, b) => a + b, 0) > 0);
     if (visible.length === 0) return null;
     return (
-        <div className="flex flex-column gap-2">
-            {visible.map((cat) => {
-                const total = Object.values(cat.counts).reduce((a, b) => a + b, 0);
-                return (
-                    <div
-                        key={cat.label}
-                        className="grid grid-nogutter align-items-center gap-2 p-2 border-round"
-                        style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
-                    >
-                        <div className="col-12 md:col-2 flex align-items-center gap-2">
-                            <span className="font-semibold text-sm">{cat.label}</span>
-                            <Tag value={`${total}`} rounded />
-                        </div>
-                        <div className="col-12 md:col-10">
-                            <div className="grid grid-nogutter" style={{ gap: 8 }}>
-                                {SEVERITIES.map((s) => (
-                                    <div key={s} style={{ flex: '1 1 0', minWidth: 64 }}>
-                                        <SeverityCount sev={s} value={cat.counts[s] || 0} />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                );
-            })}
-        </div>
+        <table className="trivy-summary">
+            <thead>
+                <tr>
+                    <th />
+                    {SEVERITIES.map((s) => <th key={s}><SeverityTag sev={s} /></th>)}
+                    <th>{t('panels:trivy.total')}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {visible.map((cat) => {
+                    const total = Object.values(cat.counts).reduce((a, b) => a + b, 0);
+                    return (
+                        <tr key={cat.label}>
+                            <th scope="row">{cat.label}</th>
+                            {SEVERITIES.map((s) => {
+                                const n = cat.counts[s] || 0;
+                                return <td key={s} className={n > 0 ? `trivy-summary__n trivy-summary__n--${severitySeverity(s) ?? 'none'}` : 'trivy-summary__n trivy-summary__n--zero'}>{n}</td>;
+                            })}
+                            <td className="trivy-summary__n trivy-summary__n--total">{total}</td>
+                        </tr>
+                    );
+                })}
+            </tbody>
+        </table>
     );
 }
 
@@ -535,7 +490,7 @@ function SecretTable({ rows, scanning }: { rows: SecretRow[]; scanning: boolean 
             <Column field="resourceName" header={t('resources:column.resource')} sortable filter />
             <Column field="namespace" header={t('resources:column.namespace')} sortable style={{ width: 130 }} />
             <Column field="title" header={t('resources:column.title')} />
-            <Column field="match" header={t('resources:column.match')} style={{ maxWidth: 220, fontFamily: 'monospace', fontSize: '0.8em' }} />
+            <Column field="match" header={t('resources:column.match')} className="cell-mono" style={{ maxWidth: 220 }} />
         </DataTable>
         <FindingDetailDialog finding={selected} onHide={() => setSelected(null)} />
         </>
@@ -556,13 +511,13 @@ const defaultVulnFilters: DataTableFilterMeta = {
 const cveBody = (r: VulnRow) => {
     const url = vulnUrl(r.vulnerabilityID, r.primaryURL);
     return url ? (
-        <a className="flex align-items-center gap-1 text-primary cursor-pointer" onClick={() => BrowserOpenURL(url)}>
+        <a className="trivy-link trivy-link--inline" onClick={() => BrowserOpenURL(url)}>
             {r.vulnerabilityID} <VscLinkExternal />
         </a>
     ) : <span>{r.vulnerabilityID}</span>;
 };
 const fixedBody = (r: VulnRow) =>
-    r.fixedVersion ? <span>{r.fixedVersion}</span> : <span className="text-color-secondary">—</span>;
+    r.fixedVersion ? <span>{r.fixedVersion}</span> : <span className="trivy-muted">—</span>;
 
 function VulnTable({ rows, scanning, showImageColumn }: { rows: VulnRow[]; scanning: boolean; showImageColumn: boolean }) {
     const t = useT();
@@ -604,7 +559,7 @@ function VulnTable({ rows, scanning, showImageColumn }: { rows: VulnRow[]; scann
             <Column field="pkgName" header={t('resources:column.package')} sortable filter />
             <Column field="installedVersion" header={t('resources:column.installed')} style={{ width: 110 }} />
             <Column field="fixedVersion" header={t('resources:column.fixed')} body={fixedBody} style={{ width: 110 }} />
-            {showImageColumn && <Column field="image" header={t('resources:column.image')} sortable filter style={{ maxWidth: 280 }} />}
+            {showImageColumn && <Column field="image" header={t('resources:column.image')} sortable filter className="cell-mono" style={{ maxWidth: 280 }} />}
             <Column field="resourceKind" header={t('resources:column.kind')} sortable filter style={{ width: 110 }} />
             <Column field="resourceName" header={t('resources:column.resource')} sortable filter />
             <Column field="title" header={t('resources:column.title')} />
@@ -617,6 +572,7 @@ function VulnTable({ rows, scanning, showImageColumn }: { rows: VulnRow[]; scann
 // ─── useK8sScan hook ──────────────────────────────────────────────────────────
 
 function useK8sScan(clusterName: string, pushToast: PushToast) {
+    const t = useT();
     const [misconfigRows, setMisconfigRows] = useState<MisconfigRow[]>([]);
     const [secretRows, setSecretRows] = useState<SecretRow[]>([]);
     const [vulnRows, setVulnRows] = useState<VulnRow[]>([]);
@@ -671,7 +627,7 @@ function useK8sScan(clusterName: string, pushToast: PushToast) {
 
         const offError = EventsOn(`trivy:k8s:error:${scanId}`, (err: string) => {
             setError(err);
-            pushToast('error', 'K8s scan failed', err);
+            pushToast('error', t('panels:trivy.toastK8sFailed'), err);
         });
 
         return () => { offProgress(); offDone(); offError(); };
@@ -690,19 +646,19 @@ function useK8sScan(clusterName: string, pushToast: PushToast) {
 
         try {
             // Phase 1: misconfig + secret (async via events; runs concurrently with phase 2)
-            setLog('[fetch] Starting K8s resource scan…');
+            setLog(`[fetch] ${t('panels:trivy.logStartK8s')}`);
             TrivyStartK8sScan(scanId, clusterName, namespace).catch((e: any) => {
                 setError(String(e));
-                pushToast('error', 'K8s scan failed', String(e));
+                pushToast('error', t('panels:trivy.toastK8sFailed'), String(e));
             });
 
             // Phase 2: vulnerability (sequential image scanning)
-            setLog('[vuln] Listing pod images…');
+            setLog(`[vuln] ${t('panels:trivy.logListing')}`);
             let images: models.TrivyK8sImageInfo[] = [];
             try {
                 images = await TrivyListPodImagesWithContext(clusterName, namespace);
             } catch (e: any) {
-                pushToast('warn', 'Could not list images', String(e));
+                pushToast('warn', t('panels:trivy.toastListFailed'), String(e));
             }
 
             if (images.length > 0) {
@@ -711,11 +667,11 @@ function useK8sScan(clusterName: string, pushToast: PushToast) {
                 for (let i = 0; i < images.length; i++) {
                     const imgInfo = images[i];
                     setVulnProgress({ current: i + 1, total: images.length, image: imgInfo.image });
-                    setLog(`[vuln] [${i + 1}/${images.length}] scanning ${imgInfo.image}${i === 0 ? '  ·  (first run may download vuln DB)' : '…'}`);
+                    setLog(`[vuln] ${t('panels:trivy.logScanning', { image: imgInfo.image, current: i + 1, total: images.length })}${i === 0 ? ` ${t('panels:trivy.logFirstRun')}` : ''}`);
                     try {
                         const res = await TrivyScanImage(clusterName, imgInfo.image);
                         if (res.error) {
-                            pushToast('warn', `Scan issue: ${imgInfo.image}`, res.error);
+                            pushToast('warn', t('panels:trivy.toastScanIssue', { image: imgInfo.image }), res.error);
                         } else {
                             const found = rowsFromResult(imgInfo, res);
                             acc.push(...found);
@@ -724,12 +680,12 @@ function useK8sScan(clusterName: string, pushToast: PushToast) {
                             setVulnSummary({ ...summ });
                         }
                     } catch (e: any) {
-                        pushToast('error', `Failed to scan ${imgInfo.image}`, String(e));
+                        pushToast('error', t('panels:trivy.toastScanFailed', { image: imgInfo.image }), String(e));
                     }
                 }
-                setLog(`[vuln] ✓ done — ${acc.length} finding(s) across ${images.length} image(s)`);
+                setLog(`[vuln] ${t('panels:trivy.logDone', { findings: acc.length, images: images.length })}`);
             } else {
-                setLog('[vuln] No images found to scan.');
+                setLog(`[vuln] ${t('panels:trivy.logNoImages')}`);
             }
         } finally {
             setScanning(false);
@@ -741,7 +697,7 @@ function useK8sScan(clusterName: string, pushToast: PushToast) {
         TrivyStopK8sScan(scanId).catch(() => {});
         setScanning(false);
         setVulnProgress(null);
-        setLog('Scan cancelled.');
+        setLog(t('panels:trivy.logCancelled'));
     };
 
     return {
@@ -755,6 +711,7 @@ function useK8sScan(clusterName: string, pushToast: PushToast) {
 // ─── useImageScanner (for standalone Image Scan tab) ──────────────────────────
 
 function useImageScanner(clusterName: string, pushToast: PushToast) {
+    const t = useT();
     const [rows, setRows] = useState<VulnRow[]>([]);
     const [scanning, setScanning] = useState(false);
     const [progress, setProgress] = useState<Progress>(null);
@@ -762,21 +719,21 @@ function useImageScanner(clusterName: string, pushToast: PushToast) {
     const [error, setError] = useState('');
 
     const scanImages = async (images: string[]) => {
-        if (images.length === 0) { setError('No images found.'); return; }
+        if (images.length === 0) { setError(t('panels:trivy.logNoImages')); return; }
         setError('');
         setRows([]);
         setScanning(true);
-        setLog(`$ trivy scan — ${images.length} image(s) queued`);
+        setLog(`$ trivy image  ${t('panels:trivy.logQueued', { count: images.length })}`);
         const acc: VulnRow[] = [];
         try {
             for (let i = 0; i < images.length; i++) {
                 const image = images[i];
                 setProgress({ current: i + 1, total: images.length, image });
-                setLog(`[${i + 1}/${images.length}] scanning ${image}${i === 0 ? '  ·  first run: downloading vulnerability DB…' : '…'}`);
+                setLog(`${t('panels:trivy.logScanning', { image, current: i + 1, total: images.length })}${i === 0 ? ` ${t('panels:trivy.logFirstRun')}` : ''}`);
                 try {
                     const res = await TrivyScanImage(clusterName, image);
                     if (res.error) {
-                        pushToast('warn', `Scan issue: ${image}`, res.error);
+                        pushToast('warn', t('panels:trivy.toastScanIssue', { image }), res.error);
                     } else {
                         // plain image scan — no resource context
                         const fakeInfo: models.TrivyK8sImageInfo = { image, resourceKind: '', resourceName: '', namespace: '' };
@@ -785,11 +742,11 @@ function useImageScanner(clusterName: string, pushToast: PushToast) {
                         setRows([...acc]);
                     }
                 } catch (e: any) {
-                    pushToast('error', `Failed to scan ${image}`, String(e));
+                    pushToast('error', t('panels:trivy.toastScanFailed', { image }), String(e));
                 }
             }
-            setLog(`✓ done — ${acc.length} finding(s) across ${images.length} image(s)`);
-            if (acc.length === 0) pushToast('success', 'No vulnerabilities found');
+            setLog(t('panels:trivy.logDone', { findings: acc.length, images: images.length }));
+            if (acc.length === 0) pushToast('success', t('panels:trivy.toastNoVulns'));
         } finally {
             setScanning(false);
             setProgress(null);
@@ -825,9 +782,7 @@ function K8sSecurityTab({
                 ) : (
                     <Button label={t('panels:trivy.stop')} icon={<VscStopCircle />} severity="danger" outlined onClick={stopScan} />
                 )}
-                <span className="text-color-secondary text-sm">
-                    {t('panels:trivy.clusterHint')}
-                </span>
+                <span className="trivy-muted">{t('panels:trivy.clusterHint')}</span>
             </div>
 
             {/* Progress */}
@@ -839,7 +794,7 @@ function K8sSecurityTab({
                         {scanning && <span className="trivy-console__caret" />}
                     </div>
                     {vulnProgress && (
-                        <ProgressBar value={Math.round((vulnProgress.current / vulnProgress.total) * 100)} showValue={false} style={{ height: 6 }} />
+                        <ProgressBar value={Math.round((vulnProgress.current / vulnProgress.total) * 100)} showValue={false} className="trivy-progress" />
                     )}
                 </div>
             )}
@@ -891,7 +846,7 @@ function ImageScanTab({
     const t = useT();
     const run = () => {
         const ref = imageInput.trim();
-        if (!ref) { pushToast('warn', 'Enter an image', 'e.g. nginx:1.25 or registry/repo:tag'); return; }
+        if (!ref) { pushToast('warn', t('panels:trivy.toastEnterImage'), t('panels:trivy.toastEnterImageHint')); return; }
         scanner.scanImages([ref]);
     };
 
@@ -939,14 +894,16 @@ function ImageScanTab({
                         <span className="trivy-console__text">{scanner.log}</span>
                         <span className="trivy-console__caret" />
                     </div>
-                    <ProgressBar value={Math.round((scanner.progress.current / scanner.progress.total) * 100)} showValue={false} style={{ height: 6 }} />
+                    <ProgressBar value={Math.round((scanner.progress.current / scanner.progress.total) * 100)} showValue={false} className="trivy-progress" />
                 </div>
             )}
 
             {scanner.rows.length > 0 && (
-                <div className="flex flex-wrap gap-2 align-items-center">
-                    {SEVERITIES.map((s) => summary[s] ? <Tag key={s} value={`${s}: ${summary[s]}`} severity={severitySeverity(s)} /> : null)}
-                    <Tag value={`Total: ${scanner.rows.length}`} />
+                <div className="trivy-tally">
+                    {SEVERITIES.map((s) => summary[s] ? (
+                        <span key={s} className="trivy-tally__item"><SeverityTag sev={s} /><span className="cell-count">{summary[s]}</span></span>
+                    ) : null)}
+                    <span className="trivy-tally__item trivy-tally__item--total">{t('panels:trivy.total')} <span className="cell-count">{scanner.rows.length}</span></span>
                 </div>
             )}
 
@@ -982,13 +939,12 @@ export default function TrivyScanner({ clusterName }: { clusterName: string }) {
     const imageScanner = useImageScanner(clusterName, pushToast);
 
     return (
-        <div className="flex flex-column h-full p-3 gap-3" style={{ overflow: 'auto' }}>
+        <div className="trivy-root">
             <Toast ref={toast} />
 
-            <div className="flex align-items-center gap-2">
-                <VscShield size={18} />
-                <span className="font-semibold">{t('panels:trivy.title')}</span>
-                <span className="text-color-secondary text-sm">• {clusterName}</span>
+            <div className="mon-header">
+                <VscShield /> <span>{t('panels:trivy.title')}</span>
+                {clusterName && <span className="mon-cluster">{clusterName}</span>}
             </div>
 
             <TabView>

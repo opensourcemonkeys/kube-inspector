@@ -1,206 +1,212 @@
 /* ════════════════════════════════════════════════════════════════
-   kube-ins docs theme — re-skins MkDocs Material with the app's
-   "monolith" palette (frontend/src/theme-monolith.css): deep blue-grey
-   surfaces + teal accent, Inter / JetBrains Mono.
+   kube-ins docs theme — re-skins MkDocs Material with the desktop
+   app's default "graphite" palette (frontend/src/theme-monolith.css):
+   a graphite bezel around a darker screen, warm off-white ink, one
+   accent in the logo's sky blue; IBM Plex Sans / IBM Plex Mono.
+
+   The app's rules carry over: the accent marks the one thing to act
+   on (the Download key, the current page) and nothing else; links are
+   the info blue; no gradients, glows, tracked capitals or pills; the
+   only motion is a one-time reveal and hover feedback.
    ════════════════════════════════════════════════════════════════ */
 
 :root {
-  /* App palette (mirrors theme-monolith.css :root) */
-  --ki-app:    #080b11;
-  --ki-panel:  #0c1017;
-  --ki-panel2: #11161f;
-  --ki-panel3: #151b26;
-  --ki-line:   #1a212e;
-  --ki-line2:  #252e3f;
-  --ki-ink:    #e7eaf0;
-  --ki-ink2:   #98a1b3;
-  --ki-ink3:   #5c6779;
-  --ki-teal:   #3fc8b4;
-  --ki-green:  #5fc98a;
-  --ki-amber:  #e2a85a;
-  --ki-red:    #e07d6e;
-  --ki-blue:   #6ea8e6;
+  /* Mirrors theme-monolith.css :root (graphite) */
+  --ki-screen:   #17191b;   /* page ground — the "screen" */
+  --ki-screen-2: #1e2124;   /* raised surface inside the screen */
+  --ki-code:     #121416;   /* code blocks — the app's --screen-dark */
+  --ki-bezel:    #24282c;   /* header, tabs, hero band — the "bezel" */
+  --ki-bezel-2:  #2d3237;   /* keys, chips, search field */
+  --ki-line:     #2c3034;
+  --ki-line2:    #3a4045;
+  --ki-ink:      #ece6d9;
+  --ki-ink2:     #b8b3a7;
+  --ki-ink3:     #9e9a92;
+  --ki-accent:   #58bde8;
+  --ki-on-accent:#06151d;
+  --ki-ok:       #7fb685;
+  --ki-warn:     #e3c84b;
+  --ki-err:      #e9786a;
+  --ki-info:     #9ea6ec;
 
-  --md-text-font: "Inter";
-  --md-code-font: "JetBrains Mono";
+  --ki-shadow-2: 0 8px 24px rgba(0, 0, 0, .4);
+  --ki-shadow-3: 0 24px 60px rgba(0, 0, 0, .55);
+
+  --md-text-font: "IBM Plex Sans";
+  --md-code-font: "IBM Plex Mono";
 }
 
-/* ── Dark scheme (slate) — matches the desktop app ───────────────── */
+/* ── Dark scheme (slate) — the only one the site uses ─────────────── */
 [data-md-color-scheme="slate"] {
-  --md-default-bg-color:           var(--ki-app);
+  --md-default-bg-color:           var(--ki-screen);
   --md-default-fg-color:           var(--ki-ink);
   --md-default-fg-color--light:    var(--ki-ink2);
   --md-default-fg-color--lighter:  var(--ki-ink3);
-  --md-default-fg-color--lightest: rgba(231, 234, 240, 0.07);
+  --md-default-fg-color--lightest: color-mix(in srgb, var(--ki-ink) 7%, transparent);
 
-  /* Header / nav rail use the panel surface for a dark brand bar */
-  --md-primary-fg-color:        var(--ki-panel);
-  --md-primary-fg-color--light: var(--ki-panel2);
-  --md-primary-fg-color--dark:  var(--ki-app);
+  /* Header and tab bar are the bezel */
+  --md-primary-fg-color:        var(--ki-bezel);
+  --md-primary-fg-color--light: var(--ki-bezel-2);
+  --md-primary-fg-color--dark:  var(--ki-screen);
   --md-primary-bg-color:        var(--ki-ink);
   --md-primary-bg-color--light: var(--ki-ink2);
 
-  --md-accent-fg-color:             var(--ki-teal);
-  --md-accent-fg-color--transparent: rgba(63, 200, 180, 0.1);
+  --md-accent-fg-color:              var(--ki-accent);
+  --md-accent-fg-color--transparent: color-mix(in srgb, var(--ki-accent) 10%, transparent);
 
-  --md-typeset-a-color: var(--ki-teal);
+  --md-typeset-a-color: var(--ki-info);
 
-  --md-code-bg-color: var(--ki-panel2);
+  --md-code-bg-color: var(--ki-code);
   --md-code-fg-color: var(--ki-ink);
 
-  --md-footer-bg-color:      var(--ki-panel);
-  --md-footer-bg-color--dark: var(--ki-app);
-  --md-footer-fg-color:      var(--ki-ink2);
+  --md-footer-bg-color:       var(--ki-bezel);
+  --md-footer-bg-color--dark: var(--ki-screen);
+  --md-footer-fg-color:       var(--ki-ink2);
 
-  --md-typeset-mark-color: rgba(63, 200, 180, 0.28);
-}
-
-/* ── Light scheme (default) — keeps the dark brand bar + teal accent */
-[data-md-color-scheme="default"] {
-  --md-primary-fg-color:        var(--ki-panel);
-  --md-primary-fg-color--light: var(--ki-panel2);
-  --md-primary-fg-color--dark:  var(--ki-app);
-  --md-primary-bg-color:        var(--ki-ink);
-
-  /* darker teal so links stay readable on white */
-  --md-accent-fg-color: #0f7a6b;
-  --md-typeset-a-color: #0f7a6b;
+  --md-typeset-mark-color: color-mix(in srgb, var(--ki-accent) 28%, transparent);
 }
 
 /* ════════════════════════════════════════════════════════════════
    Component polish
    ════════════════════════════════════════════════════════════════ */
 
-/* Hairline under the header, like the app's --line dividers */
 [data-md-color-scheme="slate"] .md-header {
   border-bottom: 1px solid var(--ki-line);
   box-shadow: none;
 }
+[data-md-color-scheme="slate"] .md-tabs {
+  background: var(--ki-bezel);
+  border-bottom: 1px solid var(--ki-line);
+}
+.md-header__title { font-weight: 600; }
 
-/* Inline code: subtle bordered chip */
+/* Body type: Plex at the app's weights — 400 text, 600 headings, no 700+ */
+.md-typeset h1, .md-typeset h2 { font-weight: 600; letter-spacing: -0.01em; color: var(--ki-ink); }
+.md-typeset h3, .md-typeset h4 { font-weight: 600; }
+.md-typeset strong { font-weight: 600; }
+.md-typeset { font-variant-numeric: tabular-nums; }
+
+/* A link reads as a link; it turns to the accent only under the pointer */
+[data-md-color-scheme="slate"] .md-typeset a:hover { color: var(--ki-accent); }
+
+/* Inline code: a quiet mono chip, the app's control radius */
 [data-md-color-scheme="slate"] .md-typeset code {
   border: 1px solid var(--ki-line);
-  border-radius: 4px;
+  border-radius: 3px;
 }
-
-/* Fenced code blocks sit on the deeper panel2 surface */
+/* Fenced code sits on the darker display surface, recessed like the app's editor */
 [data-md-color-scheme="slate"] .md-typeset pre > code {
   border: 1px solid var(--ki-line);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .35);
 }
 
-/* Tables — header strip matches the app's DataTable headers */
+/* Tables — the app's DataTable: bezel header, horizontal rules only */
+[data-md-color-scheme="slate"] .md-typeset table:not([class]) {
+  border: 1px solid var(--ki-line);
+  border-radius: 6px;
+}
 [data-md-color-scheme="slate"] .md-typeset table:not([class]) th {
-  background: var(--ki-panel);
+  background: var(--ki-bezel);
   color: var(--ki-ink2);
+  font-weight: 500;
   border-bottom: 1px solid var(--ki-line);
 }
 [data-md-color-scheme="slate"] .md-typeset table:not([class]) td {
   border-top: 1px solid var(--ki-line);
 }
 
-/* Active nav item gets the teal accent */
+/* The current page in the nav: the accent marks where you are */
 [data-md-color-scheme="slate"] .md-nav__link--active,
 [data-md-color-scheme="slate"] .md-nav__item .md-nav__link--active {
-  color: var(--ki-teal);
+  color: var(--ki-accent);
 }
 
-/* Tabs bar (navigation.tabs) on the panel surface with teal active underline */
-[data-md-color-scheme="slate"] .md-tabs {
-  background: var(--ki-panel);
-  border-bottom: 1px solid var(--ki-line);
-}
-
-/* Text selection in teal */
 [data-md-color-scheme="slate"] ::selection {
-  background: rgba(63, 200, 180, 0.28);
+  background: color-mix(in srgb, var(--ki-accent) 28%, transparent);
   color: var(--ki-ink);
 }
 
-/* Search box on the input surface */
+/* Search box: a recessed field set into the bezel */
 [data-md-color-scheme="slate"] .md-search__form {
-  background: var(--ki-panel2);
+  background: var(--ki-screen);
   border: 1px solid var(--ki-line2);
+  border-radius: 3px;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .35);
 }
-[data-md-color-scheme="slate"] .md-search__form:hover {
-  background: var(--ki-panel3);
-}
+[data-md-color-scheme="slate"] .md-search__form:hover { background: var(--ki-screen-2); }
 
-/* Buttons (.md-button) — primary uses teal like the app accent buttons */
-[data-md-color-scheme="slate"] .md-typeset .md-button--primary {
-  background: var(--ki-teal);
-  border-color: var(--ki-teal);
-  color: var(--ki-app);
+/* Buttons — the app's keys. Primary is the accent fill with a top light
+   and a hard bottom edge; secondary is a neutral raised key. */
+[data-md-color-scheme="slate"] .md-typeset .md-button,
+[data-md-color-scheme="slate"] .ki-hero__cta .md-button {
+  border-radius: 6px;
+  border: 1px solid var(--ki-line2);
+  background: var(--ki-bezel-2);
+  color: var(--ki-ink);
+  font-weight: 500;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 1px 0 rgba(0, 0, 0, .3);
+  transition: background-color 120ms, border-color 120ms, color 120ms;
 }
-[data-md-color-scheme="slate"] .md-typeset .md-button--primary:hover {
-  filter: brightness(1.08);
+[data-md-color-scheme="slate"] .md-typeset .md-button:hover,
+[data-md-color-scheme="slate"] .ki-hero__cta .md-button:hover {
+  background: #353a40;
+  border-color: var(--ki-line2);
+  color: var(--ki-ink);
+}
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary,
+[data-md-color-scheme="slate"] .ki-hero__cta .md-button--primary {
+  background: var(--ki-accent);
+  border-color: color-mix(in srgb, var(--ki-accent), black 18%);
+  color: var(--ki-on-accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 1px 0 rgba(0, 0, 0, .3);
+}
+[data-md-color-scheme="slate"] .md-typeset .md-button--primary:hover,
+[data-md-color-scheme="slate"] .ki-hero__cta .md-button--primary:hover {
+  background: color-mix(in srgb, var(--ki-accent), white 10%);
+  border-color: color-mix(in srgb, var(--ki-accent), black 12%);
+  color: var(--ki-on-accent);
+}
+[data-md-color-scheme="slate"] .md-typeset .md-button:active,
+[data-md-color-scheme="slate"] .ki-hero__cta .md-button:active {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, .4);
+}
+[data-md-color-scheme="slate"] .md-typeset .md-button:focus-visible,
+[data-md-color-scheme="slate"] .ki-hero__cta .md-button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ki-accent) 70%, transparent);
 }
 
 /* ════════════════════════════════════════════════════════════════
-   LANDING PAGE — VS Code-style hero + feature cards
+   LANDING PAGE — hero on the bezel, screenshots as screens set into it
    ════════════════════════════════════════════════════════════════ */
 .ki-hero {
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(180deg, var(--ki-panel) 0%, var(--ki-app) 100%);
+  background: var(--ki-bezel);
   border-bottom: 1px solid var(--ki-line);
 }
-/* Static, soft aurora glow behind the hero title (no motion) */
-.ki-hero::before {
-  content: "";
-  position: absolute;
-  inset: -30% -20% auto;
-  height: 92%;
-  z-index: 0;
-  background:
-    radial-gradient(44% 56% at 50% 28%, rgba(63, 200, 180, 0.17), transparent 62%),
-    radial-gradient(40% 48% at 78% 40%, rgba(110, 168, 230, 0.09), transparent 60%);
-  filter: blur(52px);
-  pointer-events: none;
-}
-/* Faint static grid, faded out toward the edges — texture, not motion */
-.ki-hero::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  background-image:
-    linear-gradient(rgba(63, 200, 180, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(63, 200, 180, 0.035) 1px, transparent 1px);
-  background-size: 48px 48px;
-  -webkit-mask-image: radial-gradient(60% 56% at 50% 32%, #000 18%, transparent 76%);
-  mask-image: radial-gradient(60% 56% at 50% 32%, #000 18%, transparent 76%);
-  pointer-events: none;
-}
 .ki-hero__inner {
-  position: relative;
-  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 5.5rem 1rem 4.5rem;
+  padding: 4.5rem 1rem 4rem;
 }
 .ki-hero__logo {
-  width: 76px;
-  height: 76px;
-  margin-bottom: 1.6rem;
-  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.5));
+  width: 56px;
+  height: 56px;
+  margin-bottom: 1.5rem;
 }
 .ki-hero__title {
   margin: 0;
-  font-size: 3.5rem;
-  line-height: 1.04;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  background: linear-gradient(180deg, var(--ki-ink) 0%, #b7c4d6 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-size: 3.25rem;
+  line-height: 1.08;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  color: var(--ki-ink);
 }
 .ki-hero__tagline {
-  margin: 1.25rem 0 0;
+  margin: 1.1rem 0 0;
   max-width: 40rem;
-  font-size: 1.2rem;
+  font-size: 1.15rem;
   line-height: 1.55;
   color: var(--ki-ink2);
 }
@@ -211,38 +217,13 @@
   justify-content: center;
   margin-top: 2.4rem;
 }
-.ki-hero__cta .md-button {
-  min-width: 9.5rem;
-  padding: 0.55rem 1.25rem;
-}
-
-/* Make the primary "Download" CTA pop: teal gradient + glow + lift */
-.ki-hero__cta .md-button--primary,
-[data-md-color-scheme="slate"] .ki-hero__cta .md-typeset .md-button--primary {
-  padding: 0.8rem 2.2rem;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: var(--ki-app);
-  border: 0;
-  border-radius: 10px;
-  background: linear-gradient(135deg, #62e3cf 0%, var(--ki-teal) 55%, #2bb6a2 100%);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    0 8px 24px rgba(63, 200, 180, 0.26);
-  transition: transform 0.18s ease, box-shadow 0.22s ease, filter 0.22s ease;
-}
-.ki-hero__cta .md-button--primary:hover,
-[data-md-color-scheme="slate"] .ki-hero__cta .md-typeset .md-button--primary:hover {
-  transform: translateY(-2px);
-  filter: brightness(1.05);
-  color: var(--ki-app);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 14px 34px rgba(63, 200, 180, 0.42);
-}
-.ki-hero__cta .md-button--primary:active {
-  transform: translateY(0);
+.ki-hero__cta .md-button { min-width: 9.5rem; }
+/* The Download key is the page's one primary action: larger, same key */
+[data-md-color-scheme="slate"] .ki-hero__cta .md-button--primary,
+.ki-hero__cta .md-button--primary {
+  padding: 0.7rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 /* Hide the auto-rendered page H1 on the landing page (the hero supplies it) */
@@ -250,90 +231,62 @@
 .md-typeset .ki-features { margin-top: 1.5rem; }
 
 @media screen and (max-width: 44.9375em) {
-  .ki-hero__title { font-size: 2.25rem; }
-  .ki-hero__tagline { font-size: 1.05rem; }
-  .ki-hero__inner { padding: 3.25rem 1rem 3rem; }
-  .ki-hero__logo { width: 64px; height: 64px; margin-bottom: 1.25rem; }
+  .ki-hero__title { font-size: 2.2rem; }
+  .ki-hero__tagline { font-size: 1.02rem; }
+  .ki-hero__inner { padding: 3rem 1rem 2.75rem; }
+  .ki-hero__logo { width: 48px; height: 48px; margin-bottom: 1.1rem; }
 }
 
-/* Feature cards — subtle lift on hover, teal top accent (slate scheme) */
+/* Feature cards — panels on the screen, no lift; the border answers hover */
 [data-md-color-scheme="slate"] .md-typeset .ki-features > ul > li,
 [data-md-color-scheme="slate"] .md-typeset .grid.cards > ul > li {
-  position: relative;
-  background: var(--ki-panel);
+  background: var(--ki-screen-2);
   border: 1px solid var(--ki-line);
-  border-radius: 12px;
-  overflow: hidden;
-  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 6px;
+  box-shadow: none;
+  transition: border-color 120ms;
 }
-/* Hairline teal accent along the top edge, revealed on hover */
-[data-md-color-scheme="slate"] .md-typeset .ki-features > ul > li::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--ki-teal), transparent);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-[data-md-color-scheme="slate"] .md-typeset .ki-features > ul > li:hover {
+[data-md-color-scheme="slate"] .md-typeset .ki-features > ul > li:hover,
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > ul > li:hover {
   border-color: var(--ki-line2);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.38);
+  box-shadow: none;
 }
-[data-md-color-scheme="slate"] .md-typeset .ki-features > ul > li:hover::before {
-  opacity: 1;
+[data-md-color-scheme="slate"] .md-typeset .grid.cards > ul > li > hr {
+  border-bottom-color: var(--ki-line);
 }
-.md-typeset .ki-features .lg.middle {
-  color: var(--ki-teal);
-}
+.md-typeset .ki-features .lg.middle { color: var(--ki-accent); }
 
 /* Quick-links list */
 .ki-quicklinks { margin-bottom: 2rem; }
 
-/* In-page screenshots on doc pages: framed, rounded, subtle shadow */
+/* In-page screenshots: a screen with a hairline frame */
 .md-typeset img.doc-shot {
   display: block;
   width: 100%;
   border: 1px solid var(--ki-line2);
   border-radius: 8px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+  box-shadow: var(--ki-shadow-2);
   margin: 0.75rem 0 1.25rem;
 }
 
 /* ════════════════════════════════════════════════════════════════
-   SCREENSHOT SHOWCASE — browser frame, hero float, scroll reveal
+   SCREENSHOT SHOWCASE
    ════════════════════════════════════════════════════════════════ */
 
-/* macOS-style window frame around a screenshot */
+/* A screenshot is already a whole window, title bar included, so the frame
+   is just an edge and a shadow — no fake traffic lights on top of it. */
 .ki-frame {
   position: relative;
-  border-radius: 10px;
+  border-radius: 8px;
   border: 1px solid var(--ki-line2);
-  background: var(--ki-panel);
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+  background: var(--ki-screen);
+  box-shadow: var(--ki-shadow-3);
   overflow: hidden;
 }
-.ki-frame__dots {
-  display: block;
-  height: 28px;
-  background: var(--ki-panel2);
-  border-bottom: 1px solid var(--ki-line);
-}
-.ki-frame__dots::before {
-  content: "";
-  position: absolute;
-  top: 10px;
-  left: 13px;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #e07d6e;
-  box-shadow: 15px 0 0 #e2a85a, 30px 0 0 #5fc98a;
-}
+.ki-frame__dots { display: none; }
 .ki-frame img { display: block; width: 100%; height: auto; }
 
-/* Hero screenshots: desktop app + CLI side by side, floating with a teal halo */
+/* Hero screenshots: desktop app and CLI side by side */
 .ki-hero__shots {
   display: flex;
   flex-wrap: wrap;
@@ -349,25 +302,19 @@
   min-width: 280px;
   max-width: 560px;
   margin: 0;
-  perspective: 1400px;
-}
-.ki-hero__shot .ki-frame {
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 70px rgba(63, 200, 180, 0.14);
 }
 /* The two screenshots have different native aspect ratios; normalize the image
    area so both frames render at the same size. */
 .ki-hero__shot .ki-frame img {
   aspect-ratio: 16 / 10;
   object-fit: cover;
-  object-position: top center;
+  object-position: top left;
 }
 .ki-hero__shot-label {
-  margin-top: 0.9rem;
+  margin-top: 0.8rem;
   text-align: center;
-  font-weight: 600;
-  font-size: 0.78rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  font-weight: 500;
+  font-size: 0.82rem;
   color: var(--ki-ink2);
 }
 /* Large, full-width screenshots with the caption overlaid on the image */
@@ -381,26 +328,28 @@
 .ki-shot { position: relative; }
 .ki-shot .ki-frame img { display: block; width: 100%; height: auto; }
 
-/* Caption sits over the bottom of the screenshot on a dark gradient scrim */
+/* Caption sits over the bottom of the screenshot on a scrim of the page's own
+   screen colour, so it reads as part of the window rather than a sticker. */
 .ki-shot__text {
   position: absolute;
   left: 0;
   right: 0;
   bottom: 0;
   padding: 3rem 1.75rem 1.4rem;
-  background: linear-gradient(to top, rgba(8, 11, 17, 0.94) 0%, rgba(8, 11, 17, 0.78) 42%, rgba(8, 11, 17, 0) 100%);
+  background: linear-gradient(to top, rgba(23, 25, 27, .95) 0%, rgba(23, 25, 27, .8) 45%, rgba(23, 25, 27, 0) 100%);
   pointer-events: none;
 }
 .ki-shot__text h3 {
   margin: 0 0 0.35rem;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 600;
   line-height: 1.2;
   color: var(--ki-ink);
 }
 .ki-shot__text p {
   margin: 0;
   max-width: 64ch;
-  color: #c4ccda;
+  color: var(--ki-ink2);
   font-size: 0.98rem;
   line-height: 1.55;
 }
@@ -408,11 +357,11 @@
 /* Scroll-reveal: a single, gentle rise-and-fade on first view (no loop) */
 .ki-reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform: translateY(16px);
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(.2, .8, .2, 1);
 }
 .ki-reveal.in-view { opacity: 1; transform: none; }
-.ki-reveal .ki-shot__text { opacity: 0; transition: opacity 0.5s ease 0.2s; }
+.ki-reveal .ki-shot__text { opacity: 0; transition: opacity 0.4s ease 0.2s; }
 .ki-reveal.in-view .ki-shot__text { opacity: 1; }
 
 @media (prefers-reduced-motion: reduce) {
@@ -429,71 +378,66 @@
     padding: 0.85rem 0.15rem 0.2rem;
     background: none;
   }
-  .ki-shot__text h3 { font-size: 1.2rem; }
+  .ki-shot__text h3 { font-size: 1.15rem; }
   .ki-shot__text p { font-size: 0.92rem; }
   /* Caption is part of the flow now, so no separate fade */
   .ki-reveal .ki-shot__text { opacity: 1; }
 }
 
+/* ── Header chips: version, sponsor, repository ────────────────────
+   Small keys on the bezel, the app's control radius — not pills. */
+
 /* Version chip next to the header title (injected by version-chip.js).
-   The header topic is a flex row, so center the pill and stop it stretching. */
+   The header topic is a flex row, so center it and stop it stretching. A
+   version is an identifier, so it is set in mono. */
 .md-header__topic .ki-ver-chip {
   align-self: center;
   flex: 0 0 auto;
-  margin-left: 0.5rem;
-  padding: 0.05rem 0.45rem;
+  margin-left: 0.55rem;
+  padding: 0.05rem 0.4rem;
   border: 1px solid var(--ki-line2);
-  border-radius: 999px;
-  background: var(--ki-panel2);
-  color: var(--ki-teal);
-  font-size: 0.62rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  line-height: 1.35;
+  border-radius: 3px;
+  background: var(--ki-screen);
+  color: var(--ki-ink2);
+  font-family: var(--md-code-font-family);
+  font-size: 0.6rem;
+  font-weight: 500;
+  line-height: 1.4;
   white-space: nowrap;
 }
 
-/* ── Sponsor pill, header top-right (injected by sponsor-chip.js) ─
-   Same pill language as the GitHub link next to it; the heart carries the
-   accent so the two read as a pair rather than competing. */
+/* Sponsor key, header top-right (injected by sponsor-chip.js) */
 .ki-sponsor {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.2rem 0.6rem;
   border: 1px solid var(--ki-line2);
-  border-radius: 999px;
-  background: var(--ki-panel2);
+  border-radius: 3px;
+  background: var(--ki-bezel-2);
   color: var(--ki-ink2);
   font-size: 0.64rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.5;
   white-space: nowrap;
   text-decoration: none;
-  transition: color 140ms, border-color 140ms, background-color 140ms;
+  transition: color 120ms, border-color 120ms, background-color 120ms;
 }
-
 .ki-sponsor:hover,
 .ki-sponsor:focus-visible {
   color: var(--ki-ink);
-  border-color: var(--ki-amber);
-  background: rgba(226, 168, 90, 0.1);
+  border-color: var(--ki-err);
+  background: color-mix(in srgb, var(--ki-err) 10%, var(--ki-bezel-2));
 }
-
 .ki-sponsor__icon {
   display: flex;
   flex: 0 0 auto;
-  color: var(--ki-teal);
-  transition: color 140ms;
+  color: var(--ki-err);
 }
 .ki-sponsor__icon svg {
   width: 0.82rem;
   height: 0.82rem;
   display: block;
-}
-.ki-sponsor:hover .ki-sponsor__icon,
-.ki-sponsor:focus-visible .ki-sponsor__icon {
-  color: var(--ki-amber);
 }
 
 /* Header copy follows Material's own rule for the repo link: hidden below
@@ -505,13 +449,13 @@
 @media screen and (min-width: 60em) {
   .ki-sponsor--header {
     display: inline-flex;
-    /* Gap from the search box; the GitHub pill supplies its own margin-left,
+    /* Gap from the search box; the GitHub key supplies its own margin-left,
        which becomes the gap on the other side. */
     margin-left: 0.8rem;
   }
 }
 
-/* Drawer copy (< 60em) sits under the repo link on the dark primary surface */
+/* Drawer copy (< 60em) sits under the repo link on the bezel */
 .md-nav__source .ki-sponsor--drawer {
   display: inline-flex;
   margin: 0 0.6rem 0.6rem;
@@ -522,9 +466,9 @@
 
 /* ── GitHub repo link, header top-right (theme.repo_url) ─────────
    Material renders this as a plain text link with a tall icon column and the
-   star/fork facts stacked under the repo name. Re-lay it out as a single-line
-   pill that matches the version chip beside the title. Scoped to
-   .md-header__source so the drawer copy (mobile) keeps Material's own layout. */
+   star/fork facts stacked under the repo name. Re-lay it out as one line,
+   matching the sponsor key beside it. Scoped to .md-header__source so the
+   drawer copy (mobile) keeps Material's own layout. */
 .md-header__source {
   max-width: none;
   margin-left: 0.6rem;
@@ -536,20 +480,20 @@
   gap: 0.4rem;
   padding: 0.2rem 0.6rem;
   border: 1px solid var(--ki-line2);
-  border-radius: 999px;
-  background: var(--ki-panel2);
+  border-radius: 3px;
+  background: var(--ki-bezel-2);
   color: var(--ki-ink2);
   font-size: 0.64rem;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1.5;
   white-space: nowrap;
-  transition: color 140ms, border-color 140ms, background-color 140ms;
+  transition: color 120ms, border-color 120ms, background-color 120ms;
 }
 
 .md-header__source .md-source:hover {
   color: var(--ki-ink);
-  border-color: var(--ki-teal);
-  background: rgba(63, 200, 180, 0.08);
+  border-color: var(--ki-line2);
+  background: #353a40;
   opacity: 1;
 }
 
@@ -623,7 +567,8 @@
   padding: 0.5rem 0;
 }
 
-/* Center line + teal progress fill driven by --ki-cl-progress (changelog.js) */
+/* Center rail + the read-so-far fill driven by --ki-cl-progress (changelog.js).
+   A gauge needle, not a neon tube: one flat accent line, no glow. */
 .ki-cl-timeline::before,
 .ki-cl-timeline::after {
   content: "";
@@ -641,8 +586,7 @@
   height: 100%;
   transform: translateX(-50%) scaleY(var(--ki-cl-progress));
   transform-origin: top;
-  background: linear-gradient(180deg, var(--ki-teal), #2bb6a2);
-  box-shadow: 0 0 12px rgba(63, 200, 180, 0.5);
+  background: var(--ki-accent);
   transition: transform 0.15s linear;
 }
 
@@ -651,43 +595,35 @@
   position: relative;
   width: calc(50% - var(--ki-cl-gap));
   margin-bottom: 1.7rem;
-  background: var(--ki-panel);
+  background: var(--ki-screen-2);
   border: 1px solid var(--ki-line);
-  border-radius: 14px;
+  border-radius: 6px;
   overflow: hidden;
-  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+  transition: border-color 120ms;
 }
 .ki-cl-item:nth-child(even) { margin-left: calc(50% + var(--ki-cl-gap)); }
 
-[data-md-color-scheme="slate"] .md-typeset .ki-cl-item:hover {
-  border-color: var(--ki-teal);
-  transform: translateY(-2px);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
-}
+[data-md-color-scheme="slate"] .md-typeset .ki-cl-item:hover { border-color: var(--ki-line2); }
 .ki-cl-item.is-open { border-color: var(--ki-line2); }
 
-/* Node sitting on the center line */
+/* A lamp sitting on the rail: off until the reader has passed it */
 .ki-cl-node {
   position: absolute;
   top: 1.45rem;
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  background: var(--ki-panel2);
+  background: var(--ki-screen);
   border: 2px solid var(--ki-line2);
   z-index: 2;
-  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
-.ki-cl-item:nth-child(odd) .ki-cl-node { right: calc(-1 * var(--ki-cl-gap) - 9px); }
-.ki-cl-item:nth-child(even) .ki-cl-node { left: calc(-1 * var(--ki-cl-gap) - 9px); }
+.ki-cl-item:nth-child(odd) .ki-cl-node { right: calc(-1 * var(--ki-cl-gap) - 7px); }
+.ki-cl-item:nth-child(even) .ki-cl-node { left: calc(-1 * var(--ki-cl-gap) - 7px); }
 .ki-cl-item.is-passed .ki-cl-node,
 .ki-cl-item.is-open .ki-cl-node {
-  background: var(--ki-teal);
-  border-color: var(--ki-teal);
-  box-shadow: 0 0 0 4px rgba(63, 200, 180, 0.16), 0 0 14px rgba(63, 200, 180, 0.55);
-}
-.ki-cl-item.is-open .ki-cl-node {
-  box-shadow: 0 0 0 5px rgba(63, 200, 180, 0.12), 0 0 16px rgba(63, 200, 180, 0.7);
+  background: var(--ki-accent);
+  border-color: var(--ki-accent);
 }
 
 /* Clickable header */
@@ -704,10 +640,9 @@
   cursor: pointer;
   font: inherit;
 }
-.ki-cl-head:focus-visible { outline: 2px solid var(--ki-teal); outline-offset: -2px; }
+.ki-cl-head:focus-visible { outline: 2px solid color-mix(in srgb, var(--ki-accent) 70%, transparent); outline-offset: -2px; }
 .ki-cl-head-top { display: flex; align-items: center; gap: 0.6rem; }
-.ki-cl-ver { font-weight: 700; font-size: 1.02rem; color: var(--ki-ink); }
-.ki-cl-item.is-open .ki-cl-ver { color: var(--ki-teal); }
+.ki-cl-ver { font-family: var(--md-code-font-family); font-weight: 500; font-size: 1rem; color: var(--ki-ink); }
 .ki-cl-head-meta {
   display: flex;
   flex-wrap: wrap;
@@ -717,46 +652,42 @@
 }
 .ki-cl-summary { color: var(--ki-ink3); }
 
+/* "Latest": a small label key, not a glowing pill */
 .ki-cl-badge {
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ki-app);
-  background: var(--ki-teal);
-  padding: 0.12rem 0.45rem;
-  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 500;
+  color: var(--ki-accent);
+  background: color-mix(in srgb, var(--ki-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ki-accent) 40%, transparent);
+  padding: 0.05rem 0.4rem;
+  border-radius: 3px;
 }
 
 .ki-cl-chevron {
   margin-left: auto;
-  width: 9px;
-  height: 9px;
-  border-right: 2px solid var(--ki-ink2);
-  border-bottom: 2px solid var(--ki-ink2);
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--ki-ink3);
+  border-bottom: 2px solid var(--ki-ink3);
   transform: rotate(45deg);
-  transition: transform 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.2s ease;
 }
-.ki-cl-item.is-open .ki-cl-chevron {
-  transform: rotate(-135deg);
-  border-color: var(--ki-teal);
-}
+.ki-cl-item.is-open .ki-cl-chevron { transform: rotate(-135deg); }
 
 /* Collapsible body (grid 0fr -> 1fr trick) */
 .ki-cl-body {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transition: grid-template-rows 0.3s cubic-bezier(.2, .8, .2, 1);
 }
 .ki-cl-item.is-open .ki-cl-body { grid-template-rows: 1fr; }
 .ki-cl-body-inner { overflow: hidden; min-height: 0; padding: 0 1.15rem; }
 .ki-cl-item.is-open .ki-cl-body-inner { padding-bottom: 0.7rem; }
 
 .md-typeset .ki-cl-body-inner h3 {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--ki-teal);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--ki-ink2);
   margin: 0.85rem 0 0.3rem;
 }
 .md-typeset .ki-cl-body-inner > :first-child { margin-top: 0.2rem; }
@@ -765,8 +696,8 @@
 .md-typeset .ki-cl-body-inner li strong { color: var(--ki-ink); font-weight: 600; }
 
 /* Reveal-on-scroll: slide in from the card's side (overrides base .ki-reveal) */
-.ki-cl-item.ki-reveal:nth-child(odd) { opacity: 0; transform: translateX(-42px); }
-.ki-cl-item.ki-reveal:nth-child(even) { opacity: 0; transform: translateX(42px); }
+.ki-cl-item.ki-reveal:nth-child(odd) { opacity: 0; transform: translateX(-24px); }
+.ki-cl-item.ki-reveal:nth-child(even) { opacity: 0; transform: translateX(24px); }
 .ki-cl-item.ki-reveal.in-view { opacity: 1; transform: none; }
 
 /* Single-side layout on narrow screens */
@@ -779,11 +710,11 @@
     margin-left: 0 !important;
   }
   .ki-cl-item .ki-cl-node {
-    left: calc(0.6rem - 1.9rem - 9px) !important;
+    left: calc(0.6rem - 1.9rem - 7px) !important;
     right: auto !important;
   }
   .ki-cl-item.ki-reveal:nth-child(odd),
-  .ki-cl-item.ki-reveal:nth-child(even) { transform: translateX(30px); }
+  .ki-cl-item.ki-reveal:nth-child(even) { transform: translateX(20px); }
   .ki-cl-item.ki-reveal.in-view { transform: none; }
 }
 

@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { useXtermTheme, xtermTheme } from '../../lib/xtermTheme';
+import { MONO_FONT } from '../../lib/fonts';
+import { prefersReducedMotion } from '../../lib/motion';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { EventsOn } from '../../../wailsjs/runtime/runtime';
@@ -12,6 +14,8 @@ import {
 } from '../../../wailsjs/go/controller_app/App';
 import { readClipboard, writeClipboard as copyToClipboard } from '../../lib/clipboard';
 import { useT } from '../../i18n/useT';
+import { Button } from 'primereact/button';
+import { VscTerminal } from 'react-icons/vsc';
 
 // CliModeOverlay renders a fullscreen xterm that hosts the kube-ins terminal UI
 // (the GUI re-execs itself with --tui in a pty). It covers the dockview + menu;
@@ -31,8 +35,8 @@ export default function CliModeOverlay({ onClose }: { onClose: () => void }) {
 
         const sessionId = `climode-${Date.now()}`;
         const term = new Terminal({
-            cursorBlink: true,
-            fontFamily: '"JetBrains Mono", "Cascadia Code", monospace',
+            cursorBlink: !prefersReducedMotion(),
+            fontFamily: MONO_FONT,
             fontSize: 13,
             lineHeight: 1.2,
             theme: xtermTheme(),
@@ -140,56 +144,18 @@ export default function CliModeOverlay({ onClose }: { onClose: () => void }) {
     }, []);
 
     return (
-        <div
-            style={{
-                position: 'absolute',
-                inset: 0,
-                zIndex: 1000,
-                display: 'flex',
-                flexDirection: 'column',
-                background: 'var(--panel2)',
-            }}
-        >
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '4px 10px',
-                    borderBottom: '1px solid var(--line2)',
-                    color: 'var(--ink2)',
-                    fontSize: 12,
-                    fontFamily: '"JetBrains Mono", monospace',
-                }}
-            >
-                <span>
-                    <span style={{ color: 'var(--teal)', fontWeight: 600 }}>{t('panels:cliMode.badge')}</span>
-                    &nbsp;{t('panels:cliMode.subtitle')}
+        <div className="cli-overlay dark-display">
+            {/* A panel toolbar over the terminal screen: what this is, and the
+                way back to the GUI. */}
+            <div className="panel-toolbar cli-overlay__bar">
+                <span className="panel-toolbar__label">
+                    <VscTerminal size={14} aria-hidden />
+                    <span className="cli-overlay__badge">{t('panels:cliMode.badge')}</span>
+                    <span className="cell-clip">{t('panels:cliMode.subtitle')}</span>
                 </span>
-                <button
-                    onClick={() => closeRef.current()}
-                    style={{
-                        background: 'transparent',
-                        border: '1px solid var(--line2)',
-                        color: 'var(--ink)',
-                        borderRadius: 4,
-                        padding: '2px 10px',
-                        cursor: 'pointer',
-                        fontSize: 12,
-                    }}
-                >
-                    {t('panels:cliMode.exit')}
-                </button>
+                <Button label={t('panels:cliMode.exit')} severity="secondary" size="small" onClick={() => closeRef.current()} />
             </div>
-            <div
-                ref={containerRef}
-                style={{
-                    flex: 1,
-                    padding: '4px',
-                    boxSizing: 'border-box',
-                    overflow: 'hidden',
-                }}
-            />
+            <div ref={containerRef} className="cli-overlay__term" />
         </div>
     );
 }

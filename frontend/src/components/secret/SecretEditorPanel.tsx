@@ -16,6 +16,7 @@ import { Toast } from 'primereact/toast';
 import { GetSecretData, UpdateSecretData } from '../../../wailsjs/go/controller_app/App';
 import { useT } from '../../i18n/useT';
 import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
+import RowAction from '../shared/RowAction';
 
 interface SecretEditorPanelParams {
     clusterName: string;
@@ -43,31 +44,22 @@ const rowsEqual = (a: KeyValueRow[], b: KeyValueRow[]) => {
 };
 
 function PasswordTextarea({ value, onChange }: { value: string; onChange: (val: string) => void }) {
+    const t = useT();
     const [visible, setVisible] = useState(false);
 
     return (
-        <div style={{ position: 'relative', width: '100%' }}>
+        <div className="kv-secret">
             <InputTextarea
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
                 autoResize
                 rows={3}
-                style={{
-                    fontFamily: 'monospace',
-                    fontSize: '0.85rem',
-                    width: '100%',
-                    minHeight: '72px',
-                    paddingRight: '2.25rem',
-                    ...(!visible ? { WebkitTextSecurity: 'disc' } as React.CSSProperties : {}),
-                }}
+                className={`kv-input kv-input--area kv-input--secret${visible ? '' : ' is-masked'}`}
             />
-            <Button
-                icon={visible ? <VscEyeClosed size={16} /> : <VscEye size={16} />}
-                text
-                size="small"
-                severity="secondary"
+            <RowAction
+                icon={visible ? <VscEyeClosed size={15} /> : <VscEye size={15} />}
+                label={t(visible ? 'panels:secretEditor.hideValue' : 'panels:secretEditor.showValue')}
                 onClick={() => setVisible(v => !v)}
-                style={{ position: 'absolute', top: '0.3rem', right: '0.25rem', padding: '0.25rem' }}
             />
         </div>
     );
@@ -150,7 +142,7 @@ export default function SecretEditorPanel({ params }: IDockviewPanelProps<Secret
         <InputText
             value={options.value}
             onChange={(e) => options.editorCallback!(e.target.value)}
-            style={{ fontFamily: 'monospace', fontSize: '0.85rem', width: '100%' }}
+            className="kv-input"
             autoFocus
         />
     );
@@ -163,35 +155,30 @@ export default function SecretEditorPanel({ params }: IDockviewPanelProps<Secret
     );
 
     const valueBody = (rowData: KeyValueRow) => (
-        <span style={{
-            fontFamily: 'monospace',
-            fontSize: '0.85rem',
-            letterSpacing: '0.15em',
-            color: 'var(--text-color-secondary)',
-        }}>
-            {rowData.value ? '••••••••' : ''}
-        </span>
+        rowData.value
+            ? <span className="kv-masked" title={t('panels:secretEditor.masked')}>••••••••</span>
+            : null
     );
 
     const actionsBody = (rowData: KeyValueRow) => (
-        <Button
-            icon={<VscClose size={16} />}
-            text
-            severity="danger"
-            size="small"
-            onClick={() => removeRow(rowData.id)}
-            disabled={saving}
-            style={{ padding: '0.2rem' }}
-        />
+        <RowAction icon={<VscClose size={15} />} label={t('action.remove')} severity="danger"
+            onClick={() => removeRow(rowData.id)} disabled={saving} />
+    );
+
+    const emptyState = (
+        <div className="rlv-empty">
+            <span>{t('panels:secretEditor.empty')}</span>
+            <Button label={t('panels:secretEditor.addKey')} icon={<VscAdd size={14} />} outlined size="small" onClick={addRow} disabled={saving} />
+        </div>
     );
 
     const tableHeader = (
-        <div className="flex justify-content-between align-items-center gap-2">
-            <span className="yaml-editor-toolbar__label flex align-items-center gap-1" style={{ fontSize: '0.85rem' }}>
-                <VscLock size={14} />
-                {namespace}/{name}
+        <div className="panel-toolbar">
+            <span className="panel-toolbar__label">
+                <VscLock size={14} aria-hidden />
+                <span className="cell-clip">{namespace}/{name}</span>
             </span>
-            <div className="flex align-items-center gap-1">
+            <div className="panel-toolbar__actions">
                 <Button label={t('panels:secretEditor.addKey')} icon={<VscAdd size={16} />} text size="small" onClick={addRow} disabled={saving} />
                 <Button label={t('panels:yaml.revert')} icon={<VscDiscard size={16} />} text size="small" disabled={!dirty || saving} onClick={handleRevert} />
                 <Button label={t('panels:yaml.save')} icon={<VscCheck size={16} />} size="small" loading={saving} disabled={!dirty} onClick={handleSave} />
@@ -200,27 +187,25 @@ export default function SecretEditorPanel({ params }: IDockviewPanelProps<Secret
     );
 
     return (
-        <div className="card" style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="kv-editor">
             <Toast ref={toast} position="bottom-right" />
+            {tableHeader}
 
             <DataTable
                 value={rows}
                 dataKey="id"
                 editMode="cell"
-                header={tableHeader}
                 scrollable
                 scrollHeight="flex"
-                showGridlines
-                stripedRows
-                emptyMessage={t('panels:secretEditor.empty')}
-                style={{ flex: 1 }}
+                emptyMessage={emptyState}
+                className="kv-editor__table"
             >
                 <Column
                     field="key"
                     header={t('resources:column.key')}
                     editor={keyEditor}
                     onCellEditComplete={onCellEditComplete}
-                    style={{ width: '30%', minWidth: '10rem', fontFamily: 'monospace', fontSize: '0.85rem' }}
+                    className="cell-mono" style={{ width: '30%', minWidth: '10rem' }}
                 />
                 <Column
                     field="value"
@@ -228,13 +213,13 @@ export default function SecretEditorPanel({ params }: IDockviewPanelProps<Secret
                     editor={valueEditor}
                     onCellEditComplete={onCellEditComplete}
                     body={valueBody}
-                    style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}
+                    className="cell-mono"
                 />
                 <Column
                     header=""
                     {...ACTION_COLUMN_PROPS}
                     body={actionsBody}
-                    style={{ width: '3.5rem', textAlign: 'center' }}
+                    style={{ width: '3.5rem' }}
                 />
             </DataTable>
         </div>

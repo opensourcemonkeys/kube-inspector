@@ -27,7 +27,7 @@ export default function ContainerSection({ c, volumes, usage, nav }: {
 }) {
     const t = useT();
     const st = c.status;
-    const dot = st ? containerDotColor(st) : 'var(--ink3)';
+    const dot = st ? containerDotColor(st) : 'var(--ink-3)';
     const ports = c.ports ?? [];
     const env = c.env ?? [];
     const envFrom = c.env_from ?? [];
@@ -47,14 +47,14 @@ export default function ContainerSection({ c, volumes, usage, nav }: {
         : st.state;
 
     return (
-        <div className="pd-container">
+        <div className="pd-container" style={{ ['--dot' as string]: dot }}>
             <div className="pd-container__title">
-                <span className={`pd-dot${c.init ? ' pd-dot--square' : ''}`} style={{ background: dot }} />
+                <span className={`pd-dot${c.init ? ' pd-dot--square' : ''}`} />
                 <span className="pd-container__name">{c.name}</span>
             </div>
 
             <Item label={t('resources:column.status')}>
-                <span style={{ color: dot === 'var(--ink3)' || dot === 'var(--green)' ? undefined : dot }}>{stateText}</span>
+                <span className={dot === 'var(--ink-3)' || dot === 'var(--ok)' ? undefined : 'pd-state--tinted'}>{stateText}</span>
                 {st && st.state === 'Running' && <Muted>{`, ${st.ready ? t('resources:pod.containerReady') : t('resources:pod.containerNotReady')}`}</Muted>}
                 {st && st.restart_count > 0 && <Muted>{` · ${t('resources:column.restarts')}: ${st.restart_count}`}</Muted>}
                 {c.started_at && <Muted>{` · ${t('resources:pod.detail.startedAgo', { age: humanAge(c.started_at) })}`}</Muted>}

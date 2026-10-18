@@ -4,18 +4,42 @@
 
 /* ── Top toolbar ─────────────────────────────────────────── */
 
+.crd-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--screen);
+}
+
+.crd-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.crd-body > .crd-splitter {
+  height: 100%;
+}
+
+/* The same 40px bezel strip as the resource lists' toolbar. */
 .crd-toolbar {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
-  padding: 0.6rem 1rem;
+  gap: 12px;
+  height: 40px;
+  padding: 0 8px 0 16px;
+  background: var(--bezel);
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
 
-.crd-toolbar h3 {
-  margin: 0;
-  white-space: nowrap;
+.crd-toolbar__scope.p-multiselect {
+  min-width: 10rem;
+}
+
+.crd-toolbar__end {
+  margin-left: auto;
+  display: flex;
 }
 
 .crd-toolbar__search {
@@ -27,7 +51,7 @@
 .crd-toolbar__search > svg {
   position: absolute;
   left: 0.6rem;
-  color: var(--ink3);
+  color: var(--ink-3);
   pointer-events: none;
 }
 
@@ -36,12 +60,28 @@
   width: 18rem;
 }
 
+.crd-detail__filter.p-inputtext {
+  width: 14rem;
+}
+
+.crd-detail__ns.p-multiselect {
+  min-width: 12rem;
+}
+
+.crd-detail__table {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .crd-checkbox {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.8rem;
-  color: var(--ink2);
+  font-size: 12.5px;
+  color: var(--ink-2);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -56,7 +96,7 @@
 
 .crd-tree__empty {
   padding: 1rem;
-  color: var(--ink3);
+  color: var(--ink-3);
   font-size: 12.5px;
 }
 
@@ -81,21 +121,20 @@
 .crd-tree__group-header {
   padding: 7px 12px;
   font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--ink2);
+  font-weight: 600;
+  color: var(--ink-2);
   position: sticky;
   top: 0;
-  background: var(--panel);
+  background: var(--bezel);
   z-index: 1;
 }
 
 .crd-tree__group-header:hover {
-  background: var(--hover);
+  background: var(--screen-2);
 }
 
 .crd-tree__group-icon {
-  color: var(--teal);
+  color: var(--ink-3);
   flex-shrink: 0;
 }
 
@@ -108,7 +147,7 @@
 .crd-tree__group-count {
   font-size: 11px;
   font-weight: 500;
-  color: var(--ink3);
+  color: var(--ink-3);
   flex-shrink: 0;
   white-space: nowrap;
 }
@@ -121,12 +160,12 @@
 }
 
 .crd-tree__kind:hover {
-  background: var(--hover);
+  background: var(--screen-2);
 }
 
 .crd-tree__kind.is-selected {
-  background: var(--panel3);
-  box-shadow: inset 2px 0 0 var(--teal);
+  background: var(--bezel-high);
+  box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .crd-tree__kind-name {
@@ -140,7 +179,7 @@
 
 .crd-tree__kind-plural {
   font-size: 11.5px;
-  color: var(--ink3);
+  color: var(--ink-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -153,18 +192,19 @@
 .crd-tree__scope {
   margin-left: auto;
   flex-shrink: 0;
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--font-family-mono);
   padding: 1px 6px;
-  border-radius: 3px;
-  border: 1px solid var(--line2);
-  color: var(--ink3);
+  border-radius: var(--radius-ctl);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-3);
 }
 
+/* Cluster-scoped is a fact, not a warning: told apart by its label and a
+   slightly stronger ink, not by the warn colour. */
 .crd-tree__scope--cl {
-  color: var(--amber);
-  border-color: color-mix(in srgb, var(--amber) 40%, transparent);
+  color: var(--ink-2);
 }
 
 .crd-tree__badge {
@@ -173,12 +213,19 @@
   text-align: right;
   font-size: 12px;
   font-variant-numeric: tabular-nums;
-  color: var(--ink3);
+  color: var(--ink-3);
+}
+
+/* The selected row sits on --bezel-high, where --ink-3 falls under AA. */
+.crd-tree__kind.is-selected .crd-tree__kind-plural,
+.crd-tree__kind.is-selected .crd-tree__scope,
+.crd-tree__kind.is-selected .crd-tree__badge {
+  color: var(--ink-2);
 }
 
 .crd-tree__badge.is-live {
-  color: var(--teal);
-  font-weight: 700;
+  color: var(--ink);
+  font-weight: 500;
 }
 
 /* ── Right pane: instance table ──────────────────────────── */
@@ -194,32 +241,36 @@
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  color: var(--ink3);
+  color: var(--ink-3);
 }
 
 .crd-detail--empty p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: 13px;
+  color: var(--ink-2);
 }
 
 .crd-detail__header {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 1rem;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 8px 0 16px;
+  background: var(--bezel);
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
 
 .crd-detail__header h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: 15px;
+  font-weight: 600;
 }
 
 .crd-detail__qualified {
   font-family: var(--font-family-mono);
-  font-size: 0.72rem;
-  color: var(--ink3);
+  font-size: 12px;
+  color: var(--ink-3);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -235,8 +286,9 @@
 .crd-detail__toolbar {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 1rem;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 8px 0 16px;
   border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }
@@ -246,14 +298,5 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  flex-shrink: 0;
-}
-
-.crd-detail__error {
-  padding: 0.5rem 1rem;
-  font-size: 0.78rem;
-  color: var(--red);
-  background: color-mix(in srgb, var(--red) 10%, transparent);
-  border-bottom: 1px solid var(--line);
   flex-shrink: 0;
 }

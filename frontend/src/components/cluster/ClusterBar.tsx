@@ -10,6 +10,7 @@ import { useTabContext } from '../../contexts/TabContext';
 import { defaultColorId, hexForId } from '../../lib/clusterColors';
 import { useClusterColorStore } from '../../stores/clusterColorStore';
 import ClusterModal from './ClusterModal';
+import StatusLamp from '../shared/StatusLamp';
 import { useT } from '../../i18n/useT';
 
 export default function ClusterBar() {
@@ -57,23 +58,16 @@ export default function ClusterBar() {
     const isOk = !connectionError;
 
     // The dot carries the cluster's colour identity. Connection health is not
-    // lost: on error the dot dims and gains a red ring, and the warning button
-    // in the actions row appears alongside it.
+    // lost: on error the dot dims and gains a red ring, and the status key
+    // in the actions row appears alongside it. The colour is the only inline
+    // value — it is per cluster, so it rides a custom property.
     const clusterValueTemplate = (value: string) => {
-        if (!value) return <span style={{ color: 'var(--ink3)', fontSize: '13px' }}>{t('panels:cluster.select')}</span>;
-        const color = colorOf(value);
+        if (!value) return <span className="cluster-value cluster-value--empty">{t('panels:cluster.select')}</span>;
         return (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
-                <span style={{
-                    width: '7px', height: '7px', borderRadius: '50%', flexShrink: 0,
-                    background: color,
-                    opacity: isOk ? 1 : 0.45,
-                    boxShadow: isOk ? `0 0 6px ${color}` : '0 0 0 2px var(--red)',
-                }} />
-                <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '13px', color: 'var(--ink)' }}>
-                    {value}
-                </span>
-            </div>
+            <span className={`cluster-value${isOk ? '' : ' cluster-value--down'}`} style={{ ['--dot' as string]: colorOf(value) }}>
+                <span className="cluster-value__dot" />
+                <span className="cluster-value__name">{value}</span>
+            </span>
         );
     };
 
@@ -82,7 +76,7 @@ export default function ClusterBar() {
         const color = colorOf(value);
         return (
             <div className="cluster-option">
-                <span className="cluster-option__bullet" style={{ background: color, boxShadow: `0 0 6px ${color}` }} />
+                <span className="cluster-option__bullet" style={{ ['--dot' as string]: color }} />
                 <span className="cluster-option__name">{value}</span>
             </div>
         );
@@ -118,12 +112,15 @@ export default function ClusterBar() {
                     )}
                     {connectionError && (
                         <>
+                            {/* A steady lamp and words, not a pulsing icon: a
+                                broken connection is a state to read, not an
+                                alarm to chase. Click for the error itself. */}
                             <button
-                                className="cluster-header__icon-btn cluster-header__icon-btn--warn"
+                                className="cluster-header__status"
                                 onClick={e => errorPanelRef.current?.toggle(e)}
-                                title={t('panels:cluster.connectionErrorTitle')}
+                                aria-haspopup="dialog"
                             >
-                                <VscWarning size={14} />
+                                <StatusLamp label={t('panels:cluster.connectionErrorTitle')} tone="err" />
                             </button>
                             <OverlayPanel ref={errorPanelRef} className="cluster-error-panel">
                                 <div className="cluster-error-panel__header">

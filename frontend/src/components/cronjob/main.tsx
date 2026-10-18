@@ -2,8 +2,6 @@ import type { DockviewPanelApi } from 'dockview';
 import { VscListFlat } from 'react-icons/vsc';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
-import { Button } from 'primereact/button';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { GetCronJobs, DeleteCronJob } from '../../../wailsjs/go/controller_app/App';
@@ -11,6 +9,8 @@ import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
 import { useT } from '../../i18n/useT';
+import StatusLamp from '../shared/StatusLamp';
+import RowAction from '../shared/RowAction';
 
 const defaultFilters: DataTableFilterMeta = {
     name:      { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -50,11 +50,11 @@ export default function CronJobListComponent({ clusterName, api }: { clusterName
                             <MultiSelect value={options.value} options={buildInOptions('schedule')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column header={t('resources:column.status')} sortable sortField="suspend" style={{ minWidth: '8rem' }}
-                        body={(row: models.CronJobInfo) => <Tag value={row.suspend ? 'Suspended' : 'Active'} severity={row.suspend ? 'warning' : 'success'} />} />
+                        body={(row: models.CronJobInfo) => <StatusLamp label={row.suspend ? t('resources:cronjob.stateSuspended') : t('resources:cronjob.stateActive')} tone={row.suspend ? 'idle' : 'ok'} />} />
                     <Column field="active_count" header={t('resources:column.activeJobs')} sortable style={{ minWidth: '8rem' }} body={(row: models.CronJobInfo) => row.active_count} />
                     <Column header="" style={{ width: '3rem', textAlign: 'center' }}
                         body={(row: models.CronJobInfo) => (
-                            <Button icon={<VscListFlat size={16} />} text size="small" severity="secondary" style={{ padding: '0.2rem', fontSize: '0.7rem' }}
+                            <RowAction icon={<VscListFlat size={15} />} label={t('action.logs')}
                                 onClick={() => openLogPanel({ clusterName, resourceKind: 'cronjob', name: row.name, namespace: row.namespace, referencePanel })} />
                         )} />
                 </>

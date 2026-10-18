@@ -9,6 +9,7 @@ import OverviewTab from './OverviewTab';
 import LogsTab from './LogsTab';
 import ExportTab from './ExportTab';
 import { useT } from '../../i18n/useT';
+import { VscDesktopDownload, VscInfo, VscListFlat } from 'react-icons/vsc';
 
 /**
  * The Diagnostics panel.
@@ -30,15 +31,15 @@ export default function DiagnosticsPanel({ api }: IDockviewPanelProps) {
     return (
         <div className="diag-panel">
             <TabView activeIndex={activeTab} onTabChange={(e) => setActiveTab(e.index)}>
-                <TabPanel header={t('panels:diagnostics.tab.overview')} leftIcon="pi pi-info-circle mr-2">
+                <TabPanel header={t('panels:diagnostics.tab.overview')} leftIcon={<VscInfo className="tab-icon" aria-hidden />}>
                     <OverviewTab report={report} onReport={setReport} />
                 </TabPanel>
-                <TabPanel header={t('panels:diagnostics.tab.logs')} leftIcon="pi pi-list mr-2">
+                <TabPanel header={t('panels:diagnostics.tab.logs')} leftIcon={<VscListFlat className="tab-icon" aria-hidden />}>
                     {/* Poll only while this tab is both the active Dockview panel
                         and the selected TabView tab. */}
                     <LogsTab active={active && activeTab === 1} ownPid={report?.pid ?? 0} />
                 </TabPanel>
-                <TabPanel header={t('panels:diagnostics.tab.export')} leftIcon="pi pi-download mr-2">
+                <TabPanel header={t('panels:diagnostics.tab.export')} leftIcon={<VscDesktopDownload className="tab-icon" aria-hidden />}>
                     <ExportTab report={report} />
                 </TabPanel>
             </TabView>

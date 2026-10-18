@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ProgressSpinner } from 'primereact/progressspinner';
 import { GetChangelog } from '../../../wailsjs/go/controller_app/App';
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
 import { models } from '../../../wailsjs/go/models';
 import { InlineMarkdown } from '../../lib/inlineMarkdown';
 import { useT } from '../../i18n/useT';
+import Spinner from '../shared/Spinner';
 
 const CHANGELOG_PAGE = 'https://kubeinspector.com/changelog/';
 
@@ -49,7 +49,7 @@ export default function ChangelogNotes({ from, to }: { from: string; to: string 
     } else if (!entries) {
         content = (
             <div className="update-notes__loading">
-                <ProgressSpinner style={{ width: 16, height: 16 }} strokeWidth="6" /> {t('panels:update.notesLoading')}
+                <Spinner size={14} label={t('panels:update.notesLoading')} /> {t('panels:update.notesLoading')}
             </div>
         );
     } else {

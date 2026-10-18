@@ -8,7 +8,7 @@ import '../../lib/monacoBootstrap';
 
 import { VscNote, VscDiscard, VscCheck } from 'react-icons/vsc';
 import * as monacoEditor from 'monaco-editor';
-import { MONOLITH_THEME } from '../../lib/monacoTheme';
+import { MONACO_BASE_OPTIONS, MONACO_THEME, defineMonacoTheme, useMonacoTheme } from '../../lib/monacoTheme';
 import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { ensureK8sYamlIntellisense, k8sYamlSuggestOptions } from '../../lib/k8sYamlIntellisense';
@@ -58,6 +58,7 @@ const editable = (kind: string) => [
 ].includes(kind);
 
 export default function YamlEditorPanel({ params }: IDockviewPanelProps<YamlEditorPanelParams>) {
+    useMonacoTheme();
     const t = useT();
     const { clusterName, resourceKind, name, namespace } = params;
     // Held at null until the document arrives: the editor must be *created*
@@ -255,15 +256,16 @@ export default function YamlEditorPanel({ params }: IDockviewPanelProps<YamlEdit
                     defaultLanguage="yaml"
                     language="yaml"
                     value={yaml}
-                    theme={MONOLITH_THEME}
+                    theme={MONACO_THEME}
+                    beforeMount={defineMonacoTheme}
                     onMount={handleMount}
                     onChange={handleChange}
                     
                     options={{
+                        ...MONACO_BASE_OPTIONS,
                         ...k8sYamlSuggestOptions,
                         readOnly: !editable(resourceKind),
                         minimap: { enabled: true },
-                        fontSize: 13,
                         scrollBeyondLastLine: false,
                         wordWrap: 'on',
                         automaticLayout: true,

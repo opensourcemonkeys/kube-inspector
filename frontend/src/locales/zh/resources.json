@@ -106,7 +106,8 @@
       "successDetail": "已删除 {{target}}",
       "failSummary": "删除失败",
       "failDetail": "无法删除 {{target}}"
-    }
+    },
+    "more": "以及另外 {{count}} 项"
   },
   "namespace": {
     "createTitle": "创建 Namespace",
@@ -128,7 +129,9 @@
   },
   "cronjob": {
     "title": "CronJob 列表",
-    "empty": "未找到 CronJob"
+    "empty": "未找到 CronJob",
+    "stateActive": "活动",
+    "stateSuspended": "已暂停"
   },
   "daemonset": {
     "title": "DaemonSet 列表",
@@ -245,7 +248,8 @@
         "liveness": "存活探针",
         "readiness": "就绪探针"
       }
-    }
+    },
+    "execPick": "选择容器（{{count}}）"
   },
   "replicaset": {
     "title": "ReplicaSet 列表",
@@ -288,5 +292,9 @@
       "critical": "严重",
       "full": "已满"
     }
+  },
+  "list": {
+    "filteredCount": "{{shown}} / {{total}}",
+    "noMatch": "没有符合当前筛选条件的项"
   }
 }

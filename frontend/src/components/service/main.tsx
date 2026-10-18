@@ -1,7 +1,7 @@
 import type { DockviewPanelApi } from 'dockview';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
+import StatusLamp from '../shared/StatusLamp';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { GetServices, DeleteService } from '../../../wailsjs/go/controller_app/App';
@@ -12,15 +12,6 @@ import { ARRAY_IN } from '../../lib/tableFilters';
 import { useT } from '../../i18n/useT';
 
 type TagSeverity = 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast';
-
-const getTypeSeverity = (type: string): TagSeverity => {
-    switch (type) {
-        case 'LoadBalancer': return 'success';
-        case 'NodePort':     return 'warning';
-        case 'ExternalName': return 'contrast';
-        default:             return 'info';
-    }
-};
 
 const getStatusSeverity = (status: string): TagSeverity =>
     status === 'Active' ? 'success' : 'warning';
@@ -74,22 +65,22 @@ export default function ServiceListComponent({ clusterName, api }: { clusterName
                             <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column field="status" header={t('resources:column.status')} sortable style={{ minWidth: '7rem' }}
-                        body={(row: models.ServiceInfo) => <Tag value={row.status} severity={getStatusSeverity(row.status)} />} />
+                        body={(row: models.ServiceInfo) => <StatusLamp label={row.status} severity={getStatusSeverity(row.status)} />} />
                     <Column field="type" header={t('resources:column.type')} sortable filter filterField="type" showFilterMenu={false} style={{ minWidth: '9rem' }}
-                        body={(row: models.ServiceInfo) => <Tag value={row.type} severity={getTypeSeverity(row.type)} />}
+                        body={(row: models.ServiceInfo) => row.type}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('type')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
-                    <Column field="cluster_ip" header={t('resources:column.clusterIp')} sortable filter filterField="cluster_ip" showFilterMenu={false} style={{ minWidth: '10rem' }}
+                    <Column bodyClassName="cell-mono" field="cluster_ip" header={t('resources:column.clusterIp')} sortable filter filterField="cluster_ip" showFilterMenu={false} style={{ minWidth: '10rem' }}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('cluster_ip')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
-                    <Column field="external_ips" header={t('resources:column.externalIp')} filter filterField="external_ips" showFilterMenu={false} style={{ minWidth: '12rem' }}
+                    <Column bodyClassName="cell-mono" field="external_ips" header={t('resources:column.externalIp')} filter filterField="external_ips" showFilterMenu={false} style={{ minWidth: '12rem' }}
                         body={(row: models.ServiceInfo) => formatExternalIPs(row.external_ips)}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('external_ips')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
-                    <Column header={t('resources:column.ports')} style={{ minWidth: '14rem' }} body={(row: models.ServiceInfo) => formatPorts(row.ports)} />
+                    <Column bodyClassName="cell-mono" header={t('resources:column.ports')} style={{ minWidth: '14rem' }} body={(row: models.ServiceInfo) => formatPorts(row.ports)} />
                 </>
             )}
         />

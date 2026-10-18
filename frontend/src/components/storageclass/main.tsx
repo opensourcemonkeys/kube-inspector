@@ -45,7 +45,7 @@ export default function StorageClassListComponent({ clusterName, api }: { cluste
                 <>
                     <Column field="name" header={t('resources:column.name')} sortable filter filterField="name" filterPlaceholder={t('resources:filter.searchName')} showFilterMenu={false} style={{ minWidth: '16rem' }} />
                     <Column header={t('resources:column.default')} style={{ minWidth: '7rem' }}
-                        body={(row: models.StorageClassInfo) => (row.is_default ? <Tag value="Default" severity="success" /> : <span style={{ color: 'var(--text-color-secondary)' }}>—</span>)} />
+                        body={(row: models.StorageClassInfo) => (row.is_default ? <Tag value="Default" /> : <span className="cell-empty">—</span>)} />
                     <Column field="provisioner" header={t('resources:column.provisioner')} sortable filter filterField="provisioner" showFilterMenu={false} style={{ minWidth: '20rem' }}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('provisioner')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />

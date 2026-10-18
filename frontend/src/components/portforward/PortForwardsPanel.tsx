@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import type { IDockviewPanelProps } from 'dockview';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
-import { Tag } from 'primereact/tag';
-import { Button } from 'primereact/button';
+import StatusLamp from '../shared/StatusLamp';
+import RowAction from '../shared/RowAction';
 import { Toast } from 'primereact/toast';
 import { VscGlobe, VscCopy, VscDebugRestart, VscClose, VscLock, VscArrowSwap } from 'react-icons/vsc';
 import { BrowserOpenURL } from '../../../wailsjs/runtime/runtime';
@@ -86,7 +86,7 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
             await StopPortForward(f.id);
             await refresh();
         } catch (e) {
-            notify('error', 'Could not stop', errText(e));
+            notify('error', t('panels:portForwards.toastStopFailed'), errText(e));
         } finally {
             setBusyId(null);
         }
@@ -109,9 +109,9 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
                 f.remote_port,
             );
             await refresh();
-            notify('success', 'Restarted', `${f.address}:${models.PortForwardInfo.createFrom(info).local_port}`);
+            notify('success', t('panels:portForwards.toastRestarted'), `${f.address}:${models.PortForwardInfo.createFrom(info).local_port}`);
         } catch (e) {
-            notify('error', 'Could not restart', errText(e));
+            notify('error', t('panels:portForwards.toastRestartFailed'), errText(e));
             await refresh();
         } finally {
             setBusyId(null);
@@ -120,46 +120,46 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
 
     const copy = async (f: PortForward) => {
         const ok = await writeClipboard(forwardAddress(f));
-        notify(ok ? 'success' : 'error', ok ? 'Copied' : 'Copy failed', forwardAddress(f));
+        notify(ok ? 'success' : 'error', ok ? t('panels:portForwards.toastCopied') : t('panels:portForwards.toastCopyFailed'), forwardAddress(f));
     };
 
-    if (!active) return <div style={{ height: '100%' }} />;
+    if (!active) return <div className="pf-panel" />;
+
+    const statusLabel = (status: string) => {
+        switch (status) {
+            case 'ready': return t('panels:portForwards.status.ready');
+            case 'starting': return t('panels:portForwards.status.starting');
+            case 'reconnecting': return t('panels:portForwards.status.reconnecting');
+            case 'error': return t('panels:portForwards.status.error');
+            case 'stopped': return t('panels:portForwards.status.stopped');
+            default: return status;
+        }
+    };
 
     const empty = (
-        <div className="flex flex-column align-items-center gap-2" style={{ padding: '2rem 1rem', color: 'var(--ink3)' }}>
-            <VscArrowSwap size={22} />
-            <span style={{ fontSize: '0.85rem' }}>{t('panels:portForwards.empty')}</span>
-            <span style={{ fontSize: '0.78rem' }}>
-                {t('panels:portForwards.emptyHint')}
-            </span>
+        <div className="rlv-empty">
+            <VscArrowSwap size={20} aria-hidden />
+            <span>{t('panels:portForwards.empty')}</span>
+            <span className="pf-panel__hint">{t('panels:portForwards.emptyHint')}</span>
         </div>
     );
 
+    const failed = forwards.filter((f) => f.status === 'error');
+
     return (
-        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <div className="pf-panel">
             <Toast ref={toastRef} />
 
-            <div
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '1rem',
-                    padding: '0.6rem 1rem',
-                    borderBottom: '1px solid var(--surface-border)',
-                    flexShrink: 0,
-                }}
-            >
-                <h3 style={{ margin: 0 }}>{t('panels:portForwards.title')}</h3>
-                <span
-                    className="flex align-items-center gap-1"
-                    style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--ink3)' }}
-                >
-                    <VscLock size={12} />
+            <div className="rlv-toolbar">
+                <h3 className="rlv-toolbar__title">{t('panels:portForwards.title')}</h3>
+                {forwards.length > 0 && <span className="rlv-toolbar__count">{forwards.length}</span>}
+                <span className="pf-panel__note">
+                    <VscLock size={12} aria-hidden />
                     {t('panels:portForwards.loopbackNote')}
                 </span>
             </div>
 
-            <div style={{ flex: 1, minHeight: 0 }}>
+            <div className="pf-panel__table">
                 <DataTable
                     value={forwards}
                     dataKey="id"
@@ -173,10 +173,10 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
                         header={t('resources:column.status')}
                         style={{ minWidth: '9rem' }}
                         body={(f: PortForward) => (
-                            <span className="flex align-items-center gap-2">
-                                <Tag value={f.status} severity={statusSeverity(f.status)} />
+                            <span className="pf-panel__status">
+                                <StatusLamp label={statusLabel(f.status)} severity={statusSeverity(f.status)} />
                                 {f.status === 'reconnecting' && (
-                                    <span style={{ fontSize: '0.7rem', color: 'var(--ink3)' }}>#{f.attempts}</span>
+                                    <span className="pf-panel__muted">{t('panels:portForwards.attempt', { n: f.attempts })}</span>
                                 )}
                             </span>
                         )}
@@ -185,10 +185,10 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
                         header={t('resources:column.address')}
                         style={{ minWidth: '15rem' }}
                         body={(f: PortForward) => (
-                            <span style={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                            <span className="cell-mono">
                                 {f.address}:{f.local_port} → {f.remote_port}
                                 {f.target_port !== 0 && f.target_port !== f.remote_port && (
-                                    <span style={{ color: 'var(--ink3)' }}>{t('panels:portForwards.podPort', { port: f.target_port })}</span>
+                                    <span className="pf-panel__muted">{t('panels:portForwards.podPort', { port: f.target_port })}</span>
                                 )}
                             </span>
                         )}
@@ -198,7 +198,7 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
                         style={{ minWidth: '14rem' }}
                         body={(f: PortForward) => (
                             <span>
-                                <span style={{ color: 'var(--ink3)' }}>{f.resource_kind}/</span>
+                                <span className="pf-panel__muted">{f.resource_kind}/</span>
                                 {f.resource_name}
                             </span>
                         )}
@@ -207,7 +207,7 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
                     <Column
                         header={t('resources:column.pod')}
                         style={{ minWidth: '12rem' }}
-                        body={(f: PortForward) => f.pod_name || '-'}
+                        body={(f: PortForward) => f.pod_name || '—'}
                     />
                     <Column field="cluster_name" header={t('resources:column.cluster')} style={{ minWidth: '9rem' }} />
                     <Column header={t('resources:column.age')} style={{ minWidth: '5rem' }} body={(f: PortForward) => age(f.started_at)} />
@@ -217,75 +217,29 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
                         headerStyle={{ width: '9rem' }}
                         style={{ minWidth: '9rem', maxWidth: '9rem' }}
                         body={(f: PortForward) => (
-                            <div className="flex gap-1">
+                            <div className="row-actions">
                                 {isWebForward(f) && (
-                                    <Button
-                                        icon={<VscGlobe size={15} />}
-                                        text
-                                        size="small"
-                                        severity="secondary"
-                                        style={{ padding: '0.2rem' }}
-                                        tooltip={t('panels:portForwards.openInBrowser')}
-                                        tooltipOptions={{ position: 'top' }}
-                                        aria-label={t('panels:portForwards.openInBrowser')}
-                                        onClick={() => BrowserOpenURL(forwardUrl(f))}
-                                    />
+                                    <RowAction icon={<VscGlobe size={15} />} label={t('panels:portForwards.openInBrowser')}
+                                        onClick={() => BrowserOpenURL(forwardUrl(f))} />
                                 )}
-                                <Button
-                                    icon={<VscCopy size={15} />}
-                                    text
-                                    size="small"
-                                    severity="secondary"
-                                    style={{ padding: '0.2rem' }}
-                                    tooltip={t('panels:portForwards.copyAddress')}
-                                    tooltipOptions={{ position: 'top' }}
-                                    aria-label={t('panels:portForwards.copyAddress')}
-                                    onClick={() => void copy(f)}
-                                />
-                                <Button
-                                    icon={<VscDebugRestart size={15} />}
-                                    text
-                                    size="small"
-                                    severity="secondary"
-                                    style={{ padding: '0.2rem' }}
-                                    tooltip={t('panels:portForwards.restart')}
-                                    tooltipOptions={{ position: 'top' }}
-                                    aria-label={t('panels:portForwards.restart')}
-                                    loading={busyId === f.id}
-                                    onClick={() => void restart(f)}
-                                />
-                                <Button
-                                    icon={<VscClose size={15} />}
-                                    text
-                                    size="small"
-                                    severity="danger"
-                                    style={{ padding: '0.2rem' }}
-                                    tooltip={t(f.status === 'error' ? 'panels:portForwards.dismiss' : 'panels:portForwards.stop')}
-                                    tooltipOptions={{ position: 'top' }}
-                                    aria-label={t(f.status === 'error' ? 'panels:portForwards.dismiss' : 'panels:portForwards.stop')}
-                                    loading={busyId === f.id}
-                                    onClick={() => void stop(f)}
-                                />
+                                <RowAction icon={<VscCopy size={15} />} label={t('panels:portForwards.copyAddress')} onClick={() => void copy(f)} />
+                                <RowAction icon={<VscDebugRestart size={15} />} label={t('panels:portForwards.restart')}
+                                    loading={busyId === f.id} onClick={() => void restart(f)} />
+                                <RowAction icon={<VscClose size={15} />} severity="danger"
+                                    label={t(f.status === 'error' ? 'panels:portForwards.dismiss' : 'panels:portForwards.stop')}
+                                    loading={busyId === f.id} onClick={() => void stop(f)} />
                             </div>
                         )}
                     />
                 </DataTable>
             </div>
 
-            {forwards.some((f) => f.status === 'error') && (
-                <div
-                    style={{
-                        flexShrink: 0,
-                        padding: '0.5rem 1rem',
-                        borderTop: '1px solid var(--surface-border)',
-                        fontSize: '0.78rem',
-                        color: 'var(--red)',
-                        wordBreak: 'break-word',
-                    }}
-                >
-                    {forwards.filter((f) => f.status === 'error').map((f) => (
-                        <div key={f.id}>
-                            {f.resource_kind}/{f.resource_name}: {f.error}
+            {failed.length > 0 && (
+                <div className="pf-panel__errors" role="status">
+                    {failed.map((f) => (
+                        <div key={f.id} className="pf-panel__error">
+                            <StatusLamp label={`${f.resource_kind}/${f.resource_name}`} tone="err" />
+                            <span>{f.error}</span>
                         </div>
                     ))}
                 </div>

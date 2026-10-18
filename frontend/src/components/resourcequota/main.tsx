@@ -2,7 +2,6 @@ import React from 'react';
 import type { DockviewPanelApi } from 'dockview';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { GetResourceQuotas } from '../../../wailsjs/go/controller_app/App';
@@ -10,7 +9,8 @@ import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
 import { useT } from '../../i18n/useT';
-import { CssBar, getUsageColor } from '../../lib/usage';
+import { CssBar, usageTone } from '../../lib/usage';
+import StatusLamp from '../shared/StatusLamp';
 
 const defaultFilters: DataTableFilterMeta = {
     name:      { value: null, matchMode: FilterMatchMode.CONTAINS },
@@ -30,13 +30,13 @@ const entryPct = (e: models.ResourceQuotaEntry) => (e.hard_num > 0 ? (e.used_num
 /** Same thresholds as `getUsageColor`, so the tag and the bar never disagree. */
 function StatusTag({ p }: { p: number | null }) {
     const t = useT();
-    if (p === null) return <span style={{ color: 'var(--ink3)' }}>—</span>;
+    if (p === null) return <span className="cell-empty">—</span>;
     const [key, severity] =
         p >= 100 ? (['full', 'danger'] as const)
         : p >= 80 ? (['critical', 'danger'] as const)
         : p >= 60 ? (['warning', 'warning'] as const)
         : (['ok', 'success'] as const);
-    return <Tag value={t(`resources:resourcequota.status.${key}`)} severity={severity} />;
+    return <StatusLamp label={t(`resources:resourcequota.status.${key}`)} severity={severity} />;
 }
 
 /**
@@ -54,16 +54,16 @@ const QuotaEntriesTable = React.memo(function QuotaEntriesTable({ entries }: { e
             <Column field="hard" header={t('resources:column.hard')} style={{ minWidth: '6rem' }} />
             <Column field="remaining" header={t('resources:column.remaining')} style={{ minWidth: '6rem' }}
                 body={(e: EntryRow) => (
-                    <span style={e.remaining.startsWith('-') ? { color: 'var(--red)', fontWeight: 600 } : undefined}>{e.remaining}</span>
+                    <span className={e.remaining.startsWith('-') ? 'cell-err' : undefined}>{e.remaining}</span>
                 )} />
             <Column field="pct" header={t('resources:column.usage')} sortable style={{ minWidth: '14rem' }}
                 body={(e: EntryRow) => {
-                    if (e.pct === null) return <span style={{ color: 'var(--ink3)' }}>—</span>;
+                    if (e.pct === null) return <span className="cell-empty">—</span>;
                     const shown = Math.min(e.pct, 100);
                     return (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                        <div className="usage-cell">
                             <CssBar p={shown} />
-                            <span style={{ width: '3rem', textAlign: 'right', fontWeight: 700, color: getUsageColor(shown) }}>
+                            <span className={`usage-cell__pct cell-count--${usageTone(shown)}`}>
                                 {e.pct.toFixed(0)}%
                             </span>
                         </div>

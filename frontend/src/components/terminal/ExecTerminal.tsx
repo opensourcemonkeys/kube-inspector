@@ -173,18 +173,11 @@ export default function ExecTerminal({ sessionId, banner, connect, close, saveNa
     return (
         // The wrapper exists so the find bar has a positioned ancestor; the
         // terminal element itself is unchanged.
-        <div style={{ width: '100%', height: '100%', position: 'relative' }}>
+        <div className="w-full h-full relative">
             <div
                 ref={containerRef}
+                className="term-host term-host--fill dark-display"
                 onContextMenu={actions.onContextMenu}
-                style={{
-                    width: '100%',
-                    height: '100%',
-                    padding: '4px',
-                    boxSizing: 'border-box',
-                    background: 'var(--panel2)',
-                    overflow: 'hidden',
-                }}
             />
             {actions.overlays}
         </div>

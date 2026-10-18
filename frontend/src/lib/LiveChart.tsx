@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { Chart as ChartJS, ChartData, ChartOptions, ChartType } from 'chart.js';
+import { themeColor } from './themeColors';
 
 // A chart.js canvas for data that refreshes on a poll.
 //
@@ -12,6 +13,18 @@ import type { Chart as ChartJS, ChartData, ChartOptions, ChartType } from 'chart
 //
 // chart.js is still loaded lazily (same as PrimeReact) so the module costs
 // nothing to the chunks that import it for the formatting helpers alone.
+// The one place chart.js defaults are set, so a chart only states what is
+// particular to it. The font is the app's (chart.js otherwise draws Helvetica
+// into the canvas); the colors are re-read for every chart created, because a
+// theme switch only reaches the options a chart passes explicitly.
+function applyChartDefaults(Chart: typeof ChartJS): void {
+    const d = Chart.defaults;
+    d.font.family = getComputedStyle(document.documentElement).getPropertyValue('--font-family').trim() || 'sans-serif';
+    d.font.size = 11;
+    d.color = themeColor('--ink-2');
+    d.borderColor = themeColor('--line');
+}
+
 export function LiveChart<T extends ChartType>({ type, data, options, height }: {
     type: T;
     data: ChartData<T, any, any>;
@@ -29,6 +42,7 @@ export function LiveChart<T extends ChartType>({ type, data, options, height }: 
         let cancelled = false;
         import('chart.js/auto').then(({ default: Chart }) => {
             if (cancelled || !canvasRef.current) return;
+            applyChartDefaults(Chart);
             chartRef.current = new Chart(canvasRef.current, { type, ...latest.current } as any);
         });
         return () => {

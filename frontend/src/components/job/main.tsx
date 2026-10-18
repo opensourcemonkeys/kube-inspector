@@ -2,8 +2,7 @@ import type { DockviewPanelApi } from 'dockview';
 import { VscListFlat } from 'react-icons/vsc';
 import { DataTableFilterMeta } from 'primereact/datatable';
 import { Column, ColumnFilterElementTemplateOptions } from 'primereact/column';
-import { Tag } from 'primereact/tag';
-import { Button } from 'primereact/button';
+import StatusLamp from '../shared/StatusLamp';
 import { FilterMatchMode } from 'primereact/api';
 import { MultiSelect } from 'primereact/multiselect';
 import { GetJobs, DeleteJob } from '../../../wailsjs/go/controller_app/App';
@@ -11,6 +10,8 @@ import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
 import { useT } from '../../i18n/useT';
+import CountCell from '../shared/CountCell';
+import RowAction from '../shared/RowAction';
 
 const getStatusSeverity = (status: string): 'success' | 'warning' | 'danger' | 'info' | 'secondary' => {
     switch (status) {
@@ -61,16 +62,16 @@ export default function JobListComponent({ clusterName, api }: { clusterName: st
                             <MultiSelect value={options.value} options={buildInOptions('namespace')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column field="status" header={t('resources:column.status')} sortable filter filterField="status" showFilterMenu={false} style={{ minWidth: '9rem' }}
-                        body={(row: models.JobInfo) => <Tag value={row.status} severity={getStatusSeverity(row.status)} />}
+                        body={(row: models.JobInfo) => <StatusLamp label={row.status} severity={getStatusSeverity(row.status)} />}
                         filterElement={(options: ColumnFilterElementTemplateOptions) => (
                             <MultiSelect value={options.value} options={buildInOptions('status')} onChange={(e) => options.filterApplyCallback(e.value)} placeholder={t('filter.all')} filter maxSelectedLabels={1} style={{ minWidth: '8rem', maxWidth: '100%' }} />
                         )} />
                     <Column header={t('resources:column.completions')} sortable sortField="succeeded" style={{ minWidth: '10rem' }}
-                        body={(row: models.JobInfo) => <Tag value={`${row.succeeded} / ${row.completions}`} severity={getCompletionSeverity(row.succeeded, row.completions, row.failed)} />} />
+                        body={(row: models.JobInfo) => <CountCell value={`${row.succeeded} / ${row.completions}`} severity={getCompletionSeverity(row.succeeded, row.completions, row.failed)} />} />
                     <Column field="active" header={t('resources:column.active')} sortable style={{ minWidth: '6rem' }} body={(row: models.JobInfo) => row.active} />
                     <Column header="" style={{ width: '4rem', textAlign: 'center' }}
                         body={(row: models.JobInfo) => (
-                            <Button icon={<VscListFlat size={16} />} text size="small" severity="secondary" style={{ padding: '0.2rem', fontSize: '0.7rem' }}
+                            <RowAction icon={<VscListFlat size={15} />} label={t('action.logs')}
                                 onClick={() => openLogPanel({ clusterName, resourceKind: 'job', name: row.name, namespace: row.namespace, referencePanel })} />
                         )} />
                 </>
