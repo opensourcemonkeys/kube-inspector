@@ -8,8 +8,8 @@ large text (>= 24px, or >= 18.66px at 600+). Disabled controls are skipped, as
 WCAG exempts inactive components. Results are grouped by (theme, colours,
 element class) so one bad token shows up once rather than per row.
 
-    KUBE_INS_URL=http://localhost:5173/ python3 roadmap/ui-redesign/contrast_scan.py
-    → roadmap/ui-redesign/contrast/report.json + a summary on stdout
+    KUBE_INS_URL=http://localhost:5173/ python3 scripts/ui/contrast_scan.py
+    → scripts/ui/out/contrast/report.json + a summary on stdout
 
 Env: KUBE_INS_URL, THEMES, ONLY / SKIP (as capture.py).
 """
@@ -22,7 +22,7 @@ sys.argv = sys.argv[:1] + ["contrast"]  # capture.py reads its label from argv
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import capture  # noqa: E402
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "contrast")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "contrast")
 
 SCAN_JS = r"""
 const parse = (c) => {

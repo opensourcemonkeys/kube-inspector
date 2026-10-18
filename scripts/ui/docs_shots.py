@@ -6,11 +6,11 @@ Same driver and helpers as capture.py, but at the size the site uses — a
 images have — and only in the default theme. Each scene recreates what the
 image it replaces showed.
 
-Output goes to roadmap/ui-redesign/docs/ (gitignored) so the images can be
+Output goes to scripts/ui/out/docs/ (gitignored) so the images can be
 reviewed before they are copied over the published ones:
 
-    KUBE_INS_URL=http://localhost:5173/ python3 roadmap/ui-redesign/docs_shots.py
-    cp roadmap/ui-redesign/docs/*.png docs/assets/screenshots/
+    KUBE_INS_URL=http://localhost:5173/ python3 scripts/ui/docs_shots.py
+    cp scripts/ui/out/docs/*.png docs/assets/screenshots/
 
 Env: KUBE_INS_URL, ONLY (comma list of image names). cli-pods.png is the
 terminal UI and is not produced here.
@@ -26,7 +26,7 @@ from selenium.webdriver.common.keys import Keys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import capture  # noqa: E402  (reuses the driver and navigation helpers)
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", "docs")
 ONLY = set(filter(None, os.environ.get("ONLY", "").split(",")))
 W, H = 1728, 1054
 

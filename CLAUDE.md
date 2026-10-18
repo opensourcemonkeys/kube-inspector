@@ -165,7 +165,7 @@ When adding a resource, follow this pattern (see "Adding a New Resource Type"). 
   - Depth is tokens too (`--recess`, `--press`, `--key-lift`, `--accent-lift`, `--screen-shade`, `--shadow-1..3`). Black at 35% reads as depth on graphite and as dirt on aluminium, so never write a literal shadow.
   - **Contrast is a property of the tokens.**
     - In every theme `--ink-3` clears AA (4.5:1) on every surface up to `--bezel-raised`. On `--bezel-high` (a selected row, a tooltip) secondary text uses `--ink-2`.
-    - `roadmap/ui-redesign/contrast_scan.py` measures every visible text node against its composited background across the capture screens in all four themes, and must report 0. Re-run it after touching a palette or adding a theme.
+    - `scripts/ui/contrast_scan.py` measures every visible text node against its composited background across the capture screens in all four themes, and must report 0. Re-run it after touching a palette or adding a theme.
   - **`daylight` is the light theme, but code, logs and the terminal stay dark in it.**
     - Those surfaces carry the `dark-display` class.
     - The `:root` block's selector also matches `html[data-theme="daylight"] .dark-display`, which re-binds the whole dark palette there: background, text, selection, ANSI and widgets.
@@ -395,7 +395,7 @@ npm run build
 
 The site wears the app's identity. `docs/stylesheets/extra.css` mirrors the default `graphite` tokens as `--ki-*` (bezel header, screen page, the accent blue only for the Download key and the current page, `--ki-info` (blue-lavender) links, IBM Plex via `theme.font` in `mkdocs.yml`), and the header/hero mark is `docs/assets/mark.svg`, the same drawing as the app's title-bar logo. Change a `--ki-*` value when the app's palette changes. The same rules apply as in the app: no gradients, glows, tracked capitals or pills.
 
-The app screenshots in `docs/assets/screenshots/` (all but the TUI's `cli-pods.png`) are produced by `roadmap/ui-redesign/docs_shots.py`. It drives a dev server with Selenium at 1728×1054 and device scale 2, and writes to the gitignored `roadmap/ui-redesign/docs/` for review before they are copied over. Re-run it when the UI changes visibly.
+The app screenshots in `docs/assets/screenshots/` (all but the TUI's `cli-pods.png`) are produced by `scripts/ui/docs_shots.py`. It drives a dev server with Selenium at 1728×1054 and device scale 2, and writes to the gitignored `scripts/ui/out/docs/` for review before they are copied over. Re-run it when the UI changes visibly.
 
 The marketing/docs site lives in `docs/` (MkDocs Material, config `mkdocs.yml`, custom theme overrides in `overrides/` + `docs/stylesheets/extra.css`). Build/preview with the Makefile (needs `pip install "mkdocs-material[imaging]"` — the `imaging` extra + system Cairo/Pango libs are required by the `social` plugin that generates the `og:image`/`twitter:image` cards; the plugin is gated `enabled: !ENV [CI, false]` so a bare local `mkdocs serve` without those libs still works):
 ```bash

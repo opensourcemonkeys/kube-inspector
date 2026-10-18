@@ -1,15 +1,16 @@
 """
-Screenshot every screen of the app, in every theme, for the UI redesign's
-before/after comparison (roadmap/ui-redesign.md, steps 0 and 12).
+Screenshot every screen of the app, in every theme — for a before/after
+comparison of a visual change, and as the scenario set contrast_scan.py and
+docs_shots.py reuse.
 
 Needs the dev backend + Vite running (the Electron window is not required):
 
     make electron-dev-go      # terminal 1
     make electron-dev-vite    # terminal 2
-    python3 roadmap/ui-redesign/capture.py before   # or: after
+    python3 scripts/ui/capture.py before   # or: after
 
 Uses the active cluster from ~/.kube-ins/.active. Output lands in
-roadmap/ui-redesign/<label>/<theme>/name.png. File names are stable across
+scripts/ui/out/<label>/<theme>/name.png (gitignored). File names are stable across
 runs so before/ and after/ line up one to one. A screen that cannot be reached
 (no pods, a menu item missing) is reported and skipped, never fatal.
 
@@ -39,7 +40,7 @@ ERROR_CLUSTER = os.environ.get("ERROR_CLUSTER", "cluster 1")
 HOME_CLUSTER = os.environ.get("HOME_CLUSTER", "default 3")
 
 label = sys.argv[1] if len(sys.argv) > 1 else "before"
-root = os.path.join(os.path.dirname(os.path.abspath(__file__)), label)
+root = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out", label)
 
 
 # ── driver ──────────────────────────────────────────────────────────────────

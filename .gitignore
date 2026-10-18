@@ -44,7 +44,6 @@ docs/downloads.md
 graphify-out/cost.json
 graphify-out/cache/
 
-# UI redesign screenshots (roadmap/ui-redesign.md). Regenerated on demand by
-# roadmap/ui-redesign/capture.py into before/, after/ and per-step folders;
-# only the script and audit.md are tracked.
-/roadmap/ui-redesign/*/
+# Screenshots and reports from scripts/ui/ (capture, contrast scan, docs
+# shots). Regenerated on demand; only the scripts are tracked.
+/scripts/ui/out/
