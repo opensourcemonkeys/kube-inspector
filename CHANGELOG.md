@@ -2,6 +2,50 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.19.0-beta] - 2026-10-18
+
+A redesign release. Every screen has been redrawn around one idea taken from an instrument panel: a graphite frame — title bar, sidebar, tab strip, toolbars — with the content set into it as a darker screen. States read as lamps with a shape as well as a colour, the type is IBM Plex, and the one accent is the blue of the app's logo. Alongside it come a light theme, a log viewer that can follow every pod of a workload, and a shell picker for the built-in terminal.
+
+### Added
+- **A new look across the whole app.** The frame and the content are now visibly separate: the title bar, sidebar and tab strip are the frame, and lists, dashboards, YAML, logs and terminals sit inside it on a darker screen. Text is set in IBM Plex Sans, with IBM Plex Mono kept for values you copy — image references, IPs, ports, UIDs, YAML and logs. Labels and column headers are in sentence case rather than spaced-out capitals. The one accent colour, the sky blue of the logo, marks only what you act on: the primary button, the selected row, the focused control and the current tab.
+- **Status lamps.** Every state — a pod's phase, a deployment's health, a port-forward, a health check, an event type — is shown as a lamp *and* a word, and the lamp has a shape as well as a colour (● ok, ▲ warning, ■ fault, ◆ info, ○ idle), so it reads the same for a colour-blind user. Coloured pills are kept only for labels that are not states, such as a Service type.
+- **A light theme, Daylight.** An aluminium-grey frame around a near-white screen, with colours darkened until every text reaches WCAG AA contrast. Code, logs and the terminal deliberately stay dark in it, the way an instrument's display stays dark in daylight. On first launch the app follows your system's light or dark setting until you pick a theme under **Open ▸ Theme**; your choice always wins after that.
+- **Logs for a whole workload.** Opening the logs of a Deployment, StatefulSet, DaemonSet, ReplicaSet, Job or CronJob can now follow **all of its pods at once**, each line prefixed with the pod it came from, or a single pod chosen from a list. For a pod, pick **all containers** or one — init and ephemeral containers included and labelled as such.
+- **More control over a log.** How many lines to load (or the whole log), a time range from the last five minutes to the last 24 hours, the **previous** instance of a container (the run that crashed, not the one that replaced it), timestamps, line wrapping, follow, and colouring by log level (error, warning, info, debug). Copy all, save to file, clear and reconnect sit in the toolbar. Wrapping, timestamps, level colours, line count and time range are remembered between sessions.
+- **Choose a shell in the terminal.** The terminal toolbar lists the shells installed on this machine and switches between them in place: PowerShell 7, Windows PowerShell, Command Prompt, Git Bash and WSL on Windows; your login shell on macOS, started as a login shell so Homebrew's `PATH` is there; `$SHELL` and everything in `/etc/shells` on Linux. The built-in terminal now also works on Windows, through the system's ConPTY.
+- **Visible keyboard focus everywhere.** Every control that can take focus now shows a focus ring when reached with the keyboard, including the title-bar menu and the scroll area of a table, which had none.
+- **Respects "reduce motion".** When the system asks for less motion, menus, dialogs and panels appear without animating. Spinners keep turning, more slowly, so work in progress never looks frozen.
+
+### Changed
+- **The default theme is now called Graphite**, and Last Samurai and God of War have been retuned: lifted off near-black, with a clear step between frame and screen, and secondary text raised to AA contrast. A theme chosen in an earlier version carries over automatically.
+- **Resource lists** drop the striped rows and grid lines for single hairlines, at a steadier 32px row height. Status is a lamp, ready counts are plain figures tinted only when something is wrong, and owner kinds are plain text. An empty list says what is missing and offers **Clear filters** when a filter is the reason. **Delete selected** appears only once something is selected, and the confirmation lists the objects it will delete ("and 12 more" past eight).
+- **Overview** is a single reading strip of counts that open their lists, cluster CPU and memory drawn as gauges with the 60% and 80% marks on the scale, and nodes as a compact list. A cluster without metrics-server shows a quiet "no data" state instead of a yellow warning.
+- **Monitoring and Nodes** follow the same gauges; trend charts use thin lines with a faint fill and horizontal grid only. Node memory capacity reads as GiB instead of a raw `Ki` figure.
+- **Tabs.** The active tab rises from the strip with rounded top corners and the screen's own colour, and the cluster colour runs along each tab's bottom edge. A background tab lifts slightly under the pointer. The tab strip of the panels along the top merges with the title bar.
+- **The sidebar** groups are plain sentence-case headings, every view has its own icon, and the highlighted item now follows the tab you are on rather than the last item you clicked.
+- **The AI assistant** reads as a console log: your turns are marked by an accent edge, tool calls are lamp-and-name lines, "working" is an elapsed-seconds counter rather than bouncing dots, and a failed turn shows its reason.
+- **Dialogs** use one layout: a left-aligned title, facts as label/value rows, and the buttons in the footer. The update dialog shows the installed and available versions and a two-step progress rail.
+- **Motion is quieter.** Menus, dropdowns, popovers, dialogs and toasts open on one short curve; nothing loops except a spinner for work that is still running. On launch the content screens light up once.
+- **The pod detail panel** stacks each label above its value when the panel is narrow, instead of breaking words letter by letter.
+
+### Fixed
+- **Alternate themes no longer show the original turquoise** in focus rings, hover states and the update button.
+- **The app no longer opens two Overview tabs** at launch; the start tab waits for the cluster list.
+- **Apply YAML's output** was always shown in the warning colour, even after a successful apply; it now reflects the result.
+- **The Add/Edit Cluster dialog** no longer draws a second frame around its header.
+- **Strings that were never translated** — on the Overview, in the network-policy viewer, in Trivy scan messages and the port-forward dialog — now follow the selected language.
+- **A terminal whose shell exits on its own** now says so, instead of leaving a panel that silently ignores input.
+
+### Internal
+- All colours, depth, radii, focus and motion come from tokens in `theme-monolith.css`; components and inline styles carry no colour literals. lara-dark-cyan's own hardcoded colours are re-pointed at the tokens by a generated stylesheet inside lara's CSS layer (`npm run theme:lara`), and lara's bundled Inter font is stripped from the build (about 0.7 MB).
+- New shared components: `StatusLamp`, `RowAction` (every icon-only button, with a required accessible name), `Spinner`, `Segmented`, `Gauge`, `GraphChrome`, `CountCell`, `NoMetrics`. MUI and Emotion are removed.
+- `scripts/ui/` holds the tooling used for the redesign: `capture.py` screenshots every screen in every theme, `contrast_scan.py` measures every visible text against its background (0 AA failures across four themes and 26 screens), and `docs_shots.py` regenerates the documentation screenshots.
+- Logs: `StartLogStream` takes a `LogStreamOptions` (tail, since, timestamps, previous) and a new `GetPodLogContainers` lists a pod's containers by kind; the log buffer is capped per panel and says when older lines were dropped.
+- Terminal: the local shell runs behind a small `ptyProcess` interface — `creack/pty` on Unix, ConPTY on Windows — and shells are resolved by ID from `GetAvailableShells`, never by path.
+- The documentation site wears the same identity (Plex, graphite, the logo blue) and its screenshots were regenerated.
+
+---
+
 ## [v0.18.0-beta] - 2026-10-04
 
 A pod-inspection release. Clicking a pod now opens a detail panel beside the list that answers the questions which used to mean reading its YAML — what owns it, what it mounts, which Secrets and ConfigMaps it reads, why a container keeps restarting — with every object it names one click away. The update dialog now says what an update brings before you install it, and terminals can be moved to another window without losing their session.
