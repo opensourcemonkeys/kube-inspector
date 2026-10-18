@@ -953,7 +953,12 @@ html :is(button, a[href], summary, input, textarea, select, [role="button"], [ta
    ════════════════════════════════════════════════════════════ */
 .tb-root {
   display: flex; align-items: center; justify-content: space-between;
-  height: 36px; background: var(--bezel); border-bottom: 1px solid var(--line);
+  /* No visible bottom edge: the tab strip of the groups along the top shares
+     the bezel colour, so title bar and tabs read as one frame. The hairline
+     that separates the title bar from the sidebar is the sidebar's own
+     (.app-sidebar::before). Transparent rather than removed so the bar keeps
+     its 36px. */
+  height: 36px; background: var(--bezel); border-bottom: 1px solid transparent;
   padding: 0 0 0 12px; flex-shrink: 0;
   --wails-draggable: drag; user-select: none;
 }
@@ -1236,6 +1241,8 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
   transition: width var(--dur-move) var(--ease-out);
 }
 .app-sidebar--docked   { width: 240px; z-index: 1; }
+/* The title bar's edge, drawn only above the sidebar — see .tb-root. */
+.app-sidebar::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 1px; background: var(--line); z-index: 2; pointer-events: none; }
 .app-sidebar--floating { width: 240px; box-shadow: var(--shadow-2); }
 .app-sidebar-hotzone   { position: absolute; left: 0; top: 0; width: 6px; height: 100%; z-index: 200; }
 .app-workspace { position: absolute; top: 0; right: 0; bottom: 0; left: 0; overflow: hidden; transition: left var(--dur-move) var(--ease-out); }
@@ -1629,9 +1636,12 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 }
 #root .dv-tabs-overflow-container { background-color: var(--bezel-raised) !important; border: 1px solid var(--line-strong) !important; border-radius: var(--radius-ctl); box-shadow: var(--shadow-2); font-family: var(--font-family); font-size: 13px; }
 #root .dv-tabs-overflow-container .dv-tab:not(:last-child) { border-bottom: 1px solid var(--line) !important; }
+/* The tab strip's 2px cluster stripe sits on the bottom edge; in this list the
+   cluster colour is the left edge instead, so the last row must not keep it. */
+#root .dv-tabs-overflow-container .dv-tab:last-child { border-bottom: none !important; }
 /* Overflowed tabs stack vertically, so their cluster accent reads better as a
    left edge than as the top stripe used in the tab strip. */
-#root .dv-tabs-overflow-container .dv-tab { border-left: 3px solid transparent !important; }
+#root .dv-tabs-overflow-container .dv-tab { border-left: 3px solid transparent !important; border-radius: 0 !important; }
 #root .dv-tabs-overflow-container .dv-active-tab   { border-left-color: var(--tab-accent, var(--accent)) !important; }
 #root .dv-tabs-overflow-container .dv-inactive-tab { border-left-color: color-mix(in srgb, var(--tab-accent, transparent) 45%, transparent) !important; }
 #root .dv-tabs-overflow-container .dv-active-tab   { background-color: var(--bezel-high) !important; color: var(--ink) !important; }
@@ -1642,10 +1652,19 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 #root .dv-tabs-overflow-container .dv-tabs-overflow-group-collapsed-badge { background-color: var(--line-strong) !important; color: var(--ink-2) !important; }
 .dockview-theme-monolith .dv-tabs-overflow-dropdown-default { color: var(--ink-2); }
 .dockview-theme-monolith .dv-tabs-overflow-dropdown-default:hover { background-color: var(--screen-2); color: var(--ink); border-radius: 0; }
-/* The top border doubles as the per-cluster accent stripe. Both states carry
-   the same 2px so switching tabs never shifts their content; only the colour
-   differs. --tab-accent is set inline on this element by FloatableTab. */
-.dockview-theme-monolith .dv-tab { height: var(--dv-tabs-and-actions-container-height); box-sizing: border-box; border-top: 2px solid transparent; border-right: 1px solid var(--line); }
+/* The bottom border doubles as the per-cluster accent stripe. Both states
+   carry the same 2px (and the same 1px right edge) so switching tabs never
+   shifts their content; only the colours differ. --tab-accent is set inline
+   on this element by FloatableTab. */
+.dockview-theme-monolith .dv-tab {
+  height: var(--dv-tabs-and-actions-container-height); box-sizing: border-box;
+  border-bottom: 2px solid transparent; border-right: 1px solid var(--line);
+  /* Every tab carries the folder-tab corners. They only show where the tab's
+     ground differs from the strip's: always on the active tab, under the
+     pointer on a backgrounded one. */
+  border-top-left-radius: var(--radius-pop); border-top-right-radius: var(--radius-pop);
+  transition: background-color var(--dur-in) var(--ease-out), color var(--dur-in) var(--ease-out);
+}
 /* The drag ghost is a tab clone appended to <body> — outside
    .dockview-theme-monolith — so it must not depend on a variable scoped to the
    theme class: an unresolvable var() is invalid at computed-value time, and
@@ -1653,10 +1672,21 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
    the ghost to height:auto and leaving it far taller than the real tab. */
 .dv-tab.dv-tab-ghost-drag { height: var(--dv-tab-height) !important; width: fit-content !important; max-width: 220px !important; min-width: 0 !important; overflow: hidden !important; box-shadow: var(--shadow-2) !important; }
 .dockview-theme-monolith .dv-default-tab { display: flex; align-items: center; height: 100%; font-family: var(--font-family); font-size: 13px; padding: 0 8px 0 12px; gap: 6px; box-sizing: border-box; }
-.dockview-theme-monolith .dv-tab.dv-active-tab { border-top-color: var(--tab-accent, var(--accent)); }
+/* The active tab is the lip of the screen pulled up into the strip. */
+.dockview-theme-monolith .dv-tab.dv-active-tab { border-bottom-color: var(--tab-accent, var(--accent)); }
 /* Backgrounded tabs keep a dimmed stripe so an open tab's cluster stays
-   identifiable at a glance. */
-.dockview-theme-monolith .dv-tab.dv-inactive-tab { border-top-color: color-mix(in srgb, var(--tab-accent, transparent) 45%, transparent); }
+   identifiable at a glance, and drop the divider: the stripe and the gap
+   between labels already separate them. */
+.dockview-theme-monolith .dv-tab.dv-inactive-tab {
+  border-bottom-color: color-mix(in srgb, var(--tab-accent, transparent) 45%, transparent);
+  border-right-color: transparent;
+}
+/* Hover lifts a backgrounded tab onto a raised key with the active tab's
+   rounded top. dockview paints the hidden-tab ground at (0,6,0), so the
+   selector repeats its chain to win. */
+.dockview-theme-monolith .dv-groupview > .dv-tabs-and-actions-container .dv-tabs-container > .dv-tab.dv-inactive-tab:hover {
+  background-color: var(--bezel-raised); color: var(--ink);
+}
 .dockview-theme-monolith .dv-tab.dv-active-tab .dv-default-tab { font-weight: 500; }
 /* The screen sits recessed below the bezel: a soft shade along its top edge,
    drawn over the panel so no panel has to paint it. The active tab has the
