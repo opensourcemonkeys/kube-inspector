@@ -4,11 +4,21 @@ name: CI
 # workflow existed nothing was checked before a release: a type error or a
 # failing test was first discovered at tag time, with the release already
 # half-published. These jobs gate the code; build.yml ships it.
+#
+# CI runs on working branches, not on main: work is verified on its branch
+# before it lands, and main only receives finished work and release commits.
 on:
-  pull_request:
   push:
-    branches:
+    # Every branch except main. A run there was cancelled by hand on every
+    # release push, which is what the README badge kept reporting as a failure.
+    # Tags are not matched: with only a branch filter, a tag push does not
+    # trigger this workflow (build.yml owns tags).
+    branches-ignore:
       - main
+  # Kept for pull requests from forks only — see each job's `if`. A branch of
+  # this repository is already covered by its push run; running both would
+  # double every check.
+  pull_request:
   workflow_dispatch:
 
 # A force-push or a quick follow-up commit supersedes the previous run.
@@ -26,6 +36,7 @@ env:
 jobs:
   go:
     name: Go (build, vet, lint, test)
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -73,6 +84,7 @@ jobs:
 
   frontend:
     name: Frontend (typecheck, lint, test, build)
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout
@@ -126,6 +138,7 @@ jobs:
 
   docs:
     name: Docs (mkdocs --strict)
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-22.04
     steps:
       - name: Checkout

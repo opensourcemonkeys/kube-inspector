@@ -76,6 +76,10 @@ ESLint, the i18n catalog parity checker and the frontend tests. CI runs the same
 gates plus a `mkdocs --strict` docs build, so a green `make check` is a good
 predictor.
 
+CI runs on every push to a branch other than `main` (and on pull requests from
+forks) — not on `main` itself — so push your work to a branch and let it go green
+before merging.
+
 Two invariants CI enforces that are easy to break locally:
 
 ```bash

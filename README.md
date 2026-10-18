@@ -1,6 +1,6 @@
 # Kube Inspector
 
-[![CI](https://github.com/opensourcemonkeys/kube-inspector/actions/workflows/ci.yml/badge.svg)](https://github.com/opensourcemonkeys/kube-inspector/actions/workflows/ci.yml)
+[![Build](https://github.com/opensourcemonkeys/kube-inspector/actions/workflows/build.yml/badge.svg)](https://github.com/opensourcemonkeys/kube-inspector/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/opensourcemonkeys/kube-inspector?include_prereleases&sort=semver&label=release)](https://github.com/opensourcemonkeys/kube-inspector/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-kubeinspector.com-0a7d7d)](https://kubeinspector.com)
