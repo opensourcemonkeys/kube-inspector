@@ -17,6 +17,21 @@ export interface PanelPayload {
     params: Record<string, any>;
 }
 
+/**
+ * Resolved colours for the OS-level drag ghost. Its page is a data: URL that
+ * cannot see our stylesheet, so without these it would paint a fixed palette
+ * whatever theme is active.
+ */
+export interface DragGhostStyle {
+    background: string;
+    color: string;
+    accent: string;
+    line: string;
+    radius: string;
+    font: string;
+    weight: string;
+}
+
 export interface ShellWindow {
     id: number;
     title: string;
@@ -25,7 +40,7 @@ export interface ShellWindow {
 interface ShellApi {
     windowId?: number;
     initialPanel?: PanelPayload;
-    startDragGhost?: (title: string) => void;
+    startDragGhost?: (title: string, style?: DragGhostStyle) => void;
     endDragGhost?: () => void;
     onDragHover?: (cb: (x: number, y: number) => void) => () => void;
     onDragLeave?: (cb: () => void) => () => void;
@@ -61,7 +76,8 @@ export const initialPanel = () => shell().initialPanel;
  * Main polls the cursor and reveals it only outside; always pair with
  * `endDragGhost`.
  */
-export const startDragGhost = (title: string) => shell().startDragGhost?.(title);
+export const startDragGhost = (title: string, style?: DragGhostStyle) =>
+    shell().startDragGhost?.(title, style);
 
 export const endDragGhost = () => shell().endDragGhost?.();
 

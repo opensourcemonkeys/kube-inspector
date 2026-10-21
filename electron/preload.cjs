@@ -70,7 +70,7 @@ contextBridge.exposeInMainWorld('__KUBE_INS_SHELL__', {
 
   // An OS-level mirror of the drag ghost, so a tab dragged past the window
   // edge stays visible. Main tracks the cursor and shows it only outside.
-  startDragGhost: (title) => ipcRenderer.send('shell:dragGhostStart', { title }),
+  startDragGhost: (title, style) => ipcRenderer.send('shell:dragGhostStart', { title, style }),
   endDragGhost: () => ipcRenderer.send('shell:dragGhostEnd'),
 
   // Cursor position of a cross-window drag hovering THIS window, forwarded by

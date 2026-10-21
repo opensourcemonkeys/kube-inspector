@@ -544,19 +544,37 @@ let dragGhostTimer = null;
 // clear its overlay when the cursor moves on or the drag ends.
 let dragHoverWin = null;
 
+// Keys the renderer may set on the ghost (see ghostStyle in FloatableTab.tsx),
+// each applied as a `--<key>` custom property. The fallbacks below are the
+// default graphite palette, for a renderer that sends none.
+const GHOST_STYLE_KEYS = ['background', 'color', 'accent', 'line', 'radius', 'font', 'weight'];
+
 function ghostMarkup() {
-  // Inline everything: this is a data: URL with no origin to load from.
+  // Inline everything: this is a data: URL with no origin to load from, and so
+  // no access to the app's stylesheet — the theme arrives as values instead.
+  // Opacity matches dockview's in-page PointerGhost (0.8).
   return `<!doctype html><meta charset="utf-8"><style>
     html,body { margin:0; height:100%; background:transparent; overflow:hidden;
       -webkit-user-select:none; cursor:grabbing; }
-    .tab { box-sizing:border-box; height:${GHOST_HEIGHT}px; max-width:${GHOST_WIDTH}px;
-      display:flex; align-items:center; padding:0 12px; opacity:.85;
-      font:13px/1 system-ui,-apple-system,'Segoe UI',sans-serif; color:#e7eaf0;
-      background:#0c1017; border:1px solid #252e3f; border-top:1px solid #3fc8b4;
-      border-radius:3px; box-shadow:0 4px 12px rgba(0,0,0,.4); }
+    .tab { box-sizing:border-box; height:34px; max-width:${GHOST_WIDTH}px; width:fit-content;
+      display:flex; align-items:center; padding:0 12px; opacity:.8;
+      font-size:13px; line-height:1;
+      font-family:var(--font, 'IBM Plex Sans', system-ui, sans-serif);
+      font-weight:var(--weight, 500);
+      color:var(--color, #ece6d9); background:var(--background, #17191b);
+      border:1px solid var(--line, #3a4045); border-bottom:2px solid var(--accent, #58bde8);
+      border-radius:var(--radius, 6px) var(--radius, 6px) 0 0; }
     span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   </style><div class="tab"><span></span></div>
-  <script>document.querySelector('span').textContent=decodeURIComponent(location.hash.slice(1))</script>`;
+  <script>
+    let d = {};
+    try { d = JSON.parse(decodeURIComponent(location.hash.slice(1))) || {}; } catch {}
+    document.querySelector('span').textContent = String(d.title ?? '');
+    const tab = document.querySelector('.tab');
+    for (const k of ${JSON.stringify(GHOST_STYLE_KEYS)}) {
+      if (typeof d.style?.[k] === 'string' && d.style[k]) tab.style.setProperty('--' + k, d.style[k]);
+    }
+  </script>`;
 }
 
 // Tell the currently-hovered window (if any) to drop its overlay.
@@ -577,7 +595,7 @@ function stopDragGhost() {
   clearDragHover();
 }
 
-ipcMain.on('shell:dragGhostStart', (e, { title } = {}) => {
+ipcMain.on('shell:dragGhostStart', (e, { title, style } = {}) => {
   stopDragGhost(); // a previous drag that never reported its end
   const source = senderWindow(e);
   if (!source) return;
@@ -597,9 +615,11 @@ ipcMain.on('shell:dragGhostStart', (e, { title } = {}) => {
     webPreferences: { sandbox: true, contextIsolation: true },
   });
   dragGhost.setIgnoreMouseEvents(true);
-  // Title rides in the fragment so it is never parsed as markup.
+  // Title and colours ride in the fragment so they are never parsed as
+  // markup: the page sets them with textContent and style.setProperty.
+  const payload = JSON.stringify({ title: title ?? '', style: style ?? {} });
   dragGhost.loadURL(
-    `data:text/html;charset=utf-8,${encodeURIComponent(ghostMarkup())}#${encodeURIComponent(title ?? '')}`,
+    `data:text/html;charset=utf-8,${encodeURIComponent(ghostMarkup())}#${encodeURIComponent(payload)}`,
   );
 
   const startedAt = Date.now();

@@ -6,6 +6,7 @@ import { useClusterColor } from '../../stores/clusterColorStore';
 import InstancePickerMenu, { TabTarget } from '../transfer/InstancePickerMenu';
 import { useT } from '../../i18n/useT';
 import {
+    DragGhostStyle,
     PanelPayload,
     ShellWindow,
     endDragGhost,
@@ -22,6 +23,29 @@ import { isWindowOnly, prepareWindowHandoff } from '../../lib/terminalHandoff';
 // How far the pointer must travel before a press counts as a drag rather than
 // a click. Matches dockview's own default threshold.
 const DRAG_THRESHOLD = 8;
+
+// The OS-level ghost is a data: page with no access to our stylesheet, so it
+// is handed the dragged tab's resolved colours. Read off dockview's `.dv-tab`
+// wrapper — the same element its in-page ghost clones — so the two match in
+// every theme and carry the tab's cluster stripe.
+function ghostStyle(el: HTMLElement): DragGhostStyle {
+    const tab = (el.closest('.dv-tab') as HTMLElement | null) ?? el;
+    const cs = getComputedStyle(tab);
+    const label = getComputedStyle(el);
+    const root = getComputedStyle(document.documentElement);
+    // A tab without a fill of its own shows the strip through it; the ghost
+    // window has nothing behind it, so it takes the strip's colour instead.
+    const transparent = cs.backgroundColor === 'transparent' || cs.backgroundColor === 'rgba(0, 0, 0, 0)';
+    return {
+        background: transparent ? root.getPropertyValue('--bezel').trim() : cs.backgroundColor,
+        color: cs.color,
+        accent: cs.borderBottomColor,
+        line: root.getPropertyValue('--line-strong').trim(),
+        radius: cs.borderTopLeftRadius,
+        font: label.fontFamily,
+        weight: label.fontWeight,
+    };
+}
 
 function getComponentType(panelId: string): string {
     if (panelId.startsWith('yaml:')) return 'yamlEditor';
@@ -176,7 +200,7 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
             if (e.pointerId !== pointerId || dragging) return;
             if (Math.hypot(e.clientX - startX, e.clientY - startY) < DRAG_THRESHOLD) return;
             dragging = true;
-            startDragGhost(api.title ?? '');
+            startDragGhost(api.title ?? '', ghostStyle(el));
         };
 
         const onPointerUp = async (e: PointerEvent) => {
