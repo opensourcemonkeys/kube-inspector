@@ -71,6 +71,7 @@ export default function IngressListComponent({ clusterName, api }: { clusterName
             createFrom={createFrom}
             deleter={DeleteIngress}
             deleteLabel="ingress"
+            impactKind="Ingress"
             pollInterval={2000}
             describeResource="ingresses"
             defaultFilters={defaultFilters}

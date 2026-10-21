@@ -16,6 +16,7 @@ import ResourceListView from '../shared/ResourceListView';
 import PodDetailPanel from './detail/PodDetailPanel';
 import { containerDotColor, fmtCpu, fmtMem, getStatusSeverity } from './podStatus';
 import { humanAge, absTime } from '../../lib/time';
+import { useSplitPane } from '../../lib/useSplitPane';
 import { useT } from '../../i18n/useT';
 import CountCell from '../shared/CountCell';
 import RowAction from '../shared/RowAction';
@@ -71,35 +72,8 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
     // The detail panel: which pod it shows, and how wide it is. The width is a
     // per-user preference, so it lives in localStorage and survives restarts.
     const [selected, setSelected] = useState<{ name: string; namespace: string } | null>(null);
-    const splitRef = useRef<HTMLDivElement>(null);
-    const [detailWidth, setDetailWidth] = useState<number>(() => {
-        try {
-            const saved = Number(localStorage.getItem(DETAIL_WIDTH_KEY));
-            if (saved > 0) return saved;
-        } catch { /* storage unavailable */ }
-        return DEFAULT_DETAIL_WIDTH;
-    });
+    const { splitRef, width: detailWidth, startResize } = useSplitPane(DETAIL_WIDTH_KEY, DEFAULT_DETAIL_WIDTH, MIN_PANE);
     const closeDetail = useCallback(() => setSelected(null), []);
-
-    const startResize = (e: React.PointerEvent<HTMLDivElement>) => {
-        const box = splitRef.current?.getBoundingClientRect();
-        if (!box) return;
-        e.preventDefault();
-        const handle = e.currentTarget;
-        handle.setPointerCapture(e.pointerId);
-        let width = detailWidth;
-        const move = (ev: PointerEvent) => {
-            width = Math.round(Math.min(Math.max(box.right - ev.clientX, MIN_PANE), box.width - MIN_PANE));
-            setDetailWidth(width);
-        };
-        const up = () => {
-            handle.removeEventListener('pointermove', move);
-            handle.removeEventListener('pointerup', up);
-            try { localStorage.setItem(DETAIL_WIDTH_KEY, String(width)); } catch { /* storage unavailable */ }
-        };
-        handle.addEventListener('pointermove', move);
-        handle.addEventListener('pointerup', up);
-    };
 
     return (
       <div className="pod-split" ref={splitRef}>
@@ -117,6 +91,7 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
             createFrom={models.PodInfo.createFrom}
             deleter={DeletePod}
             deleteLabel="pod"
+            impactKind="Pod"
             pollInterval={2000}
             describeResource="pods"
             portForward={{ kind: 'pod' }}

@@ -40,6 +40,7 @@ export default function ConfigMapListComponent({ clusterName, api }: { clusterNa
             createFrom={createFrom}
             deleter={DeleteConfigMap}
             deleteLabel="configmap"
+            impactKind="ConfigMap"
             dataKey="_uid"
             pollInterval={2000}
             describeResource="configmaps"

@@ -90,8 +90,6 @@ func buildPodDetail(pod *corev1.Pod) models.PodDetailInfo {
 	}
 	d.Affinity, d.AffinityCount = affinity(pod.Spec.Affinity)
 
-	refs := newRefSet(ns)
-
 	statuses := map[string]corev1.ContainerStatus{}
 	for _, cs := range pod.Status.InitContainerStatuses {
 		statuses["init:"+cs.Name] = cs
@@ -103,17 +101,15 @@ func buildPodDetail(pod *corev1.Pod) models.PodDetailInfo {
 	// Init containers first, kubectl order.
 	for _, c := range pod.Spec.InitContainers {
 		cs, ok := statuses["init:"+c.Name]
-		d.Containers = append(d.Containers, containerDetail(c, true, cs, ok, ns, refs))
+		d.Containers = append(d.Containers, containerDetail(c, true, cs, ok, ns))
 	}
 	for _, c := range pod.Spec.Containers {
 		cs, ok := statuses[c.Name]
-		d.Containers = append(d.Containers, containerDetail(c, false, cs, ok, ns, refs))
+		d.Containers = append(d.Containers, containerDetail(c, false, cs, ok, ns))
 	}
 
 	for _, v := range pod.Spec.Volumes {
-		info := podVolume(v, pod.Name, ns)
-		refs.add(info.Refs...)
-		d.Volumes = append(d.Volumes, info)
+		d.Volumes = append(d.Volumes, podVolume(v, pod.Name, ns))
 	}
 
 	if sa := pod.Spec.ServiceAccountName; sa != "" {
@@ -122,18 +118,86 @@ func buildPodDetail(pod *corev1.Pod) models.PodDetailInfo {
 	if n := pod.Spec.NodeName; n != "" {
 		d.Node = &models.ObjectRef{Kind: "Node", Name: n}
 	}
-	for _, s := range pod.Spec.ImagePullSecrets {
-		if s.Name != "" {
-			refs.add(models.ObjectRef{Kind: "Secret", Name: s.Name, Namespace: ns})
-		}
-	}
+	refs := podReferences(pod)
 	d.Secrets = refs.sorted("Secret")
 	d.ConfigMaps = refs.sorted("ConfigMap")
 	d.PersistentVolumeClaims = refs.sorted("PersistentVolumeClaim")
 	return d
 }
 
-func containerDetail(c corev1.Container, init bool, cs corev1.ContainerStatus, hasStatus bool, ns string, refs *refSet) models.PodContainerDetail {
+// podReferences gathers every ConfigMap, Secret and PersistentVolumeClaim the
+// pod spec names — env, envFrom, volumes (projected and ephemeral included)
+// and imagePullSecrets. The Pod Detail panel and the resource graph both read
+// it, so the two never disagree about what a pod depends on. Each reference
+// also records whether the pod can start without it and how it is used (a
+// mount path, "env", …) — the graph's broken-edge level and edge labels.
+func podReferences(pod *corev1.Pod) *refSet {
+	ns := pod.Namespace
+	refs := newRefSet(ns)
+	mounts := map[string][]string{} // volume name -> mount paths
+	containers := append(append([]corev1.Container{}, pod.Spec.InitContainers...), pod.Spec.Containers...)
+	for _, c := range containers {
+		for _, m := range c.VolumeMounts {
+			mounts[m.Name] = append(mounts[m.Name], m.MountPath)
+		}
+		for _, ef := range c.EnvFrom {
+			switch {
+			case ef.ConfigMapRef != nil:
+				refs.note(models.ObjectRef{Kind: "ConfigMap", Name: ef.ConfigMapRef.Name, Namespace: ns}, isTrue(ef.ConfigMapRef.Optional), "envFrom")
+			case ef.SecretRef != nil:
+				refs.note(models.ObjectRef{Kind: "Secret", Name: ef.SecretRef.Name, Namespace: ns}, isTrue(ef.SecretRef.Optional), "envFrom")
+			}
+		}
+		for _, e := range c.Env {
+			if v := envVar(e, ns); v.Ref != nil {
+				refs.note(*v.Ref, v.Optional, "env")
+			}
+		}
+	}
+	for _, v := range pod.Spec.Volumes {
+		for _, r := range podVolume(v, pod.Name, ns).Refs {
+			optional := volumeRefOptional(v, r)
+			paths := mounts[v.Name]
+			if len(paths) == 0 {
+				refs.note(r, optional, "volume")
+			}
+			for _, p := range paths {
+				refs.note(r, optional, p)
+			}
+		}
+	}
+	// A pull secret that does not exist is skipped by the kubelet, which then
+	// tries the registry anonymously — a warning, not a pod that cannot start.
+	for _, s := range pod.Spec.ImagePullSecrets {
+		if s.Name != "" {
+			refs.note(models.ObjectRef{Kind: "Secret", Name: s.Name, Namespace: ns}, true, "imagePull")
+		}
+	}
+	return refs
+}
+
+// volumeRefOptional reports whether the volume tolerates ref being absent.
+func volumeRefOptional(v corev1.Volume, ref models.ObjectRef) bool {
+	src := v.VolumeSource
+	switch {
+	case src.ConfigMap != nil:
+		return isTrue(src.ConfigMap.Optional)
+	case src.Secret != nil:
+		return isTrue(src.Secret.Optional)
+	case src.Projected != nil:
+		for _, s := range src.Projected.Sources {
+			if s.ConfigMap != nil && ref.Kind == "ConfigMap" && s.ConfigMap.Name == ref.Name {
+				return isTrue(s.ConfigMap.Optional)
+			}
+			if s.Secret != nil && ref.Kind == "Secret" && s.Secret.Name == ref.Name {
+				return isTrue(s.Secret.Optional)
+			}
+		}
+	}
+	return false
+}
+
+func containerDetail(c corev1.Container, init bool, cs corev1.ContainerStatus, hasStatus bool, ns string) models.PodContainerDetail {
 	req, lim := c.Resources.Requests, c.Resources.Limits
 	cd := models.PodContainerDetail{
 		Name:             c.Name,
@@ -183,15 +247,10 @@ func containerDetail(c corev1.Container, init bool, cs corev1.ContainerStatus, h
 			continue
 		}
 		from.Prefix = ef.Prefix
-		refs.add(from.Ref)
 		cd.EnvFrom = append(cd.EnvFrom, from)
 	}
 	for _, e := range c.Env {
-		v := envVar(e, ns)
-		if v.Ref != nil {
-			refs.add(*v.Ref)
-		}
-		cd.Env = append(cd.Env, v)
+		cd.Env = append(cd.Env, envVar(e, ns))
 	}
 	return cd
 }
@@ -277,18 +336,46 @@ func nonNilSlice(s []string) []string {
 // refSet gathers the objects a pod references, deduplicated per kind.
 type refSet struct {
 	ns   string
-	seen map[string]map[string]bool
+	seen map[string]map[string]*refUse
 }
 
-func newRefSet(ns string) *refSet { return &refSet{ns: ns, seen: map[string]map[string]bool{}} }
+// refUse: required if any one use is required; uses in first-seen order.
+type refUse struct {
+	required bool
+	uses     []string
+}
 
-func (r *refSet) add(refs ...models.ObjectRef) {
-	for _, ref := range refs {
-		if r.seen[ref.Kind] == nil {
-			r.seen[ref.Kind] = map[string]bool{}
-		}
-		r.seen[ref.Kind][ref.Name] = true
+func newRefSet(ns string) *refSet { return &refSet{ns: ns, seen: map[string]map[string]*refUse{}} }
+
+func (r *refSet) note(ref models.ObjectRef, optional bool, use string) {
+	if r.seen[ref.Kind] == nil {
+		r.seen[ref.Kind] = map[string]*refUse{}
 	}
+	u := r.seen[ref.Kind][ref.Name]
+	if u == nil {
+		u = &refUse{}
+		r.seen[ref.Kind][ref.Name] = u
+	}
+	u.required = u.required || !optional
+	for _, existing := range u.uses {
+		if existing == use {
+			return
+		}
+	}
+	u.uses = append(u.uses, use)
+}
+
+// optional: the pod names it only in places that tolerate its absence.
+func (r *refSet) optional(kind, name string) bool {
+	u := r.seen[kind][name]
+	return u != nil && !u.required
+}
+
+func (r *refSet) uses(kind, name string) []string {
+	if u := r.seen[kind][name]; u != nil {
+		return u.uses
+	}
+	return nil
 }
 
 func (r *refSet) sorted(kind string) []models.ObjectRef {

@@ -37,6 +37,7 @@ export default function StorageClassListComponent({ clusterName, api }: { cluste
             pollInterval={10000}
             deleter={deleteEntry}
             deleteLabel="storage class"
+            impactKind="StorageClass"
             describeResource="storageclasses"
             defaultFilters={defaultFilters}
             emptyMessage={t('resources:storageclass.empty')}

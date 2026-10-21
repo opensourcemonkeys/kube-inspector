@@ -29,6 +29,7 @@ export default function ServiceAccountListComponent({ clusterName, api }: { clus
             pollInterval={10000}
             deleter={DeleteServiceAccount}
             deleteLabel="service account"
+            impactKind="ServiceAccount"
             describeResource="serviceaccounts"
             defaultFilters={defaultFilters}
             emptyMessage={t('resources:serviceaccount.empty')}

@@ -49,6 +49,7 @@ export default function DaemonSetListComponent({ clusterName, api }: { clusterNa
             createFrom={models.DaemonSetInfo.createFrom}
             deleter={DeleteDaemonSet}
             deleteLabel="daemonset"
+            impactKind="DaemonSet"
             pollInterval={2000}
             describeResource="daemonsets"
             workloadActions={() => ({ restart: { kind: 'daemonset' } })}

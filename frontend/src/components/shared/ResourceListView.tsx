@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
 import { VscClearAll, VscTrash, VscClose, VscExpandAll, VscCollapseAll } from 'react-icons/vsc';
 import { DataTable, DataTableExpandedRows, DataTableFilterMeta, DataTableProps, DataTableRowToggleEvent } from 'primereact/datatable';
@@ -18,6 +18,10 @@ import { ROW_HEIGHT } from '../../lib/tableMetrics';
 import PortForwardDialog, { type ForwardableKind } from './PortForwardDialog';
 import { useWorkloadActions, type WorkloadActionSpec } from './WorkloadActions';
 import { ACTION_COLUMN_PROPS } from './actionColumn';
+
+// The delete dialog's blast-radius summary. Lazy: it brings the resource
+// graph's code, which a list never needs until someone deletes from it.
+const DeleteImpactSummary = lazy(() => import('../clusterresource/DeleteImpactSummary'));
 
 type CellRenderer = (row: any, options: any) => React.ReactNode;
 
@@ -132,6 +136,12 @@ export interface ResourceListViewProps<T extends ResourceRow> {
     /** Singular label for delete UI, e.g. "pod". */
     deleteLabel?: string;
     /**
+     * The kind as the resource graph names it ("Deployment", "PersistentVolumeClaim").
+     * Set for kinds the graph draws: the delete dialog then shows what else is
+     * removed or breaks if the selected rows go.
+     */
+    impactKind?: string;
+    /**
      * DataTable row key. Defaults to the `__rowKey` (`namespace/name`) that
      * `useResourceList` stamps on every row, which is unique because a panel
      * lists exactly one kind. Only override it for a view whose rows are *not*
@@ -202,6 +212,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
         createFrom,
         deleter,
         deleteLabel = 'resource',
+        impactKind,
         dataKey = '__rowKey',
         describeResource,
         portForward,
@@ -646,7 +657,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                     // locales/GLOSSARY.md. Only the frame around it is translated.
                     header={t('resources:delete.header', { kind: deleteLabel.charAt(0).toUpperCase() + deleteLabel.slice(1) })}
                     visible={deleteDialogVisible}
-                    className="rlv-delete-dialog"
+                    className={impactKind ? 'rlv-delete-dialog rlv-delete-dialog--impact' : 'rlv-delete-dialog'}
                     modal
                     footer={deleteDialogFooter}
                     onHide={closeDeleteDialog}
@@ -659,6 +670,13 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                     </ul>
                     {selected.length > DELETE_LIST_MAX && (
                         <p className="rlv-delete-dialog__more">{t('resources:delete.more', { count: selected.length - DELETE_LIST_MAX })}</p>
+                    )}
+                    {impactKind && deleteDialogVisible && selected.length > 0 && (
+                        // A summary that cannot load leaves the dialog as it was:
+                        // it never holds up the delete.
+                        <Suspense fallback={null}>
+                            <DeleteImpactSummary clusterName={clusterName} kind={impactKind} targets={selected} />
+                        </Suspense>
                     )}
                 </Dialog>
             )}

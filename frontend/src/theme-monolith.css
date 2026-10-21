@@ -1057,7 +1057,8 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
    resource list hangs its Describe / Port forward / Scale actions off. */
 .exec-container-menu.p-menu,
 .row-actions-menu.p-menu,
-.terminal-ctx-menu.p-contextmenu {
+.terminal-ctx-menu.p-contextmenu,
+.graph-ctx-menu.p-contextmenu {
   background: var(--bezel-raised);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-pop);
@@ -1067,7 +1068,8 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 }
 .exec-container-menu.p-menu .p-menu-list,
 .row-actions-menu.p-menu .p-menu-list,
-.terminal-ctx-menu.p-contextmenu .p-contextmenu-root-list { padding: 0; }
+.terminal-ctx-menu.p-contextmenu .p-contextmenu-root-list,
+.graph-ctx-menu.p-contextmenu .p-contextmenu-root-list { padding: 0; }
 .exec-container-menu .p-submenu-header,
 .row-actions-menu .p-submenu-header {
   background: transparent;
@@ -1080,10 +1082,12 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 }
 .exec-container-menu .p-menuitem,
 .row-actions-menu .p-menuitem,
-.terminal-ctx-menu .p-menuitem { margin: 1px 0; }
+.terminal-ctx-menu .p-menuitem,
+.graph-ctx-menu .p-menuitem { margin: 1px 0; }
 .exec-container-menu .p-menuitem-link,
 .row-actions-menu .p-menuitem-link,
-.terminal-ctx-menu .p-menuitem-link {
+.terminal-ctx-menu .p-menuitem-link,
+.graph-ctx-menu .p-menuitem-link {
   padding: 6px 10px;
   border-radius: var(--radius-ctl);
   border-left: 2px solid transparent;
@@ -1097,7 +1101,10 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 .row-actions-menu .p-menuitem.p-focus > .p-menuitem-link,
 .terminal-ctx-menu .p-menuitem-link:not([aria-disabled="true"]):hover,
 .terminal-ctx-menu .p-menuitem.p-focus > .p-menuitem-content > .p-menuitem-link,
-.terminal-ctx-menu .p-menuitem.p-focus > .p-menuitem-link {
+.terminal-ctx-menu .p-menuitem.p-focus > .p-menuitem-link,
+.graph-ctx-menu .p-menuitem-link:hover,
+.graph-ctx-menu .p-menuitem.p-focus > .p-menuitem-content > .p-menuitem-link,
+.graph-ctx-menu .p-menuitem.p-focus > .p-menuitem-link {
   background: var(--bezel-high);
   border-left-color: var(--accent);
 }
@@ -1164,6 +1171,18 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
   border-top: 1px solid var(--line);
   margin: 4px 6px;
 }
+
+/* ── Resource graph right-click menu ─────────────────────────────────────── */
+/* The row-menu surface above, headed by the object it is for. */
+.graph-ctx-menu.p-contextmenu { min-width: 236px; max-width: 340px; }
+.graph-ctx-menu .p-menuitem-link { display: flex; align-items: center; gap: 10px; }
+.graph-ctx-menu .p-menuitem-link > svg { flex-shrink: 0; color: var(--ink-2); }
+.graph-ctx-menu .p-menuitem-link:hover > svg { color: var(--accent); }
+.graph-ctx-menu .p-menuitem-link .p-menuitem-text { font-size: 12px; color: var(--ink); }
+.graph-ctx-menu .p-menuitem-separator, .graph-ctx-menu .p-contextmenu-separator { border-top: 1px solid var(--line); margin: 4px 6px; }
+.graph-ctx-menu__head { display: flex; flex-direction: column; gap: 1px; padding: 6px 11px 7px; margin-bottom: 2px; border-bottom: 1px solid var(--line); }
+.graph-ctx-menu__kind { font-size: 11px; color: var(--ink-2); }
+.graph-ctx-menu__name { font-family: var(--font-family-mono); font-size: 12px; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* ── Terminal find bar ───────────────────────────────────────────────────── */
 /* Floats over the terminal instead of taking a row, so opening it never
@@ -1926,8 +1945,116 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .graph-filter__field { width: 100%; }
 .graph-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; flex-shrink: 0; padding: 6px 14px; background: var(--bezel); border-bottom: 1px solid var(--line); font-size: 12px; color: var(--ink-2); }
 .graph-legend__item { --kind: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
-.graph-legend__lines { margin-left: auto; display: inline-flex; flex-wrap: wrap; gap: 6px 16px; }
 .graph-legend__note { margin-left: auto; color: var(--ink-3); }
+.graph-filter--wide { flex: 2 1 260px; }
+.graph-filter--fit { flex: 0 0 auto; }
+.graph-check { display: inline-flex; align-items: center; gap: 6px; padding-bottom: 8px; font-size: 12px; color: var(--ink-2); white-space: nowrap; cursor: pointer; }
+/* Legend kinds that double as show/hide switches (resource graph). */
+.graph-legend__toggle { margin: -2px -5px; padding: 2px 5px; border: 0; border-radius: var(--radius-ctl); background: none; font: inherit; color: inherit; cursor: pointer; }
+.graph-legend__toggle:hover { color: var(--ink); background: var(--bezel-raised); }
+.graph-legend__toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.graph-legend__toggle.is-off { color: var(--ink-3); text-decoration: line-through; }
+.graph-legend__toggle.is-off .graph-swatch { opacity: 0.35; }
+.graph-legend__group { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding-right: 16px; border-right: 1px solid var(--line); }
+.graph-legend__group:last-of-type { border-right: 0; padding-right: 0; }
+.graph-legend__group-name { font-weight: 600; color: var(--ink-2); }
+.graph-legend--secondary { padding-top: 4px; padding-bottom: 4px; }
+.graph-legend--secondary .graph-legend__status { margin-left: auto; }
+/* Resource graph health: a problem is a lamp line plus a ring in the problem's
+   colour; a placeholder for a missing object has a dashed outline. */
+.graph-node__issue { display: flex; flex-wrap: nowrap; align-items: center; gap: 6px; min-width: 0; font-size: 11px; }
+.graph-node__issue .lamp { flex: 0 1 auto; min-width: 0; overflow: hidden; font-size: 11px; gap: 5px; }
+/* Four lines instead of three: trim the padding so the box stays NODE_H tall,
+   the height the layout reserved for it. */
+.graph-node.graph-node--issue { padding-top: 5px; padding-bottom: 5px; }
+.graph-node__more { flex-shrink: 0; color: var(--ink-3); font-size: 10.5px; }
+.graph-node--err { box-shadow: 0 0 0 1px color-mix(in srgb, var(--err) 70%, transparent), var(--shadow-1); }
+.graph-node--warn { box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 60%, transparent), var(--shadow-1); }
+.graph-node--missing { border-style: dashed; border-left-style: solid; border-left-color: var(--err); background: var(--screen); }
+/* Resource graph liveness. A changed object wears a tag on its top border
+   (text, so never colour alone); a removed one stays as a dashed ghost until
+   the marks are cleared. The usage figure shares the namespace line. */
+.graph-node--changed { position: relative; overflow: visible; }
+.graph-node__change { position: absolute; top: -8px; right: 8px; padding: 0 5px; line-height: 14px; font-size: 10px; font-weight: 600; color: var(--accent); background: var(--bezel-raised); border: 1px solid color-mix(in srgb, var(--accent) 60%, transparent); border-radius: var(--radius-ctl); white-space: nowrap; }
+.graph-node__change--removed { color: var(--ink-3); border-color: var(--line-strong); }
+.graph-node--ghost { opacity: 0.6; border-style: dashed; border-left-style: dashed; background: var(--screen); box-shadow: none; }
+.graph-node--ghost .graph-node__name { text-decoration: line-through; color: var(--ink-2); }
+.graph-node__sub { display: flex; align-items: baseline; gap: 8px; }
+.graph-node__ns { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.graph-node__usage { flex-shrink: 0; margin-left: auto; font-family: var(--font-family-mono); font-size: 10.5px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.graph-refresh { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+/* Resource graph views. A group frame sits behind its boxes; only its title
+   takes the pointer, so the body never blocks a pan or a click on the pane. */
+.react-flow__node.graph-frame-node { pointer-events: none; }
+.graph-frame { box-sizing: border-box; border: 1px dashed var(--line-strong); border-radius: var(--radius-pop); background: color-mix(in srgb, var(--bezel) 45%, transparent); }
+.graph-frame--host, .graph-frame--unscheduled { background: color-mix(in srgb, var(--bezel) 60%, transparent); }
+.graph-frame__head { pointer-events: auto; display: flex; align-items: center; gap: 10px; height: 26px; padding: 0 10px; font-size: 12px; color: var(--ink-2); white-space: nowrap; overflow: hidden; cursor: default; }
+.graph-frame--host .graph-frame__head { cursor: pointer; }
+.graph-frame__title { font-weight: 600; color: var(--ink); overflow: hidden; text-overflow: ellipsis; }
+.graph-frame__detail { margin-left: auto; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.graph-frame__head .lamp { font-size: 11.5px; }
+/* A controller's fold key sits on its bottom border, like the change tag on top. */
+.graph-node:has(.graph-node__fold) { position: relative; overflow: visible; }
+.graph-node__fold { position: absolute; bottom: -9px; left: 50%; transform: translateX(-50%); min-width: 22px; padding: 0 6px; line-height: 16px; font: inherit; font-size: 10.5px; font-weight: 600; color: var(--ink-2); background: var(--bezel-raised); border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); cursor: pointer; white-space: nowrap; }
+.graph-node__fold:hover { color: var(--ink); background: var(--bezel-high); }
+.graph-node__fold:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.graph-node__fold.is-collapsed { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+.graph-node__pods { color: var(--ink-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* The View key and its menu: the settings that used to crowd the toolbar. */
+.graph-view-key { align-self: flex-end; margin-bottom: 4px; }
+.graph-view-menu .graph-view-menu__body { display: flex; flex-direction: column; gap: 10px; width: 320px; max-width: calc(100vw - 32px); padding: 12px 14px; font-size: 12.5px; }
+.graph-view-menu__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.graph-view-menu__label { color: var(--ink-2); font-weight: 500; }
+.graph-view-menu .graph-check { padding-bottom: 0; }
+.graph-view-menu__body > .p-button { align-self: flex-start; }
+.graph-view-menu__heading { margin: 6px 0 0; padding-top: 10px; border-top: 1px solid var(--line-strong); font-size: 12px; font-weight: 600; color: var(--ink); }
+.graph-view-menu__note { margin: 0; color: var(--ink-3); font-size: 12px; }
+.graph-view-menu__saved { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.graph-view-menu__saved li { display: flex; align-items: center; gap: 4px; }
+.graph-view-menu__apply { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 5px 6px; border: 0; border-radius: var(--radius-ctl); background: none; font: inherit; color: var(--ink); text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.graph-view-menu__apply:hover { background: var(--bezel-high); }
+.graph-view-menu__apply:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.graph-view-menu__apply > svg { flex-shrink: 0; color: var(--ink-3); }
+.graph-view-menu__save { display: flex; gap: 6px; }
+.graph-view-menu__save .p-inputtext { flex: 1; min-width: 0; }
+.graph-view-menu .lamp { white-space: normal; overflow-wrap: anywhere; }
+.graph-problems { display: inline-flex; align-items: center; gap: 4px 10px; padding-bottom: 4px; font-size: 12px; white-space: nowrap; }
+.graph-problems__pos { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.graph-swatch--dotted { width: 18px; height: 0; border-radius: 0; background: none; border-top: 2px dotted var(--kind); }
+.graph-legend__status { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; color: var(--ink-3); }
+/* Resource graph impact view: how each affected object is hit, as a ring in
+   the level's colour plus the lamp line in the box (shape + text). */
+.graph-node.impact--removed { border-style: dashed; border-left-style: solid; box-shadow: 0 0 0 1px color-mix(in srgb, var(--err) 70%, transparent), var(--shadow-1); }
+.graph-node.impact--removed .graph-node__name { text-decoration: line-through; }
+.graph-node.impact--breaks { box-shadow: 0 0 0 1px color-mix(in srgb, var(--err) 70%, transparent), var(--shadow-1); }
+.graph-node.impact--breaksOnRestart { box-shadow: 0 0 0 1px color-mix(in srgb, var(--warn) 60%, transparent), var(--shadow-1); }
+.graph-node.impact--degraded { box-shadow: 0 0 0 1px color-mix(in srgb, var(--info) 60%, transparent), var(--shadow-1); }
+/* The graph and the impact summary share the .pod-split layout; here the
+   split is a flex child of the panel column rather than a full-height box. */
+.graph-split { flex: 1; height: auto; min-height: 0; }
+.impact-panel { height: 100%; display: flex; flex-direction: column; background: var(--screen); }
+.impact-panel__body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 10px 12px; font-size: 12.5px; }
+.impact-panel__counts { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.impact-panel__banner { padding: 6px 8px; border: 1px solid color-mix(in srgb, var(--err) 50%, transparent); border-radius: var(--radius-ctl); background: color-mix(in srgb, var(--err) 10%, transparent); }
+.impact-panel__banner .lamp { white-space: normal; }
+.impact-panel__notes { margin: 0; padding-left: 16px; color: var(--ink-2); }
+.impact-panel__heading { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 12px; font-weight: 600; }
+.impact-panel__count { color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.impact-panel__group ul { list-style: none; margin: 0; padding: 0; }
+.impact-panel__row { display: flex; flex-direction: column; gap: 2px; width: 100%; padding: 5px 6px; border: 0; border-radius: var(--radius-ctl); background: none; text-align: left; font: inherit; color: var(--ink); cursor: pointer; }
+.impact-panel__row:hover { background: var(--bezel-raised); }
+.impact-panel__row:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+.impact-panel__obj { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.impact-panel__obj > svg { flex-shrink: 0; color: var(--ink-3); }
+.impact-panel__kind { flex-shrink: 0; font-size: 11.5px; color: var(--ink-2); }
+.impact-panel__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-family-mono); font-size: 12px; }
+.impact-panel__tag { flex-shrink: 0; padding: 0 4px; border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); font-size: 10.5px; color: var(--ink-3); }
+.impact-panel__why { padding-left: 20px; font-size: 11.5px; color: var(--ink-2); }
+.impact-panel__scope { margin: 4px 0 0; font-size: 11.5px; color: var(--ink-3); }
+.graph-canvas__empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--ink-3); pointer-events: none; }
+/* Highlighting fades rather than snaps — reactive only, it never loops. */
+.graph-root .react-flow__node { transition: opacity var(--dur-in) var(--ease-out); }
+.graph-root .react-flow__edge-path { transition: opacity var(--dur-in) var(--ease-out), stroke-width var(--dur-in) var(--ease-out); }
 .graph-swatch { width: 9px; height: 9px; border-radius: 2px; background: var(--kind); flex-shrink: 0; }
 .graph-swatch--line { width: 18px; height: 2px; border-radius: 1px; }
 .graph-swatch--dashed { width: 18px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--kind); }
@@ -2606,6 +2733,19 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 /* Delete confirmation: the objects in mono, capped, with the remainder counted. */
 .rlv-delete-dialog { width: min(32rem, 92vw); }
+.rlv-delete-dialog--impact { width: min(40rem, 92vw); }
+/* The delete dialog's blast radius (resource graph impact analysis). */
+.delete-impact { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line-strong); font-size: 12.5px; }
+.delete-impact__title { margin: 0; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.delete-impact__counts { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.delete-impact__note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 12px; color: var(--ink-2); }
+.delete-impact__notes { margin: 0; padding-left: 16px; color: var(--ink-2); }
+.delete-impact__rows { margin: 0; padding: 6px 10px; list-style: none; background: var(--screen); border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); box-shadow: var(--recess); }
+.delete-impact__rows li { display: flex; flex-direction: column; gap: 1px; padding: 3px 0; }
+.delete-impact__obj { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.delete-impact__kind { flex-shrink: 0; font-size: 11.5px; color: var(--ink-2); }
+.delete-impact__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-family-mono); font-size: 12px; color: var(--ink); }
+.delete-impact__why { padding-left: 20px; font-size: 11.5px; color: var(--ink-2); }
 .rlv-delete-dialog__body { margin: 0 0 12px; }
 .rlv-delete-dialog__list { margin: 0; padding: 8px 12px; list-style: none; background: var(--screen); border: 1px solid var(--line); border-radius: var(--radius-ctl); box-shadow: var(--recess); }
 .rlv-delete-dialog__list li { font-family: var(--font-family-mono); font-size: 12px; line-height: 1.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

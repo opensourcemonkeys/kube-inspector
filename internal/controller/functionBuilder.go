@@ -125,6 +125,24 @@ func (a *App) SaveText(defaultName, content string) (string, error) {
 	return bussiness.SaveTextFile(path, content)
 }
 
+// SaveSvg prompts for a location and writes an SVG image (the resource
+// graph's export) to it. Returns the saved path, or "" if the user cancelled.
+func (a *App) SaveSvg(defaultName, content string) (string, error) {
+	path, err := a.saveFile(SaveFileOptions{
+		Title:       "Save image",
+		DefaultName: defaultName,
+		FilterName:  "SVG image (*.svg)",
+		Pattern:     "*.svg",
+	})
+	if err != nil || path == "" {
+		return "", err
+	}
+	if !strings.HasSuffix(strings.ToLower(path), ".svg") {
+		path += ".svg"
+	}
+	return bussiness.SaveTextFile(path, content)
+}
+
 func (a *App) GetK8sSchema() string {
 	return bussiness.GetK8sSchema()
 }
@@ -849,8 +867,12 @@ func (a *App) CheckClusterConnection() error {
 	return bussiness.CheckClusterConnection()
 }
 
-func (a *App) GetClusterGraph(clusterName string) (*models.ClusterGraph, error) {
-	return bussiness.GetClusterGraph(clusterName)
+func (a *App) GetClusterGraph(clusterName string, namespaces []string) (*models.ClusterGraph, error) {
+	return bussiness.GetClusterGraph(clusterName, namespaces)
+}
+
+func (a *App) GetGraphUsage(clusterName string, namespaces []string) models.GraphUsage {
+	return bussiness.GetGraphUsage(clusterName, namespaces)
 }
 
 func (a *App) GetSecurityGraph(clusterName string) (*models.SecurityGraph, error) {

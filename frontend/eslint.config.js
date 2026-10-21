@@ -91,7 +91,7 @@ export default tseslint.config(
                         'selectionMode', 'display', 'filterDisplay', 'severity', 'tone', 'position',
                         'mode', 'size', 'variant', 'align', 'direction', 'target', 'rel', 'href', 'src',
                         'role', 'view', 'component', 'resourceKind', 'describeResource',
-                        'deleteLabel', 'clusterName', 'name', 'value', 'theme', 'lang',
+                        'deleteLabel', 'impactKind', 'clusterName', 'name', 'value', 'theme', 'lang',
                         'data-.*', 'aria-hidden', 'shadowRgb', 'shadowOpacity',
                         'scrollHeight', 'headerClassName', 'itemTemplate', 'optionLabel',
                         'optionValue', 'language', 'defaultLanguage', 'path',

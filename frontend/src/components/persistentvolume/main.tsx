@@ -53,6 +53,7 @@ export default function PersistentVolumeListComponent({ clusterName, api }: { cl
             pollInterval={5000}
             deleter={deleteEntry}
             deleteLabel="persistent volume"
+            impactKind="PersistentVolume"
             describeResource="persistentvolumes"
             defaultFilters={defaultFilters}
             emptyMessage={t('resources:persistentvolume.empty')}

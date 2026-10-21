@@ -49,6 +49,7 @@ export default function StatefulSetListComponent({ clusterName, api }: { cluster
             createFrom={models.StatefulSetInfo.createFrom}
             deleter={DeleteStatefulSet}
             deleteLabel="statefulset"
+            impactKind="StatefulSet"
             pollInterval={2000}
             describeResource="statefulsets"
             portForward={{ kind: 'statefulset' }}

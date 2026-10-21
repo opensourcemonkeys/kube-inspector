@@ -46,6 +46,7 @@ export default function PersistentVolumeClaimListComponent({ clusterName, api }:
             createFrom={models.PersistentVolumeClaimInfo.createFrom}
             deleter={DeletePersistentVolumeClaim}
             deleteLabel="volume claim"
+            impactKind="PersistentVolumeClaim"
             pollInterval={5000}
             describeResource="persistentvolumeclaims"
             defaultFilters={defaultFilters}

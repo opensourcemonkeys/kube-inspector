@@ -19,6 +19,7 @@ import { InputText } from 'primereact/inputtext';
 import { useTabContext } from '../../contexts/TabContext';
 import { GetSecurityGraph } from '../../../wailsjs/go/controller_app/App';
 import { useT } from '../../i18n/useT';
+import { applyHighlight, chainOf } from '../../lib/graphHighlight';
 import { themeColor, useThemeVersion } from '../../lib/themeColors';
 import type { ThemeVar } from '../../lib/themeColors';
 import ErrorBanner from '../shared/ErrorBanner';
@@ -346,65 +347,19 @@ export default function SecurityRoleMap({ clusterName }: { clusterName: string }
         closeDetail();
     }, [cn, openDescribePanel, closeDetail]);
 
-    // Highlight only the clicked node's own RBAC chain: its ancestors (walking
-    // edges backwards toward ServiceAccounts) and its descendants (walking
-    // forwards toward Resources). A plain undirected flood-fill would bleed across
-    // unrelated branches — e.g. two RoleBindings that reference the same shared
-    // Role/ClusterRole would pull each other (and their ServiceAccounts) in. By
-    // never reversing direction mid-walk, sibling branches stay dim.
-    const { highlightNodes, highlightEdges } = useMemo(() => {
-        if (!selectedNodeId) {
-            return { highlightNodes: null as Set<string> | null, highlightEdges: null as Set<string> | null };
-        }
-        const fwd = new Map<string, Array<{ edgeId: string; other: string }>>(); // source -> targets
-        const bwd = new Map<string, Array<{ edgeId: string; other: string }>>(); // target -> sources
-        const push = (m: Map<string, Array<{ edgeId: string; other: string }>>, k: string, v: { edgeId: string; other: string }) => {
-            const arr = m.get(k);
-            if (arr) arr.push(v); else m.set(k, [v]);
-        };
-        for (const e of edges) {
-            push(fwd, e.source, { edgeId: e.id, other: e.target });
-            push(bwd, e.target, { edgeId: e.id, other: e.source });
-        }
+    // Highlight only the clicked node's own RBAC chain — its ancestors toward
+    // ServiceAccounts and its descendants toward Resources, never reversing
+    // direction mid-walk (see `lineage` in lib/graphHighlight.ts).
+    const chain = useMemo(
+        () => (selectedNodeId ? chainOf(edges, selectedNodeId, 'lineage') : null),
+        [edges, selectedNodeId],
+    );
+    const highlightNodes = chain?.nodes ?? null;
 
-        const nodeSet = new Set<string>([selectedNodeId]);
-        const edgeSet = new Set<string>();
-        const walk = (adj: Map<string, Array<{ edgeId: string; other: string }>>) => {
-            const seen = new Set<string>([selectedNodeId]);
-            const queue = [selectedNodeId];
-            while (queue.length) {
-                const cur = queue.shift()!;
-                for (const { edgeId, other } of adj.get(cur) ?? []) {
-                    edgeSet.add(edgeId);
-                    nodeSet.add(other);
-                    if (!seen.has(other)) { seen.add(other); queue.push(other); }
-                }
-            }
-        };
-        walk(fwd); // descendants: clicked → … → Resource
-        walk(bwd); // ancestors:  ServiceAccount → … → clicked
-        return { highlightNodes: nodeSet, highlightEdges: edgeSet };
-    }, [edges, selectedNodeId]);
-
-    const displayEdges = useMemo<Edge[]>(() => {
-        if (!highlightEdges) return edges;
-        return edges.map(e => highlightEdges.has(e.id)
-            // Thicker, not animated: a marching dash is a loop that never stops.
-            ? { ...e, zIndex: 1000, style: { ...e.style, strokeWidth: 2.25, opacity: 1 } }
-            : { ...e, style: { ...e.style, opacity: 0.1 } });
-    }, [edges, highlightEdges]);
-
-    const displayNodes = useMemo<Node[]>(() => {
-        if (!highlightNodes) return nodes;
-        return nodes.map(n => {
-            if (!highlightNodes.has(n.id)) {
-                return { ...n, style: { ...n.style, opacity: 0.22 } };
-            }
-            // A ring in the node's own kind colour (CSS: .is-chain / .is-focus),
-            // not a glow.
-            return { ...n, zIndex: 1000, className: n.id === selectedNodeId ? 'is-focus' : 'is-chain' };
-        });
-    }, [nodes, highlightNodes, selectedNodeId]);
+    const { nodes: displayNodes, edges: displayEdges } = useMemo(
+        () => applyHighlight(nodes, edges, chain, selectedNodeId),
+        [nodes, edges, chain, selectedNodeId],
+    );
 
     // Filter dropdown options per kind. When a node is focused, options narrow to
     // that node's connected chain (highlightNodes) so picking a ServiceAccount

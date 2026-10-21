@@ -51,6 +51,7 @@ export default function ServiceListComponent({ clusterName, api }: { clusterName
             createFrom={models.ServiceInfo.createFrom}
             deleter={DeleteService}
             deleteLabel="service"
+            impactKind="Service"
             pollInterval={2000}
             describeResource="services"
             portForward={{ kind: 'service' }}

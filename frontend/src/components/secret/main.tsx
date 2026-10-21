@@ -33,6 +33,7 @@ export default function SecretListComponent({ clusterName, api }: { clusterName:
             createFrom={models.SecretInfo.createFrom}
             deleter={DeleteSecret}
             deleteLabel="secret"
+            impactKind="Secret"
             pollInterval={2000}
             describeResource="secrets"
             defaultFilters={defaultFilters}

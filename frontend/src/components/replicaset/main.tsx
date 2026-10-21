@@ -48,6 +48,7 @@ export default function ReplicaSetListComponent({ clusterName, api }: { clusterN
             createFrom={models.ReplicaSetInfo.createFrom}
             deleter={DeleteReplicaSet}
             deleteLabel="replicaset"
+            impactKind="ReplicaSet"
             pollInterval={2000}
             describeResource="replicasets"
             portForward={{ kind: 'replicaset' }}

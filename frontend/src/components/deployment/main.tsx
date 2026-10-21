@@ -49,6 +49,7 @@ export default function DeploymentListComponent({ clusterName, api }: { clusterN
             createFrom={models.DeploymentInfo.createFrom}
             deleter={DeleteDeployment}
             deleteLabel="deployment"
+            impactKind="Deployment"
             pollInterval={2000}
             describeResource="deployments"
             portForward={{ kind: 'deployment' }}
