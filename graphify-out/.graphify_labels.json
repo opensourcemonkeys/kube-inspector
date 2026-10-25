@@ -638,5 +638,15 @@
   "636": "progressWriter",
   "637": ".GetSecurityGraph",
   "638": ".TransferTab",
-  "639": "dockview"
+  "640": "xl",
+  "641": "md",
+  "642": "16",
+  "643": "2",
+  "645": "8",
+  "647": "SweepStaleUpdateTemps",
+  "648": "TestEnsureCreatesThenReusesAndKeepsCA",
+  "649": "monaco-yaml",
+  "650": "github.com/kubeinspector/toolbox",
+  "651": "metrics.go",
+  "652": "plan.md"
 }

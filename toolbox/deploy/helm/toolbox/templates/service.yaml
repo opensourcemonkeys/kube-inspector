@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "toolbox.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "toolbox.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.httpPort }}
+      targetPort: http
+    - name: webhook
+      port: 443
+      targetPort: webhook
+{{- if .Values.audit.enabled }}
+---
+# A separate Service for the API server's audit webhook backend, so its
+# address can be pinned (ClusterIP) or exposed (NodePort) without touching the
+# main one.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "toolbox.auditServiceName" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.audit.service.type }}
+  {{- with .Values.audit.service.clusterIP }}
+  clusterIP: {{ . }}
+  {{- end }}
+  selector:
+    {{- include "toolbox.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: audit
+      port: {{ .Values.audit.service.port }}
+      targetPort: webhook
+      {{- if and (eq .Values.audit.service.type "NodePort") .Values.audit.service.nodePort }}
+      nodePort: {{ .Values.audit.service.nodePort }}
+      {{- end }}
+{{- end }}

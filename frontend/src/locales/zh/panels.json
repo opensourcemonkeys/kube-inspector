@@ -10,7 +10,9 @@
     "policy": "策略",
     "edit": "编辑",
     "resourceGraph": "资源关系图",
-    "describe": "Describe {{name}}"
+    "describe": "Describe {{name}}",
+    "toolbox": "Toolbox",
+    "clusterHistory": "集群历史"
   },
   "portForward": {
     "startedSummary": "端口转发已启动",
@@ -274,7 +276,8 @@
     "edit": "编辑集群",
     "graph": "资源关系图",
     "connectionErrorTitle": "连接错误",
-    "connectionError": "连接错误"
+    "connectionError": "连接错误",
+    "toolbox": "Toolbox"
   },
   "clusterModal": {
     "closeOverlay": "关闭对话框",
@@ -842,5 +845,132 @@
   "metrics": {
     "unavailableTitle": "无使用数据",
     "unavailableHint": "此集群没有 metrics-server。安装后即可查看 CPU 和内存使用情况。"
+  },
+  "toolbox": {
+    "label": "Toolbox",
+    "intro": "在集群内运行、通过 toolbox Helm chart 安装的工具。",
+    "refresh": "重新检查",
+    "open": "打开",
+    "checking": "正在检查…",
+    "history": {
+      "title": "Cluster history inspection",
+      "desc": "谁在何时、从何处改了什么:toolbox 记录的每一次创建、更新和删除,附带 YAML 差异和回滚。"
+    },
+    "migration": {
+      "title": "Cluster migration",
+      "desc": "将工作负载及其配置迁移到另一个集群。",
+      "dev": "开发中"
+    },
+    "state": {
+      "ok": "可用",
+      "notInstalled": "未安装",
+      "forbidden": "无访问权限",
+      "unreachable": "无响应"
+    },
+    "hint": {
+      "ok": "toolbox {{version}} · {{namespace}}/{{service}}",
+      "notInstalled": "在此集群中安装 toolbox Helm chart 以记录变更。",
+      "forbidden": "您的权限不允许读取 toolbox API 令牌,或通过 API 服务器访问它。",
+      "unreachable": "已找到 toolbox,但它没有响应。"
+    }
+  },
+  "clusterHistory": {
+    "label": "集群历史",
+    "viewAria": "历史视图",
+    "refresh": "刷新",
+    "view": {
+      "changes": "变更",
+      "attempts": "被拒绝",
+      "users": "用户"
+    },
+    "filter": {
+      "search": "搜索名称、Namespace、用户、类型",
+      "namespace": "Namespace",
+      "resource": "资源",
+      "user": "用户",
+      "anyVerb": "全部操作",
+      "sinceAria": "时间范围"
+    },
+    "since": {
+      "1h": "1 小时",
+      "24h": "24 小时",
+      "168h": "7 天",
+      "720h": "30 天",
+      "all": "全部时间"
+    },
+    "col": {
+      "time": "时间",
+      "verb": "操作",
+      "object": "对象",
+      "namespace": "Namespace",
+      "user": "用户",
+      "sourceIp": "来源 IP",
+      "via": "归因方式",
+      "changed": "变更内容",
+      "response": "响应",
+      "message": "消息",
+      "changes": "变更数",
+      "lastSeen": "最近出现",
+      "userAgents": "User agent"
+    },
+    "by": "由 {{user}} 代为执行",
+    "loadMore": "加载更多",
+    "empty": {
+      "changes": "没有符合这些筛选条件的变更。",
+      "attempts": "没有被拒绝的请求。此列表需要 toolbox 审计 webhook。",
+      "users": "还没有已归因的变更。"
+    },
+    "detail": {
+      "close": "关闭",
+      "time": "时间",
+      "object": "对象",
+      "uid": "UID",
+      "resourceVersion": "资源版本",
+      "user": "用户",
+      "impersonatedBy": "模拟者",
+      "groups": "组",
+      "sourceIps": "来源 IP",
+      "userAgent": "User agent",
+      "fieldManager": "字段管理器",
+      "attribution": "归因方式",
+      "auditId": "审计 ID",
+      "loadFailed": "无法加载该变更"
+    },
+    "compare": {
+      "aria": "比较",
+      "change": "本次变更",
+      "live": "与当前对象比较",
+      "versionAria": "记录的版本",
+      "after": "此变更之后",
+      "before": "此变更之前",
+      "layoutAria": "差异布局",
+      "sideBySide": "并排",
+      "inline": "内联"
+    },
+    "pane": {
+      "before": "之前",
+      "after": "之后",
+      "live": "当前"
+    },
+    "note": {
+      "live": "两侧都省略了服务器管理的字段和 status:这正是回滚会写入的内容。",
+      "deleted": "该对象已不存在。回滚会重新创建它。",
+      "noBefore": "该对象由此变更创建,之前没有内容。",
+      "noAfter": "该对象被此变更删除,之后没有内容。",
+      "identical": "没有差异。"
+    },
+    "rollback": {
+      "button": "回滚",
+      "header": "回滚 {{name}}?",
+      "message": "{{kind}} {{name}} 将被替换为左侧的版本({{version}})。之后添加的字段会被删除。",
+      "recreate": "{{kind}} {{name}} 已不存在,将根据左侧的版本({{version}})重新创建。",
+      "warning": "管理此对象的控制器之后可能会再次修改它。",
+      "confirm": "回滚",
+      "done": "已回滚",
+      "blocked": {
+        "secretRedacted": "Secret 无法回滚:toolbox 不保存它们的值。",
+        "noVersion": "左侧没有可恢复的版本。"
+      }
+    }
   }
 }

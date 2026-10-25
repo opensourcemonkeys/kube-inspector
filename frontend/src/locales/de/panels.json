@@ -10,7 +10,9 @@
     "policy": "Richtlinie",
     "edit": "Bearbeiten",
     "resourceGraph": "Ressourcengraph",
-    "describe": "{{name}} beschreiben"
+    "describe": "{{name}} beschreiben",
+    "toolbox": "Toolbox",
+    "clusterHistory": "Cluster-Verlauf"
   },
   "portForward": {
     "startedSummary": "Port-Weiterleitung gestartet",
@@ -275,7 +277,8 @@
     "edit": "Cluster bearbeiten",
     "graph": "Ressourcengraph",
     "connectionErrorTitle": "Verbindungsfehler",
-    "connectionError": "Verbindungsfehler"
+    "connectionError": "Verbindungsfehler",
+    "toolbox": "Toolbox"
   },
   "clusterModal": {
     "closeOverlay": "Dialog schließen",
@@ -857,5 +860,132 @@
   "metrics": {
     "unavailableTitle": "Keine Nutzungsdaten",
     "unavailableHint": "Auf diesem Cluster läuft kein metrics-server. Installieren Sie ihn, um CPU- und Speichernutzung zu sehen."
+  },
+  "toolbox": {
+    "label": "Toolbox",
+    "intro": "Werkzeuge, die im Cluster laufen und mit dem toolbox-Helm-Chart installiert werden.",
+    "refresh": "Erneut prüfen",
+    "open": "Öffnen",
+    "checking": "Wird geprüft…",
+    "history": {
+      "title": "Cluster history inspection",
+      "desc": "Wer hat was, wann und von wo geändert: jedes von toolbox erfasste Erstellen, Ändern und Löschen, mit YAML-Diffs und Rollback."
+    },
+    "migration": {
+      "title": "Cluster migration",
+      "desc": "Workloads und ihre Konfiguration in einen anderen Cluster verschieben.",
+      "dev": "In Entwicklung"
+    },
+    "state": {
+      "ok": "Bereit",
+      "notInstalled": "Nicht installiert",
+      "forbidden": "Kein Zugriff",
+      "unreachable": "Antwortet nicht"
+    },
+    "hint": {
+      "ok": "toolbox {{version}} · {{namespace}}/{{service}}",
+      "notInstalled": "Installieren Sie das toolbox-Helm-Chart in diesem Cluster, um Änderungen zu erfassen.",
+      "forbidden": "Ihre Berechtigungen erlauben weder das Lesen des toolbox-API-Tokens noch den Zugriff über den API-Server.",
+      "unreachable": "toolbox wurde gefunden, hat aber nicht geantwortet."
+    }
+  },
+  "clusterHistory": {
+    "label": "Cluster-Verlauf",
+    "viewAria": "Verlaufsansicht",
+    "refresh": "Aktualisieren",
+    "view": {
+      "changes": "Änderungen",
+      "attempts": "Abgelehnt",
+      "users": "Benutzer"
+    },
+    "filter": {
+      "search": "Name, Namespace, Benutzer, Art suchen",
+      "namespace": "Namespace",
+      "resource": "Ressource",
+      "user": "Benutzer",
+      "anyVerb": "Alle Verben",
+      "sinceAria": "Zeitraum"
+    },
+    "since": {
+      "1h": "1 Stunde",
+      "24h": "24 Stunden",
+      "168h": "7 Tage",
+      "720h": "30 Tage",
+      "all": "Gesamter Zeitraum"
+    },
+    "col": {
+      "time": "Zeit",
+      "verb": "Verb",
+      "object": "Objekt",
+      "namespace": "Namespace",
+      "user": "Benutzer",
+      "sourceIp": "Quell-IP",
+      "via": "Über",
+      "changed": "Geändert",
+      "response": "Antwort",
+      "message": "Meldung",
+      "changes": "Änderungen",
+      "lastSeen": "Zuletzt gesehen",
+      "userAgents": "User-Agents"
+    },
+    "by": "durch {{user}}",
+    "loadMore": "Mehr laden",
+    "empty": {
+      "changes": "Keine Änderungen für diese Filter.",
+      "attempts": "Keine abgelehnten Anfragen. Diese Liste benötigt den toolbox-Audit-Webhook.",
+      "users": "Noch keine zugeordneten Änderungen."
+    },
+    "detail": {
+      "close": "Schließen",
+      "time": "Zeit",
+      "object": "Objekt",
+      "uid": "UID",
+      "resourceVersion": "Ressourcenversion",
+      "user": "Benutzer",
+      "impersonatedBy": "Imitiert von",
+      "groups": "Gruppen",
+      "sourceIps": "Quell-IPs",
+      "userAgent": "User-Agent",
+      "fieldManager": "Field-Manager",
+      "attribution": "Zugeordnet über",
+      "auditId": "Audit-ID",
+      "loadFailed": "Die Änderung konnte nicht geladen werden"
+    },
+    "compare": {
+      "aria": "Vergleich",
+      "change": "Die Änderung",
+      "live": "Mit Live-Objekt",
+      "versionAria": "Erfasste Version",
+      "after": "Nach dieser Änderung",
+      "before": "Vor dieser Änderung",
+      "layoutAria": "Diff-Darstellung",
+      "sideBySide": "Nebeneinander",
+      "inline": "Inline"
+    },
+    "pane": {
+      "before": "Vorher",
+      "after": "Nachher",
+      "live": "Jetzt live"
+    },
+    "note": {
+      "live": "Vom Server verwaltete Felder und der Status sind auf beiden Seiten ausgeblendet: genau das schreibt ein Rollback.",
+      "deleted": "Das Objekt existiert nicht mehr. Ein Rollback erstellt es neu.",
+      "noBefore": "Diese Änderung hat das Objekt erstellt; davor gibt es nichts.",
+      "noAfter": "Diese Änderung hat das Objekt entfernt; danach gibt es nichts.",
+      "identical": "Keine Unterschiede."
+    },
+    "rollback": {
+      "button": "Zurücksetzen",
+      "header": "{{name}} zurücksetzen?",
+      "message": "{{kind}} {{name}} wird durch die Version links ({{version}}) ersetzt. Seitdem hinzugefügte Felder werden entfernt.",
+      "recreate": "{{kind}} {{name}} existiert nicht mehr und wird aus der Version links ({{version}}) neu erstellt.",
+      "warning": "Controller, die dieses Objekt verwalten, können es danach wieder ändern.",
+      "confirm": "Zurücksetzen",
+      "done": "Zurückgesetzt",
+      "blocked": {
+        "secretRedacted": "Secrets können nicht zurückgesetzt werden: toolbox speichert ihre Werte nicht.",
+        "noVersion": "Links gibt es keine Version zum Wiederherstellen."
+      }
+    }
   }
 }

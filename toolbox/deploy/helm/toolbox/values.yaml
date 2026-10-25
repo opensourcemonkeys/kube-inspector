@@ -1,0 +1,152 @@
+# -- Name tagged on every recorded row, so one ClickHouse can hold several
+# clusters. Kube Inspector filters by it. Defaults to "default".
+clusterName: ""
+
+image:
+  repository: ghcr.io/kubeinspector/toolbox
+  # -- Defaults to the chart's appVersion.
+  tag: ""
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+# -- Every replica serves the API and both webhooks; only the elected leader
+# watches and writes changes, so extra replicas add availability, not load.
+replicaCount: 2
+
+logLevel: info
+
+# -- Guards the REST API (sent as the X-Toolbox-Token header). Generated and
+# kept across upgrades when empty.
+apiToken: ""
+# -- Bearer token the API server's audit webhook must present. Generated and
+# kept across upgrades when empty. It goes into the audit webhook kubeconfig
+# on the control-plane nodes (see NOTES).
+auditToken: ""
+
+service:
+  type: ClusterIP
+  httpPort: 8080
+
+# Admission webhook: sees the user, groups and object of every write. Works on
+# every cluster, including managed ones. Never rejects anything.
+admissionWebhook:
+  enabled: true
+  timeoutSeconds: 2
+  # -- Namespaces whose writes are not sent to the webhook (the release
+  # namespace is always excluded). Changes there are still recorded, with
+  # managedFields attribution only.
+  excludeNamespaces: []
+  # -- Use CEL matchConditions to keep noisy resources from reaching the
+  # webhook at all. Needs Kubernetes 1.30+ (1.28-1.29 with the feature gate).
+  matchConditions: true
+
+# Audit webhook receiver: adds source IPs, user agent and impersonation. Needs
+# the API server to be started with --audit-webhook-config-file pointing at
+# this service (not possible on most managed clusters). See NOTES / README.
+audit:
+  enabled: true
+  service:
+    # -- ClusterIP or NodePort. The API server usually runs on the host
+    # network and cannot resolve cluster DNS, so reach it by IP.
+    type: ClusterIP
+    # -- Pin the ClusterIP so the control-plane kubeconfig can name a stable
+    # address (must be inside the service CIDR and free), e.g. 10.96.200.200.
+    clusterIP: ""
+    nodePort: ""
+    port: 443
+  # -- Extra DNS names / IPs for the serving certificate (a node IP used with
+  # a NodePort, a load balancer name). A pinned clusterIP is added already.
+  extraSANs: []
+
+watch:
+  # -- Glob patterns over "resource.group" ("resource" for the core group).
+  include: ["*"]
+  exclude:
+    - events
+    - events.events.k8s.io
+    - leases.coordination.k8s.io
+    - endpoints
+    - endpointslices.discovery.k8s.io
+    - componentstatuses
+    - "*reviews.*"
+    - "*reviews"
+    - bindings
+  excludeNamespaces: []
+  # -- Record updates that only touched .status (controllers reporting).
+  recordStatusChanges: false
+  discoveryInterval: 1m
+
+enrich:
+  # -- How long a change waits for its audit/admission hints before being
+  # attributed. Must exceed the API server's audit batch wait.
+  delay: 15s
+  # -- Unattributed changes are tried once more after this and re-written if
+  # a late hint matches.
+  retryAfter: 90s
+  window: 2m
+
+retention:
+  changesDays: 90
+  auditRawDays: 30
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    # The informer cache holds every watched object; raise this on large clusters.
+    memory: 1Gi
+
+podAnnotations: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+
+networkPolicy:
+  # -- Restrict who can reach the REST API and ClickHouse. The webhook port
+  # stays open: the API server's address is not something a policy can name
+  # portably.
+  enabled: false
+  # -- NetworkPolicyPeer list allowed to call the REST API.
+  apiFrom: []
+
+clickhouse:
+  # -- Run a single-node ClickHouse alongside. Set false and fill
+  # externalClickhouse to use your own.
+  enabled: true
+  image:
+    repository: clickhouse/clickhouse-server
+    tag: "25.8"
+    pullPolicy: IfNotPresent
+  database: toolbox
+  username: toolbox
+  # -- Generated and kept across upgrades when empty.
+  password: ""
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 250m
+      memory: 1Gi
+    limits:
+      memory: 4Gi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+externalClickhouse:
+  # -- Native-protocol addresses, host:9000.
+  addr: []
+  database: toolbox
+  username: default
+  secure: false
+  # -- Secret holding the password; leave empty for no password.
+  existingSecret: ""
+  passwordKey: password

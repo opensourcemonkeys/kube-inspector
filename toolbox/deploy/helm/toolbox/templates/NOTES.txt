@@ -1,0 +1,52 @@
+toolbox is recording changes for cluster "{{ default "default" .Values.clusterName }}".
+
+API token:
+  kubectl -n {{ .Release.Namespace }} get secret {{ include "toolbox.fullname" . }} -o jsonpath='{.data.api-token}' | base64 -d
+
+Open the UI:
+  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "toolbox.fullname" . }} {{ .Values.service.httpPort }}:{{ .Values.service.httpPort }}
+  # then http://localhost:{{ .Values.service.httpPort }} and paste the token
+
+Kube Inspector reaches the same API without a port-forward, through the API
+server's service proxy:
+  /api/v1/namespaces/{{ .Release.Namespace }}/services/{{ include "toolbox.fullname" . }}:http/proxy/api/v1/changes
+
+{{- if .Values.admissionWebhook.enabled }}
+
+Admission webhook: enabled. Changes are attributed to users and groups.
+{{- end }}
+{{- if .Values.audit.enabled }}
+
+Audit webhook (adds source IPs and user agents) is NOT active until the API
+server is pointed at it. On each control-plane node:
+
+ 1. Save the policy shipped with this chart (files/audit-policy.yaml) as
+    /etc/kubernetes/audit/policy.yaml
+ 2. Save the CA:
+      kubectl -n {{ .Release.Namespace }} get secret {{ include "toolbox.tlsSecretName" . }} -o jsonpath='{.data.ca\.crt}' | base64 -d > /etc/kubernetes/audit/toolbox-ca.crt
+ 3. Write /etc/kubernetes/audit/webhook.yaml:
+      apiVersion: v1
+      kind: Config
+      clusters:
+        - name: toolbox
+          cluster:
+            server: https://{{ default "<audit-service-ClusterIP-or-nodeIP:nodePort>" .Values.audit.service.clusterIP }}/audit
+            certificate-authority: /etc/kubernetes/audit/toolbox-ca.crt
+      users:
+        - name: kube-apiserver
+          user:
+            token: <kubectl -n {{ .Release.Namespace }} get secret {{ include "toolbox.fullname" . }} -o jsonpath='{.data.audit-token}' | base64 -d>
+      contexts:
+        - name: default
+          context: {cluster: toolbox, user: kube-apiserver}
+      current-context: default
+ 4. Add to kube-apiserver (and mount /etc/kubernetes/audit into its pod):
+      --audit-policy-file=/etc/kubernetes/audit/policy.yaml
+      --audit-webhook-config-file=/etc/kubernetes/audit/webhook.yaml
+      --audit-webhook-batch-max-wait=5s
+{{- if not .Values.audit.service.clusterIP }}
+
+Tip: set audit.service.clusterIP to a free address in the service CIDR so the
+server URL above stays stable across reinstalls.
+{{- end }}
+{{- end }}

@@ -1,0 +1,57 @@
+{{- if .Values.admissionWebhook.enabled }}
+{{- /*
+toolbox keeps caBundle in sync itself (internal/certs). Re-using the live
+value here stops an upgrade from blanking it for the half minute until the
+next sync.
+*/ -}}
+{{- $caBundle := "" -}}
+{{- $existing := lookup "admissionregistration.k8s.io/v1" "ValidatingWebhookConfiguration" "" (include "toolbox.fullname" .) -}}
+{{- if and $existing $existing.webhooks -}}
+{{- $caBundle = (index $existing.webhooks 0).clientConfig.caBundle | default "" -}}
+{{- end -}}
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ include "toolbox.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+webhooks:
+  # Observes every write and always allows it. failurePolicy Ignore: if toolbox
+  # is down, the cluster carries on and changes are recorded without a user.
+  - name: changes.toolbox.kubeinspector.com
+    admissionReviewVersions: ["v1"]
+    sideEffects: NoneOnDryRun
+    failurePolicy: Ignore
+    timeoutSeconds: {{ .Values.admissionWebhook.timeoutSeconds }}
+    matchPolicy: Equivalent
+    clientConfig:
+      service:
+        name: {{ include "toolbox.fullname" . }}
+        namespace: {{ .Release.Namespace }}
+        path: /admission
+        port: 443
+      {{- with $caBundle }}
+      caBundle: {{ . }}
+      {{- end }}
+    namespaceSelector:
+      matchExpressions:
+        - key: kubernetes.io/metadata.name
+          operator: NotIn
+          values: {{ prepend .Values.admissionWebhook.excludeNamespaces .Release.Namespace | toJson }}
+    rules:
+      - apiGroups: ["*"]
+        apiVersions: ["*"]
+        operations: ["CREATE", "UPDATE", "DELETE"]
+        resources: ["*", "*/scale"]
+        scope: "*"
+    {{- if .Values.admissionWebhook.matchConditions }}
+    matchConditions:
+      - name: skip-noisy-resources
+        expression: >-
+          !(request.resource.resource in ['events', 'leases', 'endpoints', 'endpointslices',
+          'tokenreviews', 'subjectaccessreviews', 'selfsubjectaccessreviews',
+          'localsubjectaccessreviews', 'selfsubjectreviews', 'selfsubjectrulesreviews'])
+      - name: skip-dry-run
+        expression: "!request.dryRun"
+    {{- end }}
+{{- end }}

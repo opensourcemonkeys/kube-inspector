@@ -10,7 +10,9 @@
     "policy": "Policy",
     "edit": "Edit",
     "resourceGraph": "Resource Graph",
-    "describe": "Describe {{name}}"
+    "describe": "Describe {{name}}",
+    "toolbox": "Toolbox",
+    "clusterHistory": "Cluster History"
   },
   "portForward": {
     "startedSummary": "Port forward started",
@@ -275,7 +277,8 @@
     "edit": "Edit cluster",
     "graph": "Resource Graph",
     "connectionErrorTitle": "Connection error",
-    "connectionError": "Connection Error"
+    "connectionError": "Connection Error",
+    "toolbox": "Toolbox"
   },
   "clusterModal": {
     "closeOverlay": "Close modal",
@@ -858,5 +861,132 @@
   "metrics": {
     "unavailableTitle": "No usage data",
     "unavailableHint": "This cluster has no metrics-server. Install it to see CPU and memory usage."
+  },
+  "toolbox": {
+    "label": "Toolbox",
+    "intro": "Tools that run inside the cluster, installed with the toolbox Helm chart.",
+    "refresh": "Check again",
+    "open": "Open",
+    "checking": "Checking…",
+    "history": {
+      "title": "Cluster history inspection",
+      "desc": "Who changed what, when and from where: every create, update and delete toolbox recorded, with YAML diffs and rollback."
+    },
+    "migration": {
+      "title": "Cluster migration",
+      "desc": "Move workloads and their configuration to another cluster.",
+      "dev": "In development"
+    },
+    "state": {
+      "ok": "Ready",
+      "notInstalled": "Not installed",
+      "forbidden": "No access",
+      "unreachable": "Not responding"
+    },
+    "hint": {
+      "ok": "toolbox {{version}} · {{namespace}}/{{service}}",
+      "notInstalled": "Install the toolbox Helm chart in this cluster to record changes.",
+      "forbidden": "Your access does not allow reading the toolbox API token or reaching it through the API server.",
+      "unreachable": "toolbox was found but did not answer."
+    }
+  },
+  "clusterHistory": {
+    "label": "Cluster history",
+    "viewAria": "History view",
+    "refresh": "Refresh",
+    "view": {
+      "changes": "Changes",
+      "attempts": "Rejected",
+      "users": "Users"
+    },
+    "filter": {
+      "search": "Search name, namespace, user, kind",
+      "namespace": "Namespace",
+      "resource": "Resource",
+      "user": "User",
+      "anyVerb": "Any verb",
+      "sinceAria": "Time range"
+    },
+    "since": {
+      "1h": "1 hour",
+      "24h": "24 hours",
+      "168h": "7 days",
+      "720h": "30 days",
+      "all": "All time"
+    },
+    "col": {
+      "time": "Time",
+      "verb": "Verb",
+      "object": "Object",
+      "namespace": "Namespace",
+      "user": "User",
+      "sourceIp": "Source IP",
+      "via": "Via",
+      "changed": "Changed",
+      "response": "Response",
+      "message": "Message",
+      "changes": "Changes",
+      "lastSeen": "Last seen",
+      "userAgents": "User agents"
+    },
+    "by": "by {{user}}",
+    "loadMore": "Load more",
+    "empty": {
+      "changes": "No changes match these filters.",
+      "attempts": "No rejected requests. This list needs the toolbox audit webhook.",
+      "users": "No attributed changes yet."
+    },
+    "detail": {
+      "close": "Close",
+      "time": "Time",
+      "object": "Object",
+      "uid": "UID",
+      "resourceVersion": "Resource version",
+      "user": "User",
+      "impersonatedBy": "Impersonated by",
+      "groups": "Groups",
+      "sourceIps": "Source IPs",
+      "userAgent": "User agent",
+      "fieldManager": "Field manager",
+      "attribution": "Attributed via",
+      "auditId": "Audit ID",
+      "loadFailed": "Could not load the change"
+    },
+    "compare": {
+      "aria": "Comparison",
+      "change": "The change",
+      "live": "Against live",
+      "versionAria": "Recorded version",
+      "after": "After this change",
+      "before": "Before this change",
+      "layoutAria": "Diff layout",
+      "sideBySide": "Side by side",
+      "inline": "Inline"
+    },
+    "pane": {
+      "before": "Before",
+      "after": "After",
+      "live": "Live now"
+    },
+    "note": {
+      "live": "Server-managed fields and status are left out on both sides: this is exactly what a rollback writes.",
+      "deleted": "The object no longer exists. Rolling back creates it again.",
+      "noBefore": "This change created the object; there is nothing before it.",
+      "noAfter": "This change removed the object; there is nothing after it.",
+      "identical": "No differences."
+    },
+    "rollback": {
+      "button": "Roll back",
+      "header": "Roll back {{name}}?",
+      "message": "{{kind}} {{name}} is replaced with the version on the left ({{version}}). Fields added since then are removed.",
+      "recreate": "{{kind}} {{name}} no longer exists and is created again from the version on the left ({{version}}).",
+      "warning": "Controllers that manage this object may change it again afterwards.",
+      "confirm": "Roll back",
+      "done": "Rolled back",
+      "blocked": {
+        "secretRedacted": "Secrets cannot be rolled back: toolbox does not store their values.",
+        "noVersion": "There is no version on the left to restore."
+      }
+    }
   }
 }

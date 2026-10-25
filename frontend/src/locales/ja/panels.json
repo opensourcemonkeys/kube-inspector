@@ -10,7 +10,9 @@
     "policy": "ポリシー",
     "edit": "編集",
     "resourceGraph": "リソースグラフ",
-    "describe": "{{name}} を Describe"
+    "describe": "{{name}} を Describe",
+    "toolbox": "Toolbox",
+    "clusterHistory": "クラスター履歴"
   },
   "portForward": {
     "startedSummary": "ポートフォワードを開始しました",
@@ -274,7 +276,8 @@
     "edit": "クラスターを編集",
     "graph": "リソースグラフ",
     "connectionErrorTitle": "接続エラー",
-    "connectionError": "接続エラー"
+    "connectionError": "接続エラー",
+    "toolbox": "Toolbox"
   },
   "clusterModal": {
     "closeOverlay": "ダイアログを閉じる",
@@ -842,5 +845,132 @@
   "metrics": {
     "unavailableTitle": "使用状況データがありません",
     "unavailableHint": "このクラスターには metrics-server がありません。CPU とメモリの使用状況を表示するにはインストールしてください。"
+  },
+  "toolbox": {
+    "label": "Toolbox",
+    "intro": "toolbox Helm チャートでインストールされ、クラスター内で動作するツール。",
+    "refresh": "再確認",
+    "open": "開く",
+    "checking": "確認中…",
+    "history": {
+      "title": "Cluster history inspection",
+      "desc": "誰が、何を、いつ、どこから変更したか。toolbox が記録したすべての作成・更新・削除を YAML の差分とロールバック付きで表示します。"
+    },
+    "migration": {
+      "title": "Cluster migration",
+      "desc": "ワークロードとその設定を別のクラスターへ移行します。",
+      "dev": "開発中"
+    },
+    "state": {
+      "ok": "利用可能",
+      "notInstalled": "未インストール",
+      "forbidden": "アクセス権なし",
+      "unreachable": "応答なし"
+    },
+    "hint": {
+      "ok": "toolbox {{version}} · {{namespace}}/{{service}}",
+      "notInstalled": "変更を記録するには、このクラスターに toolbox Helm チャートをインストールしてください。",
+      "forbidden": "toolbox API トークンの読み取り、または API サーバー経由でのアクセスが権限で許可されていません。",
+      "unreachable": "toolbox は見つかりましたが応答しませんでした。"
+    }
+  },
+  "clusterHistory": {
+    "label": "クラスター履歴",
+    "viewAria": "履歴ビュー",
+    "refresh": "更新",
+    "view": {
+      "changes": "変更",
+      "attempts": "拒否",
+      "users": "ユーザー"
+    },
+    "filter": {
+      "search": "名前・Namespace・ユーザー・種類で検索",
+      "namespace": "Namespace",
+      "resource": "リソース",
+      "user": "ユーザー",
+      "anyVerb": "すべての操作",
+      "sinceAria": "期間"
+    },
+    "since": {
+      "1h": "1 時間",
+      "24h": "24 時間",
+      "168h": "7 日",
+      "720h": "30 日",
+      "all": "全期間"
+    },
+    "col": {
+      "time": "時刻",
+      "verb": "操作",
+      "object": "オブジェクト",
+      "namespace": "Namespace",
+      "user": "ユーザー",
+      "sourceIp": "送信元 IP",
+      "via": "特定方法",
+      "changed": "変更箇所",
+      "response": "応答",
+      "message": "メッセージ",
+      "changes": "変更数",
+      "lastSeen": "最終確認",
+      "userAgents": "ユーザーエージェント"
+    },
+    "by": "{{user}} による",
+    "loadMore": "さらに読み込む",
+    "empty": {
+      "changes": "条件に一致する変更はありません。",
+      "attempts": "拒否されたリクエストはありません。この一覧には toolbox の監査 Webhook が必要です。",
+      "users": "特定済みの変更はまだありません。"
+    },
+    "detail": {
+      "close": "閉じる",
+      "time": "時刻",
+      "object": "オブジェクト",
+      "uid": "UID",
+      "resourceVersion": "リソースバージョン",
+      "user": "ユーザー",
+      "impersonatedBy": "なりすまし元",
+      "groups": "グループ",
+      "sourceIps": "送信元 IP",
+      "userAgent": "ユーザーエージェント",
+      "fieldManager": "フィールドマネージャー",
+      "attribution": "特定方法",
+      "auditId": "監査 ID",
+      "loadFailed": "変更を読み込めませんでした"
+    },
+    "compare": {
+      "aria": "比較",
+      "change": "変更内容",
+      "live": "現在の状態と比較",
+      "versionAria": "記録されたバージョン",
+      "after": "この変更の後",
+      "before": "この変更の前",
+      "layoutAria": "差分の表示",
+      "sideBySide": "左右に並べる",
+      "inline": "インライン"
+    },
+    "pane": {
+      "before": "変更前",
+      "after": "変更後",
+      "live": "現在"
+    },
+    "note": {
+      "live": "サーバーが管理するフィールドと status は両側で省いています。ロールバックで書き込まれるのはまさにこの内容です。",
+      "deleted": "このオブジェクトはもう存在しません。ロールバックすると再作成されます。",
+      "noBefore": "この変更でオブジェクトが作成されたため、変更前はありません。",
+      "noAfter": "この変更でオブジェクトが削除されたため、変更後はありません。",
+      "identical": "差分はありません。"
+    },
+    "rollback": {
+      "button": "ロールバック",
+      "header": "{{name}} をロールバックしますか?",
+      "message": "{{kind}} {{name}} を左側のバージョン({{version}})で置き換えます。その後に追加されたフィールドは削除されます。",
+      "recreate": "{{kind}} {{name}} はもう存在しないため、左側のバージョン({{version}})から再作成します。",
+      "warning": "このオブジェクトを管理するコントローラーが、後で再び変更する場合があります。",
+      "confirm": "ロールバック",
+      "done": "ロールバックしました",
+      "blocked": {
+        "secretRedacted": "Secret はロールバックできません。toolbox は値を保存しません。",
+        "noVersion": "左側に復元できるバージョンがありません。"
+      }
+    }
   }
 }

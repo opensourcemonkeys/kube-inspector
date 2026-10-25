@@ -82,6 +82,21 @@ export function defineMonacoTheme(monaco: Monaco): void {
             'scrollbarSlider.hoverBackground': hex('--ink-3', 0.4),
             'scrollbarSlider.activeBackground': hex('--ink-3', 0.55),
             'focusBorder': hex('--accent', 0.6),
+            // Diff editor (cluster history): a changed line is tinted, the
+            // changed characters within it a step stronger.
+            'diffEditor.insertedLineBackground': hex('--ok', 0.13),
+            'diffEditor.insertedTextBackground': hex('--ok', 0.3),
+            'diffEditor.removedLineBackground': hex('--err', 0.13),
+            'diffEditor.removedTextBackground': hex('--err', 0.32),
+            'diffEditorGutter.insertedLineBackground': hex('--ok', 0.22),
+            'diffEditorGutter.removedLineBackground': hex('--err', 0.22),
+            'diffEditorOverview.insertedForeground': hex('--ok', 0.6),
+            'diffEditorOverview.removedForeground': hex('--err', 0.6),
+            'diffEditor.diagonalFill': hex('--line-strong', 0.6),
+            'diffEditor.border': hex('--line-strong'),
+            'diffEditor.unchangedRegionBackground': hex('--screen-2'),
+            'diffEditor.unchangedRegionForeground': hex('--ink-3'),
+            'diffEditor.unchangedCodeBackground': hex('--screen-2', 0.5),
         },
     });
 }

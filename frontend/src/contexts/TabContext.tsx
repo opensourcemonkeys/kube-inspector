@@ -170,6 +170,8 @@ interface TabContextValue {
     openDiagnostics: () => void;
     openPortForwards: () => void;
     openClusterResourceView: (clusterName: string) => void;
+    openToolbox: (clusterName: string) => void;
+    openClusterHistory: (clusterName: string, referencePanel?: string) => void;
     openReceivedPanel: (panel: ReceivedPanel) => void;
 }
 
@@ -587,6 +589,51 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
         });
     }, [t]);
 
+    // The Toolbox tab lists the in-cluster tools (toolbox/); each tool opens
+    // its own panel beside it.
+    const openToolbox = useCallback((clusterName: string) => {
+        const api = apiRef.current;
+        if (!api) return;
+
+        const panelId = `toolbox:${clusterName}`;
+        const existing = api.getPanel(panelId);
+        if (existing) {
+            existing.focus();
+            return;
+        }
+
+        const titleParams = { titleKey: 'panels:title.toolbox', titleVars: { suffix: clusterName } };
+        api.addPanel({
+            id: panelId,
+            component: 'toolbox',
+            title: renderPanelTitle(t, titleParams),
+            params: { clusterName, ...titleParams },
+        });
+    }, [t]);
+
+    const openClusterHistory = useCallback((clusterName: string, referencePanel?: string) => {
+        const api = apiRef.current;
+        if (!api) return;
+
+        const panelId = `cluster-history:${clusterName}`;
+        const existing = api.getPanel(panelId);
+        if (existing) {
+            existing.focus();
+            return;
+        }
+
+        const titleParams = { titleKey: 'panels:title.clusterHistory', titleVars: { suffix: clusterName } };
+        const addOptions: any = {
+            id: panelId,
+            component: 'clusterHistory',
+            title: renderPanelTitle(t, titleParams),
+            params: { clusterName, ...titleParams },
+        };
+        const pos = referencePanel ? positionAfter(api, referencePanel) : undefined;
+        if (pos) addOptions.position = pos;
+        api.addPanel(addOptions);
+    }, [t]);
+
     const openYamlPanel = useCallback((def: YamlPanelDef) => {
         const api = apiRef.current;
         if (!api) return;
@@ -718,6 +765,12 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
             case 'clusterResource':
                 openClusterResourceView(cn);
                 break;
+            case 'toolbox':
+                openToolbox(cn);
+                break;
+            case 'clusterHistory':
+                openClusterHistory(cn);
+                break;
             case 'applyYaml':
                 openApplyYaml(cn);
                 break;
@@ -743,10 +796,10 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
                 openDiagnostics();
                 break;
         }
-    }, [openReceivedSession, openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openApplyYaml, openDiagnostics, openPortForwards]);
+    }, [openReceivedSession, openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openToolbox, openClusterHistory, openApplyYaml, openDiagnostics, openPortForwards]);
 
     return (
-        <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openNodeShellPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openDiagnostics, openPortForwards, openReceivedPanel }}>
+        <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openNodeShellPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openToolbox, openClusterHistory, openDiagnostics, openPortForwards, openReceivedPanel }}>
             {children}
         </TabContext.Provider>
     );

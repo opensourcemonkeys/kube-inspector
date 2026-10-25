@@ -1,0 +1,9 @@
+apiVersion: v2
+name: toolbox
+description: Records every create, update and delete in a Kubernetes cluster — what changed, when, and who did it from where — into ClickHouse, for Kube Inspector.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.28.0-0"
+keywords: [kubernetes, audit, change-tracking, clickhouse, kube-inspector]
+home: https://kubeinspector.com

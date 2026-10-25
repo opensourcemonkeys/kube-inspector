@@ -1,0 +1,38 @@
+# Audit policy for toolbox's audit webhook backend. Install it on every
+# control-plane node and pass it to kube-apiserver with --audit-policy-file.
+# If you already have a policy, merge these rules into it: the API server
+# accepts only one policy, shared by all audit backends.
+apiVersion: audit.k8s.io/v1
+kind: Policy
+omitStages: ["RequestReceived", "ResponseStarted"]
+rules:
+  # Reads are not changes.
+  - level: None
+    verbs: ["get", "list", "watch"]
+  # High-volume objects nobody edits by hand, and requests that are not
+  # object writes (token issuance, access reviews).
+  - level: None
+    resources:
+      - group: ""
+        resources: ["events", "endpoints", "serviceaccounts/token"]
+      - group: "events.k8s.io"
+        resources: ["events"]
+      - group: "coordination.k8s.io"
+        resources: ["leases"]
+      - group: "discovery.k8s.io"
+        resources: ["endpointslices"]
+      - group: "authentication.k8s.io"
+      - group: "authorization.k8s.io"
+  - level: None
+    nonResourceURLs: ["*"]
+  # Secret and ConfigMap contents stay out of the audit stream. Metadata is
+  # enough to attribute the change by object and time.
+  - level: Metadata
+    resources:
+      - group: ""
+        resources: ["secrets", "configmaps"]
+  # Everything else that writes: RequestResponse carries the resourceVersion
+  # the write produced, which attributes a change exactly.
+  - level: RequestResponse
+    verbs: ["create", "update", "patch", "delete", "deletecollection"]
+  - level: None

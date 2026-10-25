@@ -28,19 +28,18 @@ loader.config({ monaco: monacoEditor });
 void monoFontReady.then(() => monacoEditor.editor.remeasureFonts());
 
 /**
- * Monaco wants a Worker; the WebKitGTK webview blocks them. A no-op stub keeps
- * it on the main thread instead of crashing — which is also why
- * `k8sYamlIntellisense` does its own schema work synchronously.
+ * Monaco wants a Worker; the WebKitGTK webview blocks them. Refusing one is
+ * what makes Monaco run its editor worker on the main thread instead
+ * (`editorWorkerService.js`: a throw from worker creation falls back to a
+ * `SynchronousWorkerClient`).
+ *
+ * This used to hand back a no-op stub. That never crashed, but it never
+ * answered either: every request through the worker — the diff editor's diff,
+ * word-based suggestions — waited forever, and the diff editor showed two
+ * panes with no changes marked.
  */
-class NoopWorker extends EventTarget {
-    postMessage() {}
-    terminate() {}
-    onmessage = null;
-    onmessageerror = null;
-    onerror = null;
-    dispatchEvent(event: Event) { return super.dispatchEvent(event); }
-}
-
 (window as unknown as { MonacoEnvironment: unknown }).MonacoEnvironment = {
-    getWorker: () => new NoopWorker() as unknown as Worker,
+    getWorker: () => {
+        throw new Error('web workers are not used in this app');
+    },
 };

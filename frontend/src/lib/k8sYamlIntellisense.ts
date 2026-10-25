@@ -257,9 +257,10 @@ function registerValidation(index: SchemaIndex) {
 // - monaco's yaml tokenizer marks bare words as strings until the `:` is
 //   typed, and quickSuggestions defaults to strings:false — so typing a key
 //   never triggered the popup. strings:true fixes that.
-// - wordBasedSuggestions goes through the editor web worker, which is a
-//   no-op stub in the Wails webview (see main.tsx) and never responds,
-//   leaving the suggest widget hanging whenever our provider has no match.
+// - wordBasedSuggestions would offer every word of the document alongside
+//   the schema's keys, burying them. (It once also hung the suggest widget,
+//   back when the editor worker was a stub that never answered — see
+//   monacoBootstrap.ts.)
 // - renderValidationDecorations defaults to 'editable', which hides marker
 //   squiggles in read-only viewers (pod YAML etc.).
 export const k8sYamlSuggestOptions = {

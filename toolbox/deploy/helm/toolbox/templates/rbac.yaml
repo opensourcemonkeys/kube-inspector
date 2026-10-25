@@ -1,0 +1,81 @@
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "toolbox.serviceAccountName" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+  {{- with .Values.serviceAccount.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+---
+{{- end }}
+# Watching every resource means reading every object, Secrets included.
+# Secret values are redacted to hashes before anything is stored, but this
+# ServiceAccount can read them: treat it as highly privileged.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "toolbox.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["*"]
+    resources: ["*"]
+    verbs: ["get", "list", "watch"]
+  {{- if .Values.admissionWebhook.enabled }}
+  - apiGroups: ["admissionregistration.k8s.io"]
+    resources: ["validatingwebhookconfigurations"]
+    resourceNames: [{{ include "toolbox.fullname" . | quote }}]
+    verbs: ["get", "update"]
+  {{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "toolbox.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "toolbox.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "toolbox.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "toolbox.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["get", "create", "update"]
+  # The webhook TLS secret is created by toolbox itself (see internal/certs).
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["create"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: [{{ include "toolbox.tlsSecretName" . | quote }}]
+    verbs: ["get", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "toolbox.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "toolbox.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "toolbox.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}

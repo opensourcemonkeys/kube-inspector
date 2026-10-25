@@ -1,0 +1,44 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "toolbox.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "toolbox.selectorLabels" . | nindent 6 }}
+  policyTypes: ["Ingress"]
+  ingress:
+    # Webhooks: called by the API server, whose address varies by cluster.
+    - ports:
+        - port: 9443
+    {{- with .Values.networkPolicy.apiFrom }}
+    - from:
+        {{- toYaml . | nindent 8 }}
+      ports:
+        - port: 8080
+    {{- end }}
+{{- if .Values.clickhouse.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "toolbox.clickhouse.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "toolbox.clickhouse.selectorLabels" . | nindent 6 }}
+  policyTypes: ["Ingress"]
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              {{- include "toolbox.selectorLabels" . | nindent 14 }}
+      ports:
+        - port: 9000
+{{- end }}
+{{- end }}

@@ -973,6 +973,41 @@ func (a *App) GetResourceTable(clusterName, group, resource, namespace string) (
 }
 
 // ============================================================================
+// Toolbox: the in-cluster change recorder (toolbox/), reached through the
+// API server's service proxy
+// ============================================================================
+
+// GetToolboxStatus never fails: an unusable toolbox is reported in State.
+func (a *App) GetToolboxStatus(clusterName string) models.ToolboxStatus {
+	return bussiness.GetToolboxStatus(clusterName)
+}
+
+func (a *App) GetToolboxChanges(clusterName string, filter models.ToolboxChangeFilter) (models.ToolboxChangePage, error) {
+	return bussiness.GetToolboxChanges(clusterName, filter)
+}
+
+func (a *App) GetToolboxChangeDetail(clusterName, eventId string) (models.ToolboxChangeDetail, error) {
+	return bussiness.GetToolboxChangeDetail(clusterName, eventId)
+}
+
+func (a *App) GetToolboxAttempts(clusterName string, filter models.ToolboxChangeFilter) ([]models.ToolboxAttempt, error) {
+	return bussiness.GetToolboxAttempts(clusterName, filter)
+}
+
+func (a *App) GetToolboxUsers(clusterName, since string) ([]models.ToolboxUser, error) {
+	return bussiness.GetToolboxUsers(clusterName, since)
+}
+
+func (a *App) GetToolboxLiveObject(clusterName, group, version, resource, namespace, name string) (models.ToolboxLiveObject, error) {
+	return bussiness.GetToolboxLiveObject(clusterName, group, version, resource, namespace, name)
+}
+
+// RollbackToolboxChange restores side ("before" or "after") of a recorded change.
+func (a *App) RollbackToolboxChange(clusterName, eventId, side string) (string, error) {
+	return bussiness.RollbackToolboxChange(clusterName, eventId, side)
+}
+
+// ============================================================================
 // Utility Functions: Resource Relationships & Navigation
 // ============================================================================
 

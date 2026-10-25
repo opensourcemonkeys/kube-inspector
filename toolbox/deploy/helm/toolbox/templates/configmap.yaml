@@ -1,0 +1,47 @@
+{{- $auditSANs := list (include "toolbox.auditServiceName" .) (printf "%s.%s.svc" (include "toolbox.auditServiceName" .) .Release.Namespace) -}}
+{{- if .Values.audit.service.clusterIP -}}
+{{- $auditSANs = append $auditSANs .Values.audit.service.clusterIP -}}
+{{- end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "toolbox.fullname" . }}
+  labels:
+    {{- include "toolbox.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    clusterName: {{ default "default" .Values.clusterName | quote }}
+    httpAddr: ":8080"
+    webhookAddr: ":9443"
+    clickhouse:
+      addr: {{ include "toolbox.clickhouse.addr" . }}
+      {{- if .Values.clickhouse.enabled }}
+      database: {{ .Values.clickhouse.database | quote }}
+      username: {{ .Values.clickhouse.username | quote }}
+      secure: false
+      {{- else }}
+      database: {{ .Values.externalClickhouse.database | quote }}
+      username: {{ .Values.externalClickhouse.username | quote }}
+      secure: {{ .Values.externalClickhouse.secure }}
+      {{- end }}
+    watch:
+      include: {{ .Values.watch.include | toJson }}
+      exclude: {{ .Values.watch.exclude | toJson }}
+      excludeNamespaces: {{ .Values.watch.excludeNamespaces | toJson }}
+      recordStatusChanges: {{ .Values.watch.recordStatusChanges }}
+      discoveryInterval: {{ .Values.watch.discoveryInterval | quote }}
+    enrich:
+      delay: {{ .Values.enrich.delay | quote }}
+      retryAfter: {{ .Values.enrich.retryAfter | quote }}
+      window: {{ .Values.enrich.window | quote }}
+    retention:
+      changesDays: {{ .Values.retention.changesDays }}
+      auditRawDays: {{ .Values.retention.auditRawDays }}
+    tls:
+      secretName: {{ include "toolbox.tlsSecretName" . | quote }}
+      serviceName: {{ include "toolbox.fullname" . | quote }}
+      extraSANs: {{ concat $auditSANs .Values.audit.extraSANs | toJson }}
+      webhookConfigName: {{ if .Values.admissionWebhook.enabled }}{{ include "toolbox.fullname" . | quote }}{{ else }}""{{ end }}
+    leaderElection:
+      enabled: true
+      leaseName: {{ printf "%s-leader" (include "toolbox.fullname" .) | quote }}

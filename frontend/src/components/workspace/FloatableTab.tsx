@@ -61,6 +61,8 @@ function getComponentType(panelId: string): string {
     if (panelId.startsWith('rolebinding-editor:')) return 'roleBindingEditor';
     if (panelId.startsWith('object-yaml:')) return 'objectYaml';
     if (panelId.startsWith('cluster-resource-view')) return 'clusterResource';
+    if (panelId.startsWith('toolbox:')) return 'toolbox';
+    if (panelId.startsWith('cluster-history:')) return 'clusterHistory';
     return 'view';
 }
 

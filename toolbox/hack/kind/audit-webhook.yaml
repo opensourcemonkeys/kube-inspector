@@ -1,0 +1,19 @@
+# Audit webhook kubeconfig for the e2e cluster. The API server reads it at
+# startup, before toolbox (and its self-signed CA) exists, so the e2e skips
+# TLS verification. Production setups use the CA from the toolbox-tls Secret
+# (see the chart's NOTES).
+apiVersion: v1
+kind: Config
+clusters:
+  - name: toolbox
+    cluster:
+      server: https://10.96.200.200/audit
+      insecure-skip-tls-verify: true
+users:
+  - name: kube-apiserver
+    user:
+      token: e2e-audit-token
+contexts:
+  - name: default
+    context: {cluster: toolbox, user: kube-apiserver}
+current-context: default

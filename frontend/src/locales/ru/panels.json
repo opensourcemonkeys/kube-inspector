@@ -10,7 +10,9 @@
     "policy": "Политика",
     "edit": "Изменить",
     "resourceGraph": "Граф ресурсов",
-    "describe": "Describe: {{name}}"
+    "describe": "Describe: {{name}}",
+    "toolbox": "Toolbox",
+    "clusterHistory": "История кластера"
   },
   "portForward": {
     "startedSummary": "Проброс порта запущен",
@@ -277,7 +279,8 @@
     "edit": "Изменить кластер",
     "graph": "Граф ресурсов",
     "connectionErrorTitle": "Ошибка подключения",
-    "connectionError": "Ошибка подключения"
+    "connectionError": "Ошибка подключения",
+    "toolbox": "Toolbox"
   },
   "clusterModal": {
     "closeOverlay": "Закрыть окно",
@@ -887,5 +890,132 @@
   "metrics": {
     "unavailableTitle": "Нет данных об использовании",
     "unavailableHint": "В этом кластере нет metrics-server. Установите его, чтобы видеть использование CPU и памяти."
+  },
+  "toolbox": {
+    "label": "Toolbox",
+    "intro": "Инструменты, работающие внутри кластера и устанавливаемые Helm-чартом toolbox.",
+    "refresh": "Проверить снова",
+    "open": "Открыть",
+    "checking": "Проверка…",
+    "history": {
+      "title": "Cluster history inspection",
+      "desc": "Кто, что, когда и откуда изменил: каждое создание, изменение и удаление, записанное toolbox, с YAML-диффами и откатом."
+    },
+    "migration": {
+      "title": "Cluster migration",
+      "desc": "Перенос рабочих нагрузок и их конфигурации в другой кластер.",
+      "dev": "В разработке"
+    },
+    "state": {
+      "ok": "Готов",
+      "notInstalled": "Не установлен",
+      "forbidden": "Нет доступа",
+      "unreachable": "Не отвечает"
+    },
+    "hint": {
+      "ok": "toolbox {{version}} · {{namespace}}/{{service}}",
+      "notInstalled": "Установите Helm-чарт toolbox в этот кластер, чтобы записывать изменения.",
+      "forbidden": "Ваши права не позволяют прочитать API-токен toolbox или обратиться к нему через API-сервер.",
+      "unreachable": "toolbox найден, но не ответил."
+    }
+  },
+  "clusterHistory": {
+    "label": "История кластера",
+    "viewAria": "Вид истории",
+    "refresh": "Обновить",
+    "view": {
+      "changes": "Изменения",
+      "attempts": "Отклонённые",
+      "users": "Пользователи"
+    },
+    "filter": {
+      "search": "Поиск по имени, Namespace, пользователю, типу",
+      "namespace": "Namespace",
+      "resource": "Ресурс",
+      "user": "Пользователь",
+      "anyVerb": "Любое действие",
+      "sinceAria": "Период"
+    },
+    "since": {
+      "1h": "1 час",
+      "24h": "24 часа",
+      "168h": "7 дней",
+      "720h": "30 дней",
+      "all": "За всё время"
+    },
+    "col": {
+      "time": "Время",
+      "verb": "Действие",
+      "object": "Объект",
+      "namespace": "Namespace",
+      "user": "Пользователь",
+      "sourceIp": "IP-источник",
+      "via": "Источник",
+      "changed": "Изменено",
+      "response": "Ответ",
+      "message": "Сообщение",
+      "changes": "Изменения",
+      "lastSeen": "Последняя активность",
+      "userAgents": "User agent"
+    },
+    "by": "через {{user}}",
+    "loadMore": "Загрузить ещё",
+    "empty": {
+      "changes": "Нет изменений, подходящих под фильтры.",
+      "attempts": "Нет отклонённых запросов. Для этого списка нужен audit webhook toolbox.",
+      "users": "Атрибутированных изменений пока нет."
+    },
+    "detail": {
+      "close": "Закрыть",
+      "time": "Время",
+      "object": "Объект",
+      "uid": "UID",
+      "resourceVersion": "Версия ресурса",
+      "user": "Пользователь",
+      "impersonatedBy": "Имперсонация от",
+      "groups": "Группы",
+      "sourceIps": "IP-источники",
+      "userAgent": "User agent",
+      "fieldManager": "Field manager",
+      "attribution": "Определено через",
+      "auditId": "ID аудита",
+      "loadFailed": "Не удалось загрузить изменение"
+    },
+    "compare": {
+      "aria": "Сравнение",
+      "change": "Изменение",
+      "live": "С текущим объектом",
+      "versionAria": "Записанная версия",
+      "after": "После изменения",
+      "before": "До изменения",
+      "layoutAria": "Вид диффа",
+      "sideBySide": "Рядом",
+      "inline": "В одной колонке"
+    },
+    "pane": {
+      "before": "До",
+      "after": "После",
+      "live": "Сейчас"
+    },
+    "note": {
+      "live": "Поля, которыми управляет сервер, и status скрыты с обеих сторон: именно это записывает откат.",
+      "deleted": "Объекта больше нет. Откат создаст его заново.",
+      "noBefore": "Это изменение создало объект; до него ничего нет.",
+      "noAfter": "Это изменение удалило объект; после него ничего нет.",
+      "identical": "Различий нет."
+    },
+    "rollback": {
+      "button": "Откатить",
+      "header": "Откатить {{name}}?",
+      "message": "{{kind}} {{name}} будет заменён версией слева ({{version}}). Поля, добавленные позже, будут удалены.",
+      "recreate": "{{kind}} {{name}} больше не существует и будет создан заново из версии слева ({{version}}).",
+      "warning": "Контроллеры, управляющие этим объектом, могут потом снова его изменить.",
+      "confirm": "Откатить",
+      "done": "Откат выполнен",
+      "blocked": {
+        "secretRedacted": "Secret нельзя откатить: toolbox не хранит их значения.",
+        "noVersion": "Слева нет версии для восстановления."
+      }
+    }
   }
 }

@@ -10,7 +10,9 @@
     "policy": "Politika",
     "edit": "Düzenle",
     "resourceGraph": "Kaynak Grafiği",
-    "describe": "{{name}} Describe"
+    "describe": "{{name}} Describe",
+    "toolbox": "Toolbox",
+    "clusterHistory": "Cluster Geçmişi"
   },
   "portForward": {
     "startedSummary": "Port yönlendirme başlatıldı",
@@ -275,7 +277,8 @@
     "edit": "Kümeyi düzenle",
     "graph": "Kaynak Grafiği",
     "connectionErrorTitle": "Bağlantı hatası",
-    "connectionError": "Bağlantı Hatası"
+    "connectionError": "Bağlantı Hatası",
+    "toolbox": "Toolbox"
   },
   "clusterModal": {
     "closeOverlay": "Pencereyi kapat",
@@ -857,5 +860,132 @@
   "metrics": {
     "unavailableTitle": "Kullanım verisi yok",
     "unavailableHint": "Bu kümede metrics-server yok. CPU ve bellek kullanımını görmek için kurun."
+  },
+  "toolbox": {
+    "label": "Toolbox",
+    "intro": "Cluster içinde çalışan, toolbox Helm chart'ı ile kurulan araçlar.",
+    "refresh": "Yeniden kontrol et",
+    "open": "Aç",
+    "checking": "Kontrol ediliyor…",
+    "history": {
+      "title": "Cluster history inspection",
+      "desc": "Kim neyi, ne zaman, nereden değiştirdi: toolbox'ın kaydettiği her oluşturma, güncelleme ve silme; YAML farkları ve geri alma ile."
+    },
+    "migration": {
+      "title": "Cluster migration",
+      "desc": "İş yüklerini ve yapılandırmalarını başka bir cluster'a taşıma.",
+      "dev": "Geliştirme aşamasında"
+    },
+    "state": {
+      "ok": "Hazır",
+      "notInstalled": "Kurulu değil",
+      "forbidden": "Erişim yok",
+      "unreachable": "Yanıt vermiyor"
+    },
+    "hint": {
+      "ok": "toolbox {{version}} · {{namespace}}/{{service}}",
+      "notInstalled": "Değişiklikleri kaydetmek için bu cluster'a toolbox Helm chart'ını kurun.",
+      "forbidden": "Yetkileriniz toolbox API token'ını okumaya veya ona API server üzerinden erişmeye izin vermiyor.",
+      "unreachable": "toolbox bulundu ama yanıt vermedi."
+    }
+  },
+  "clusterHistory": {
+    "label": "Cluster geçmişi",
+    "viewAria": "Geçmiş görünümü",
+    "refresh": "Yenile",
+    "view": {
+      "changes": "Değişiklikler",
+      "attempts": "Reddedilenler",
+      "users": "Kullanıcılar"
+    },
+    "filter": {
+      "search": "Ad, namespace, kullanıcı, tür ara",
+      "namespace": "Namespace",
+      "resource": "Kaynak",
+      "user": "Kullanıcı",
+      "anyVerb": "Tüm işlemler",
+      "sinceAria": "Zaman aralığı"
+    },
+    "since": {
+      "1h": "1 saat",
+      "24h": "24 saat",
+      "168h": "7 gün",
+      "720h": "30 gün",
+      "all": "Tümü"
+    },
+    "col": {
+      "time": "Zaman",
+      "verb": "İşlem",
+      "object": "Obje",
+      "namespace": "Namespace",
+      "user": "Kullanıcı",
+      "sourceIp": "Kaynak IP",
+      "via": "Kaynak",
+      "changed": "Değişen",
+      "response": "Yanıt",
+      "message": "Mesaj",
+      "changes": "Değişiklik",
+      "lastSeen": "Son görülme",
+      "userAgents": "User agent'lar"
+    },
+    "by": "{{user}} aracılığıyla",
+    "loadMore": "Daha fazla yükle",
+    "empty": {
+      "changes": "Bu filtrelere uyan değişiklik yok.",
+      "attempts": "Reddedilen istek yok. Bu liste toolbox audit webhook'unu gerektirir.",
+      "users": "Henüz atfedilmiş değişiklik yok."
+    },
+    "detail": {
+      "close": "Kapat",
+      "time": "Zaman",
+      "object": "Obje",
+      "uid": "UID",
+      "resourceVersion": "Resource version",
+      "user": "Kullanıcı",
+      "impersonatedBy": "Taklit eden",
+      "groups": "Gruplar",
+      "sourceIps": "Kaynak IP'ler",
+      "userAgent": "User agent",
+      "fieldManager": "Field manager",
+      "attribution": "Atıf kaynağı",
+      "auditId": "Audit ID",
+      "loadFailed": "Değişiklik yüklenemedi"
+    },
+    "compare": {
+      "aria": "Karşılaştırma",
+      "change": "Değişiklik",
+      "live": "Canlı objeyle",
+      "versionAria": "Kayıtlı sürüm",
+      "after": "Bu değişiklikten sonra",
+      "before": "Bu değişiklikten önce",
+      "layoutAria": "Fark görünümü",
+      "sideBySide": "Yan yana",
+      "inline": "Satır içi"
+    },
+    "pane": {
+      "before": "Önce",
+      "after": "Sonra",
+      "live": "Şu anki hali"
+    },
+    "note": {
+      "live": "Sunucunun yönettiği alanlar ve status iki tarafta da gösterilmiyor: geri alma tam olarak bunu yazar.",
+      "deleted": "Obje artık yok. Geri alma onu yeniden oluşturur.",
+      "noBefore": "Obje bu değişiklikle oluşturuldu; öncesi yok.",
+      "noAfter": "Obje bu değişiklikle silindi; sonrası yok.",
+      "identical": "Fark yok."
+    },
+    "rollback": {
+      "button": "Geri al",
+      "header": "{{name}} geri alınsın mı?",
+      "message": "{{kind}} {{name}}, soldaki sürümle ({{version}}) değiştirilir. O sürümden sonra eklenen alanlar kaldırılır.",
+      "recreate": "{{kind}} {{name}} artık yok; soldaki sürümden ({{version}}) yeniden oluşturulur.",
+      "warning": "Bu objeyi yöneten controller'lar onu sonradan tekrar değiştirebilir.",
+      "confirm": "Geri al",
+      "done": "Geri alındı",
+      "blocked": {
+        "secretRedacted": "Secret'lar geri alınamaz: toolbox değerlerini saklamaz.",
+        "noVersion": "Solda geri yüklenecek bir sürüm yok."
+      }
+    }
   }
 }
