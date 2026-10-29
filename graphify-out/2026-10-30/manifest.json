@@ -1265,8 +1265,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793306345.107923,
-    "ast_hash": "348967007efdb8b9d83ed8234cfea470",
+    "mtime": 1793308762.1137567,
+    "ast_hash": "c86d7920c48b5e44ff98689c511e45ae",
     "semantic_hash": ""
   },
   "README.md": {
@@ -1475,8 +1475,8 @@
     "semantic_hash": "264acb039b888f7b791a0d8ab2082837"
   },
   "mkdocs.yml": {
-    "mtime": 1792325947.3912904,
-    "ast_hash": "0aa0e6647cc159c800cf6cfd8e17e181",
+    "mtime": 1793308530.3562605,
+    "ast_hash": "0c7db9c6ff2637286828302e7b20be25",
     "semantic_hash": ""
   },
   "overrides/home.html": {
@@ -1995,8 +1995,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/en/panels.json": {
-    "mtime": 1793305696.326109,
-    "ast_hash": "7ce8229bbef3d49ffd39fb454b38851d",
+    "mtime": 1793308530.3577356,
+    "ast_hash": "074ccb86024effc3ea14806876d08688",
     "semantic_hash": ""
   },
   "frontend/src/locales/en/resources.json": {
@@ -2050,8 +2050,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/de/panels.json": {
-    "mtime": 1793305696.3301177,
-    "ast_hash": "7332b6875c3dd0beb2cb293214a316cf",
+    "mtime": 1793308530.3609316,
+    "ast_hash": "7288fcc0a00e00bc7313b813e48154b1",
     "semantic_hash": ""
   },
   "frontend/src/locales/de/resources.json": {
@@ -2080,8 +2080,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/ja/panels.json": {
-    "mtime": 1793305696.3321176,
-    "ast_hash": "0a25b1ec252294eb9acdc80ff67e6215",
+    "mtime": 1793308530.3629947,
+    "ast_hash": "c29fa3249c6d185cccc7c30b8a3b5d37",
     "semantic_hash": ""
   },
   "frontend/src/locales/ja/resources.json": {
@@ -2110,8 +2110,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/ru/panels.json": {
-    "mtime": 1793305696.3351176,
-    "ast_hash": "52c7c3d8d98533666950fd599096a480",
+    "mtime": 1793308530.3659315,
+    "ast_hash": "22b926efd5afd248049ca8ca71d69b39",
     "semantic_hash": ""
   },
   "frontend/src/locales/ru/resources.json": {
@@ -2140,8 +2140,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/tr/panels.json": {
-    "mtime": 1793305696.3277314,
-    "ast_hash": "0d5f1f39090020af1c03c610c6101c7b",
+    "mtime": 1793308530.3599925,
+    "ast_hash": "227bd4f659e9f0ddb07d6365b4e467ee",
     "semantic_hash": ""
   },
   "frontend/src/locales/tr/resources.json": {
@@ -2170,8 +2170,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/zh/panels.json": {
-    "mtime": 1793305696.337265,
-    "ast_hash": "a577a3f0edf873965d7c8d7fd0c36830",
+    "mtime": 1793308530.3699315,
+    "ast_hash": "25bcd5e6930745f2a35ec9ca45d9bf5c",
     "semantic_hash": ""
   },
   "frontend/src/locales/zh/resources.json": {
@@ -4365,8 +4365,8 @@
     "semantic_hash": ""
   },
   "scripts/ui/docs_shots.py": {
-    "mtime": 1792325947.3914742,
-    "ast_hash": "1d4d5ccc34b367b753c3a7620810b921",
+    "mtime": 1793308566.6924047,
+    "ast_hash": "477b3c8fcc0028376bd34ec456393fc9",
     "semantic_hash": ""
   },
   "docs/assets/mark.svg": {
@@ -4700,8 +4700,8 @@
     "semantic_hash": ""
   },
   "toolbox/plan.md": {
-    "mtime": 1793306345.109409,
-    "ast_hash": "39c36766714f31c05315a96a71952a16",
+    "mtime": 1793308762.1155345,
+    "ast_hash": "ae75ca51f6da2397fa22f9c4a8ed1cb9",
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/ToolboxPanel.tsx": {
@@ -4805,8 +4805,8 @@
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/InstallGuide.tsx": {
-    "mtime": 1793274711.706955,
-    "ast_hash": "0dfde525fa854dcf122ad1b19e734dfd",
+    "mtime": 1793308530.356652,
+    "ast_hash": "cf2683d9ffc5bb4d370adfc16d5f8434",
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/RecordingHealth.tsx": {
@@ -4927,6 +4927,46 @@
   "toolbox/internal/api/stream.go": {
     "mtime": 1793305467.0153677,
     "ast_hash": "83bd66f927dc4dfe9060137044c94860",
+    "semantic_hash": ""
+  },
+  "docs/toolbox/cluster-history.md": {
+    "mtime": 1793308514.615155,
+    "ast_hash": "2151de566ff9b958cac51a5346a48743",
+    "semantic_hash": ""
+  },
+  "docs/toolbox/index.md": {
+    "mtime": 1793308514.612155,
+    "ast_hash": "3bb16a91b80f6c711767c33fb036fdb9",
+    "semantic_hash": ""
+  },
+  "docs/toolbox/object-history.md": {
+    "mtime": 1793308514.6171548,
+    "ast_hash": "d2a59ff45a15773790d482624f64b060",
+    "semantic_hash": ""
+  },
+  "docs/toolbox/recording-health.md": {
+    "mtime": 1793308514.6201549,
+    "ast_hash": "1c43b04a58b2e394e3be621facb99b2e",
+    "semantic_hash": ""
+  },
+  "docs/assets/screenshots/history-changes.png": {
+    "mtime": 1793308688.0176935,
+    "ast_hash": "7f5efc9fec52b53f7902706a81225c4d",
+    "semantic_hash": ""
+  },
+  "docs/assets/screenshots/history-overview.png": {
+    "mtime": 1793308688.0176935,
+    "ast_hash": "c33f3228f565a4758ebf814fd548a4ce",
+    "semantic_hash": ""
+  },
+  "docs/assets/screenshots/object-history.png": {
+    "mtime": 1793308688.0186934,
+    "ast_hash": "22721ed17b7f7cf4f422022b9e9b4bf8",
+    "semantic_hash": ""
+  },
+  "docs/assets/screenshots/toolbox-health.png": {
+    "mtime": 1793308688.0176935,
+    "ast_hash": "7f458fc464fa17e89209b0b0ef397165",
     "semantic_hash": ""
   }
 }

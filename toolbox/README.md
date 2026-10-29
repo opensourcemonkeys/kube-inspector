@@ -66,7 +66,7 @@ user or ServiceAccount, OIDC claims (`extra`), plus the client's user agent.
 ## Install
 
 ```bash
-helm install toolbox oci://ghcr.io/opensourcemonkeys/charts/toolbox -n toolbox --create-namespace \
+helm install toolbox oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox -n toolbox --create-namespace \
   --set clusterName=prod \
   --set audit.service.clusterIP=10.96.200.200   # a free IP in your service CIDR
 ```
@@ -171,8 +171,8 @@ are read from `changes` alone. On 50M rows (`make bench-store`) the 7- and
 ## Releases
 
 A `toolbox-v<semver>` tag runs `.github/workflows/toolbox.yml`: tests, then a
-linux/amd64 + linux/arm64 image `ghcr.io/opensourcemonkeys/toolbox:<semver>` and
-the chart `oci://ghcr.io/opensourcemonkeys/charts/toolbox` at the same version
+linux/amd64 + linux/arm64 image `ghcr.io/opensourcemonkeys/kube-inspector-toolbox:<semver>` and
+the chart `oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox` at the same version
 (`appVersion` too). GHCR creates new packages private; make both public once
 after the first release so `helm install` works without a login.
 

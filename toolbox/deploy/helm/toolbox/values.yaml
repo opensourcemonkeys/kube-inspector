@@ -1,9 +1,13 @@
+# -- Base of every object name and of the app.kubernetes.io/name label.
+# Leave it: Kube Inspector finds toolbox by app.kubernetes.io/name=toolbox.
+nameOverride: ""
+
 # -- Name tagged on every recorded row, so one ClickHouse can hold several
 # clusters. Kube Inspector filters by it. Defaults to "default".
 clusterName: ""
 
 image:
-  repository: ghcr.io/opensourcemonkeys/toolbox
+  repository: ghcr.io/opensourcemonkeys/kube-inspector-toolbox
   # -- Defaults to the chart's appVersion.
   tag: ""
   pullPolicy: IfNotPresent

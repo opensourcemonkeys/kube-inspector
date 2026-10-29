@@ -1,12 +1,19 @@
+{{/*
+The name objects and labels are built from. Deliberately not .Chart.Name: the
+chart is published as kube-inspector-toolbox, but Kube Inspector finds the
+collector by app.kubernetes.io/name=toolbox and installs from before the
+rename have objects named toolbox, so renaming the chart must not rename them.
+*/}}
 {{- define "toolbox.name" -}}
-{{- .Chart.Name | trunc 63 | trimSuffix "-" -}}
+{{- default "toolbox" .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "toolbox.fullname" -}}
-{{- if contains .Chart.Name .Release.Name -}}
+{{- $name := include "toolbox.name" . -}}
+{{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- printf "%s-%s" .Release.Name .Chart.Name | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 

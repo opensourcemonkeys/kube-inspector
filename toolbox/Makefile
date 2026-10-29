@@ -1,5 +1,5 @@
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
-IMAGE   ?= ghcr.io/opensourcemonkeys/toolbox
+IMAGE   ?= ghcr.io/opensourcemonkeys/kube-inspector-toolbox
 CHART   := deploy/helm/toolbox
 CH_TEST_PORT ?= 19000
 

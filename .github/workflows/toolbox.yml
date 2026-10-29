@@ -1,9 +1,12 @@
 name: Toolbox
 
 # The in-cluster change recorder (toolbox/) ships on its own tags, apart from
-# the app: `toolbox-v1.2.3` publishes the image and the Helm chart, both at
-# version 1.2.3. Branch pushes only test, like ci.yml (main is not tested
-# here for the same reason: it receives finished work).
+# the app: `toolbox-v1.2.3` publishes the image
+# ghcr.io/opensourcemonkeys/kube-inspector-toolbox and the Helm chart
+# oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox (helm push
+# names the path after Chart.yaml's name), both at version 1.2.3. Branch
+# pushes only test, like ci.yml (main is not tested here for the same
+# reason: it receives finished work).
 #
 # Only actions this repository already pins are used. The registry login,
 # the multi-arch build and the chart push are plain CLI calls — docker buildx
@@ -22,7 +25,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  IMAGE: ghcr.io/opensourcemonkeys/toolbox
+  IMAGE: ghcr.io/opensourcemonkeys/kube-inspector-toolbox
   CHART_REPO: oci://ghcr.io/opensourcemonkeys/charts
   HELM_IMAGE: alpine/helm:3.16.4@sha256:9b25e60ae264940b276e32866d37e3088e70c4e2d1784b964dc3f90346281a74
   BUILDKIT_IMAGE: moby/buildkit:v0.18.2@sha256:86c0ad9d1137c186e9d455912167df20e530bdf7f7c19de802e892bb8ca16552
@@ -120,4 +123,4 @@ jobs:
           docker run --rm -v "$PWD":/w -w /w "$HELM_IMAGE" \
             package deploy/helm/toolbox --version "$VERSION" --app-version "$VERSION" --destination /w/dist
           docker run --rm -v "$PWD":/w -w /w -v "$HOME/.config/helm":/root/.config/helm "$HELM_IMAGE" \
-            push "dist/toolbox-$VERSION.tgz" "$CHART_REPO"
+            push "dist/kube-inspector-toolbox-$VERSION.tgz" "$CHART_REPO"

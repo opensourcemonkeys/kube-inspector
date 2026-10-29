@@ -418,6 +418,10 @@ Operatör `GET /api/v1/stats?since=&bucket=` zaten var: zaman kovası × verb sa
 
 **Gözlem (düzeltilmedi, bilgi):** Cluster'daki kayıt sağlığı "Admission webhook: son 24 saatte hiç gelmedi" diyor; son günlerin atamaları yalnız managedFields/none. Admission webhook'u bu cluster'da istek almıyor olabilir — ayrıca incelenmeye değer.
 
+### Sonrası: registry adları (2026-10-30)
+- **[ONAY]** Image `ghcr.io/opensourcemonkeys/kube-inspector-toolbox`, chart `oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox` (`Chart.yaml` adı `kube-inspector-toolbox`; `helm push` yolu chart adından alıyor).
+- Cluster içi adlar değişmedi: `_helpers.tpl` artık `.Chart.Name` değil sabit `toolbox` tabanını (`nameOverride`) kullanıyor; nesne adları ve `app.kubernetes.io/name=toolbox` etiketi aynı kaldı (render diff'i ile doğrulandı: yalnız `# Source` yorumları, image ve `helm.sh/chart` etiketi değişti). Desktop'un keşfi ve eski kurulumların yükseltmesi bu yüzden etkilenmiyor.
+
 ---
 
 ## Uygulama düzeni

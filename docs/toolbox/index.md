@@ -42,7 +42,7 @@ You need **cluster-admin** to install it. When toolbox is not on a cluster the
 Toolbox tab shows this command with the cluster name filled in:
 
 ```bash
-helm install toolbox oci://ghcr.io/opensourcemonkeys/charts/toolbox \
+helm install toolbox oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox \
   --namespace toolbox --create-namespace \
   --set-string clusterName='my-cluster'
 ```
@@ -94,7 +94,7 @@ rights as editing that object.
 
 ## Upgrading
 
-Upgrade with `helm upgrade toolbox oci://ghcr.io/opensourcemonkeys/charts/toolbox -n toolbox --reuse-values`.
+Upgrade with `helm upgrade toolbox oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox -n toolbox --reuse-values`.
 An older toolbox keeps working with a newer Kube Inspector: the parts it does
 not support — recording health, the summary counts, the live stream — say so,
 and everything else works as before.
