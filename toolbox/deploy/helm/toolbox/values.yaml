@@ -94,8 +94,9 @@ enrich:
 # changes made then were not seen.
 recorder:
   heartbeatInterval: 15s
-  # -- Keep above the leader lease (15s) plus a hand-over, or every failover
-  # reads as a gap.
+  # -- How long one leader may go without a heartbeat before the silence is
+  # a gap. A change of leader (failover, restart, upgrade) is always a gap,
+  # whatever its length: the new leader records nothing from before it starts.
   gapThreshold: 45s
 
 retention:

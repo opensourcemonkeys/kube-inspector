@@ -1265,8 +1265,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793310056.15673,
-    "ast_hash": "4da3a6caab8eb377909bfaf04628727d",
+    "mtime": 1793311995.4292212,
+    "ast_hash": "f4257ab3e7b9161b23fac50df000caf2",
     "semantic_hash": ""
   },
   "README.md": {
@@ -4485,8 +4485,8 @@
     "semantic_hash": ""
   },
   "toolbox/cmd/toolbox/main.go": {
-    "mtime": 1793305467.038116,
-    "ast_hash": "0d2ca866b57b0c41d7fc3f866a86e06f",
+    "mtime": 1793311939.848881,
+    "ast_hash": "caa77f42a2b421d9ec635bb81192fd56",
     "semantic_hash": ""
   },
   "toolbox/go.mod": {
@@ -4545,8 +4545,8 @@
     "semantic_hash": ""
   },
   "toolbox/internal/config/config.go": {
-    "mtime": 1793305353.8978627,
-    "ast_hash": "12be0a26ba7063300b951e27b5a27c30",
+    "mtime": 1793311995.4286067,
+    "ast_hash": "497b2cc3e8a79912836a85ae4fca0885",
     "semantic_hash": ""
   },
   "toolbox/internal/config/config_test.go": {
@@ -4635,8 +4635,8 @@
     "semantic_hash": ""
   },
   "toolbox/README.md": {
-    "mtime": 1793310056.1551971,
-    "ast_hash": "e65b40a86b444e57efb73462eb940182",
+    "mtime": 1793311995.4288094,
+    "ast_hash": "cfab0041dcc691061d3a128860e41f42",
     "semantic_hash": ""
   },
   "toolbox/deploy/helm/toolbox/Chart.yaml": {
@@ -4690,8 +4690,8 @@
     "semantic_hash": ""
   },
   "toolbox/deploy/helm/toolbox/values.yaml": {
-    "mtime": 1793310056.1532326,
-    "ast_hash": "47c2c34d304556dcdcebc7f23bcf0636",
+    "mtime": 1793311995.4283974,
+    "ast_hash": "f2712f900582da77b1c82c90ad32edbc",
     "semantic_hash": ""
   },
   "toolbox/hack/kind/audit-webhook.yaml": {
@@ -4700,8 +4700,8 @@
     "semantic_hash": ""
   },
   "toolbox/plan.md": {
-    "mtime": 1793310091.2542021,
-    "ast_hash": "064cf5f51eb4c424351269df8059da69",
+    "mtime": 1793311995.4299319,
+    "ast_hash": "5dfe88ab4a8dacf4cddc418cecffc5d1",
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/ToolboxPanel.tsx": {
@@ -4830,13 +4830,13 @@
     "semantic_hash": ""
   },
   "toolbox/internal/store/health.go": {
-    "mtime": 1793274016.2577329,
-    "ast_hash": "04997d7553a597258116aa3b9cb700f4",
+    "mtime": 1793311939.8485942,
+    "ast_hash": "ab97eb6e21b7d0301f52de1586c97d97",
     "semantic_hash": ""
   },
   "toolbox/internal/store/health_test.go": {
-    "mtime": 1793274036.6024947,
-    "ast_hash": "45a4e00ce3f96e8f67c593ad10e9e0f2",
+    "mtime": 1793311954.0178182,
+    "ast_hash": "d0c9371bda16325a8765a54ced62f9b2",
     "semantic_hash": ""
   },
   "toolbox/internal/store/migrations/0002_heartbeats.sql": {
@@ -4945,8 +4945,8 @@
     "semantic_hash": ""
   },
   "docs/toolbox/recording-health.md": {
-    "mtime": 1793308514.6201549,
-    "ast_hash": "1c43b04a58b2e394e3be621facb99b2e",
+    "mtime": 1793311995.4289842,
+    "ast_hash": "f5d3bbcb5865244631289805a8f8e40e",
     "semantic_hash": ""
   },
   "docs/assets/screenshots/history-changes.png": {
@@ -4967,6 +4967,11 @@
   "docs/assets/screenshots/toolbox-health.png": {
     "mtime": 1793308688.0176935,
     "ast_hash": "7f458fc464fa17e89209b0b0ef397165",
+    "semantic_hash": ""
+  },
+  "toolbox/internal/store/migrations/0004_heartbeat_term.sql": {
+    "mtime": 1793311939.8400226,
+    "ast_hash": "49f8b6fdd04bbcd276db5ac49556f2fc",
     "semantic_hash": ""
   }
 }

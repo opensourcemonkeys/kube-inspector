@@ -1265,8 +1265,8 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793308762.1137567,
-    "ast_hash": "c86d7920c48b5e44ff98689c511e45ae",
+    "mtime": 1793310056.15673,
+    "ast_hash": "4da3a6caab8eb377909bfaf04628727d",
     "semantic_hash": ""
   },
   "README.md": {
@@ -4635,13 +4635,13 @@
     "semantic_hash": ""
   },
   "toolbox/README.md": {
-    "mtime": 1793306345.107362,
-    "ast_hash": "3b31c705a0e5c7b64a7725c99bb0c9bb",
+    "mtime": 1793310056.1551971,
+    "ast_hash": "e65b40a86b444e57efb73462eb940182",
     "semantic_hash": ""
   },
   "toolbox/deploy/helm/toolbox/Chart.yaml": {
-    "mtime": 1792930617.3086624,
-    "ast_hash": "4bf611eabe730571235d510912029a10",
+    "mtime": 1793310056.1528487,
+    "ast_hash": "12fc7f316bac9935788590f569f18e6b",
     "semantic_hash": ""
   },
   "toolbox/deploy/helm/toolbox/files/audit-policy.yaml": {
@@ -4690,8 +4690,8 @@
     "semantic_hash": ""
   },
   "toolbox/deploy/helm/toolbox/values.yaml": {
-    "mtime": 1793304370.0658712,
-    "ast_hash": "dd7e157c1c26cdfbe216437dc374b26e",
+    "mtime": 1793310056.1532326,
+    "ast_hash": "47c2c34d304556dcdcebc7f23bcf0636",
     "semantic_hash": ""
   },
   "toolbox/hack/kind/audit-webhook.yaml": {
@@ -4700,8 +4700,8 @@
     "semantic_hash": ""
   },
   "toolbox/plan.md": {
-    "mtime": 1793308762.1155345,
-    "ast_hash": "ae75ca51f6da2397fa22f9c4a8ed1cb9",
+    "mtime": 1793310091.2542021,
+    "ast_hash": "064cf5f51eb4c424351269df8059da69",
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/ToolboxPanel.tsx": {
@@ -4800,13 +4800,13 @@
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/InstallGuide.test.tsx": {
-    "mtime": 1793274821.6392312,
-    "ast_hash": "cca4e36f000390fddac453b433f7aa45",
+    "mtime": 1793310056.1544847,
+    "ast_hash": "0d5aee3ec26b1f70dd984902d5385ea6",
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/InstallGuide.tsx": {
-    "mtime": 1793308530.356652,
-    "ast_hash": "cf2683d9ffc5bb4d370adfc16d5f8434",
+    "mtime": 1793310056.1542797,
+    "ast_hash": "a1949c751be9b073d7cea5dee6960f90",
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/RecordingHealth.tsx": {
@@ -4845,8 +4845,8 @@
     "semantic_hash": ""
   },
   ".github/workflows/toolbox.yml": {
-    "mtime": 1793274479.7705915,
-    "ast_hash": "8bcc5969b8ffba607dd2bf137e62997e",
+    "mtime": 1793310096.2597275,
+    "ast_hash": "2382672981728f3484661794a017a20c",
     "semantic_hash": ""
   },
   "frontend/src/components/toolbox/history/HistoryOverview.tsx": {
@@ -4935,8 +4935,8 @@
     "semantic_hash": ""
   },
   "docs/toolbox/index.md": {
-    "mtime": 1793308514.612155,
-    "ast_hash": "3bb16a91b80f6c711767c33fb036fdb9",
+    "mtime": 1793310056.1546657,
+    "ast_hash": "c4c925f530910fdeaabd9e9704e55ab4",
     "semantic_hash": ""
   },
   "docs/toolbox/object-history.md": {

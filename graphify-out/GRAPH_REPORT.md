@@ -1,16 +1,16 @@
 # Graph Report - kube-in-go  (2026-10-30)
 
 ## Corpus Check
-- 945 files · ~1,015,197 words
+- 946 files · ~1,015,889 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 8026 nodes · 13543 edges · 661 communities (436 shown, 225 thin omitted)
-- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 1176 edges (avg confidence: 0.78)
+- 8028 nodes · 13548 edges · 659 communities (435 shown, 224 thin omitted)
+- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 1178 edges (avg confidence: 0.78)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1e8886e5`
+- Built from commit: `1d94a2be`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -634,7 +634,6 @@
 - padding-y
 - .TransferTab
 - ModelTags
-- 3
 - SweepStaleUpdateTemps
 - TestEnsureCreatesThenReusesAndKeepsCA
 - monaco-yaml
@@ -646,7 +645,6 @@
 - secondary-foreground
 - progressWriter
 - destructive
-- ToolboxError
 - ring
 
 ## God Nodes (most connected - your core abstractions)
@@ -687,11 +685,11 @@
 - **Per-tab Cluster Pinning Flow** — claude_dockview_panel_system, claude_panel_id_scheme, claude_use_resource_list, claude_controller_layer, claude_business_layer, claude_repository_layer [EXTRACTED 1.00]
 - **graphify Build Pipeline Stages** — _claude_skills_graphify_skill_interpreter_detection, _claude_skills_graphify_skill_ast_extraction, _claude_skills_graphify_skill_semantic_extraction, _claude_skills_graphify_skill_extraction_cache, _claude_skills_graphify_skill_community_clustering, _claude_skills_graphify_skill_graph_health_check, _claude_skills_graphify_skill_god_nodes [EXTRACTED 1.00]
 
-## Communities (661 total, 225 thin omitted)
+## Communities (659 total, 224 thin omitted)
 
 ### Community 0 - "Wails Controller Bindings"
 Cohesion: 0.01
-Nodes (9): AttachPodExecSession(), AttachTerminalSession(), ClusterGraph, App, GraphUsage, InstanceInfo, SecurityGraph, SerializedPanel (+1 more)
+Nodes (6): ClusterGraph, App, GraphUsage, InstanceInfo, SecurityGraph, SerializedPanel
 
 ### Community 1 - "Cluster & CRD Business Layer"
 Cohesion: 0.12
@@ -714,8 +712,8 @@ Cohesion: 0.07
 Nodes (50): Bool, Transport, Context, App, NewApp(), Bootstrap(), App, Context (+42 more)
 
 ### Community 6 - "YAML Editor & Policy Panels"
-Cohesion: 0.05
-Nodes (58): ClusterBar(), ClusterModal(), ParsedConfig, parseKubeconfig(), ParseResult, Props, sanitizeName(), suggestName() (+50 more)
+Cohesion: 0.08
+Nodes (32): SideMenu(), GroupKey, HOME_ITEM, NAV_GROUPS, NavGroup, NavItem, VIEW_GROUP, TabInstanceBridge() (+24 more)
 
 ### Community 7 - "Trivy Scanner Frontend"
 Cohesion: 0.07
@@ -726,8 +724,8 @@ Cohesion: 0.07
 Nodes (33): Cloudflare R2 Artifact Publishing, MkDocs Site Deploy Job, Disabled E2E (kind + xvfb + Chrome), GOEXPERIMENT=jsonv2 Build Flag, nfpm deb/rpm Packaging, Build & Release CI Pipeline, Embedded Chromium (Electron) Shell, Monitoring Dashboard (+25 more)
 
 ### Community 9 - "Monitoring & Overview Dashboards"
-Cohesion: 0.18
-Nodes (15): GetNodes(), CordonNode(), DrainNode(), GetNodes(), GetNodeYaml(), Clientset, Node, Pod (+7 more)
+Cohesion: 0.20
+Nodes (14): CordonNode(), DrainNode(), GetNodes(), GetNodeYaml(), Clientset, Node, Pod, isDaemonSetPod() (+6 more)
 
 ### Community 10 - "MkDocs Build Hooks"
 Cohesion: 0.08
@@ -770,12 +768,12 @@ Cohesion: 0.19
 Nodes (18): DeletePod(), GetPods(), getPodStatus(), GetPodYaml(), Clientset, ContainerStatus, Pod, Time (+10 more)
 
 ### Community 20 - "Tab Context & ConfigMaps"
-Cohesion: 0.18
-Nodes (14): ClosePodExecSession(), CreatePodExecSession(), CancelFunc, Clientset, releaseExecSession(), startExecSession(), T, newTestExecSession() (+6 more)
+Cohesion: 0.11
+Nodes (20): Timer, CloseNodeShellSession(), ClosePodExecSession(), CreatePodExecSession(), CancelFunc, Clientset, releaseExecSession(), startExecSession() (+12 more)
 
 ### Community 21 - "CRD List & Shared List View"
-Cohesion: 0.29
-Nodes (23): L(), decodeRecord(), decodeTop(), RawMessage, T, lineWithLogger(), readLines(), resetForTest() (+15 more)
+Cohesion: 0.25
+Nodes (24): L(), decodeRecord(), decodeTop(), RawMessage, T, lineWithLogger(), readLines(), resetForTest() (+16 more)
 
 ### Community 22 - "TUI Application Shell"
 Cohesion: 0.16
@@ -791,31 +789,31 @@ Nodes (18): electron, electron-builder, dependencies, ws, description, devDepend
 
 ### Community 25 - "Log Streaming Business Layer"
 Cohesion: 0.03
-Nodes (88): DeleteConfigMap(), GetConfigMapData(), GetConfigMapYaml(), UpdateConfigMapData(), UpdateConfigMapYaml(), DeleteCronJob(), GetCronJobs(), GetCronJobYaml() (+80 more)
+Nodes (86): DeleteConfigMap(), GetConfigMapData(), GetConfigMapYaml(), UpdateConfigMapData(), UpdateConfigMapYaml(), DeleteCronJob(), GetCronJobs(), GetCronJobYaml() (+78 more)
 
 ### Community 26 - "Node Services & Cordon/Drain"
-Cohesion: 0.29
-Nodes (16): Builder, AttachTerminalSession(), CloseTerminalSession(), Mutex, T, skipWithoutPty(), TestTerminalAttachCancelsDetachGrace(), TestTerminalAttachReplaysHistoryWithStreamOffsets() (+8 more)
+Cohesion: 0.16
+Nodes (27): Builder, AttachTerminalSession(), CloseTerminalSession(), CreateTerminalSession(), DetachTerminalSession(), Timer, releaseTerminalSession(), sessionKubeconfigPath() (+19 more)
 
 ### Community 27 - "E2E Navigation Tests"
 Cohesion: 0.12
 Nodes (17): click_sidebar_item(), expand_sidebar_group(), navigate_to(), Wait for an <h3> with exactly *heading_text* to appear in the DOM.      Each res, Expand a sidebar section (e.g. 'Workloads') if it is currently collapsed.      T, Click a sidebar nav item by its visible label text (e.g. 'Pods')., Expand a sidebar group and click one of its items in a single call., Wait until any Dockview tab whose title contains *title_fragment* exists.      T (+9 more)
 
 ### Community 28 - "Frontend Dependencies"
-Cohesion: 0.09
-Nodes (24): CreateTerminalSession(), GetAvailableShells(), SetTerminalSessionCluster(), terminalKubeconfig(), DiscoverShells(), etcShells(), finishShellList(), Reader (+16 more)
+Cohesion: 0.16
+Nodes (18): etcShells(), finishShellList(), Reader, parseEtcShells(), resolveShell(), T, TestDiscoverShellsDefaultsToSHELL(), TestParseEtcShells() (+10 more)
 
 ### Community 29 - "Log Services Layer"
-Cohesion: 0.09
-Nodes (36): StartLogStream(), GetCronJobPods(), GetDaemonSetPods(), GetDeploymentPods(), GetJobPods(), GetPodContainers(), GetPodLogContainers(), GetPodLogsTail() (+28 more)
+Cohesion: 0.11
+Nodes (33): GetCronJobPods(), GetDaemonSetPods(), GetDeploymentPods(), GetJobPods(), GetPodContainers(), GetPodLogContainers(), GetPodLogsTail(), GetReplicaSetPods() (+25 more)
 
 ### Community 30 - "RoleBinding Stack"
 Cohesion: 0.14
 Nodes (17): DeleteRoleBinding(), GetRoleBindings(), GetRoleBindingYaml(), UpdateRoleBinding(), UpdateRoleBindingYaml(), DeleteRoleBinding(), GetRoleBindings(), GetRoleBindingYaml() (+9 more)
 
 ### Community 31 - "Role Stack"
-Cohesion: 0.21
-Nodes (12): DeleteRole(), GetRoles(), GetRoleYaml(), Clientset, PolicyRule, policyRulesToK8s(), roleToInfo(), UpdateRole() (+4 more)
+Cohesion: 0.14
+Nodes (17): DeleteRole(), GetRoles(), GetRoleYaml(), UpdateRole(), UpdateRoleYaml(), DeleteRole(), GetRoles(), GetRoleYaml() (+9 more)
 
 ### Community 32 - "E2E YAML CRUD Helpers"
 Cohesion: 0.19
@@ -830,8 +828,8 @@ Cohesion: 0.06
 Nodes (32): ConfigMapListComponent, CrdListComponent, CronJobListComponent, DaemonSetListComponent, DataTableComponent, DeploymentListComponent, EndpointListComponent, EventListComponent (+24 more)
 
 ### Community 35 - "Multi-Instance Tab Transfer"
-Cohesion: 0.14
-Nodes (25): toFlow(), alpha(), axes(), COLLAPSIBLE_KINDS, DEPENDENCY_EDGE_KINDS, frameAround(), GraphHost, GraphLayout (+17 more)
+Cohesion: 0.17
+Nodes (23): alpha(), axes(), COLLAPSIBLE_KINDS, DEPENDENCY_EDGE_KINDS, frameAround(), GraphHost, GraphWarning, groupPodsByHost() (+15 more)
 
 ### Community 36 - "Community 36"
 Cohesion: 0.18
@@ -842,12 +840,12 @@ Cohesion: 0.14
 Nodes (15): Hexagon Node-Graph Brand Mark, Kube Inspector Logo, CLI Pods TUI Screenshot, Single-Letter Keybinding Actions, tview Terminal UI (TUI/CLI Mode), Deployments List Screenshot, Dockview Multi-Tab Panel Layout, Kube Inspector Desktop App (+7 more)
 
 ### Community 38 - "Community 38"
-Cohesion: 0.16
-Nodes (24): CloseNodeShellSession(), CreateNodeShellSession(), deleteNodeShellPod(), firstNonEmpty(), CancelFunc, Clientset, Context, Interface (+16 more)
+Cohesion: 0.17
+Nodes (23): CreateNodeShellSession(), deleteNodeShellPod(), firstNonEmpty(), CancelFunc, Clientset, Context, Interface, Pod (+15 more)
 
 ### Community 39 - "Community 39"
-Cohesion: 0.18
-Nodes (9): crdChildDef(), buildDescribeText(), App, metricsKindFor(), App, App, App, resourceDef (+1 more)
+Cohesion: 0.22
+Nodes (8): crdChildDef(), buildDescribeText(), App, metricsKindFor(), App, App, resourceDef, rowData
 
 ### Community 40 - "Community 40"
 Cohesion: 0.22
@@ -879,7 +877,7 @@ Nodes (12): children, fail(), fs, killTree(), main(), path, preflight(), ROOT (+
 
 ### Community 47 - "Community 47"
 Cohesion: 0.17
-Nodes (20): GroupSet, AttemptFilter, Bucket, ChangeFilter, Count, Stats, Totals, UserSummary (+12 more)
+Nodes (20): GroupSet, Bucket, ChangeFilter, Count, Stats, Totals, UserSummary, where (+12 more)
 
 ### Community 48 - "Community 48"
 Cohesion: 0.17
@@ -894,16 +892,16 @@ Cohesion: 0.23
 Nodes (12): Folder Watcher (--watch), URL Ingest (/graphify add), MCP stdio Server, Post-Commit Auto-Rebuild Hook, graphify explain (single-node explanation), graphify path (shortest path between concepts), Work Memory / Self-Improving Loop, Whisper Video/Audio Transcription (+4 more)
 
 ### Community 51 - "Community 51"
-Cohesion: 0.20
-Nodes (12): No API Key Required Policy, Cluster Configuration (~/.kube-ins), ClusterContext, kubeinsdev Build Tag Relaxations, Selenium + pytest E2E Suite, Electron Shell (shipped GUI), GOEXPERIMENT=jsonv2 Build Requirement, electron-builder Builds, nfpm Packages (+4 more)
+Cohesion: 0.15
+Nodes (16): No API Key Required Policy, AI Assistant (Ollama tool-calling agent), AI Tool Registry (aiTools), Fixed app:// Origin with protocol.handle Proxy, kubeinsdev Build Tag Relaxations, Electron Shell (shipped GUI), GOEXPERIMENT=jsonv2 Build Requirement, Live Resource Monitoring Dashboard (+8 more)
 
 ### Community 52 - "Community 52"
 Cohesion: 0.07
 Nodes (46): read_rows(), TestAccessibilityGuidance, TestChartsTypographyAndIcons, TestCurrentReactGuidance, TestSemanticColors, _catalog_date(), _check_app_interface_contract(), _check_catalog_contract() (+38 more)
 
 ### Community 53 - "Community 53"
-Cohesion: 0.18
-Nodes (12): GetClusterCounts(), countAll(), GetClusterCounts(), Clientset, Context, T, TestCountAllFallsBackToFullListWhenRemainingIsAbsent(), TestCountAllPropagatesListError() (+4 more)
+Cohesion: 0.29
+Nodes (10): countAll(), GetClusterCounts(), Clientset, Context, T, TestCountAllFallsBackToFullListWhenRemainingIsAbsent(), TestCountAllPropagatesListError(), TestCountAllUnpaginatedResponseIsTheWholeCollection() (+2 more)
 
 ### Community 54 - "Community 54"
 Cohesion: 0.24
@@ -919,7 +917,7 @@ Nodes (9): DeleteIngress(), GetIngresses(), GetIngressYaml(), Clientset, Ingress
 
 ### Community 57 - "Community 57"
 Cohesion: 0.07
-Nodes (44): _contains_phrase(), _domain_keywords(), _exact_match_diagnostic(), _exact_row_identity(), _file_signature(), _get_bm25(), _legacy_successor_guidance(), _load_csv() (+36 more)
+Nodes (43): _contains_phrase(), _domain_keywords(), _exact_match_diagnostic(), _exact_row_identity(), _exact_stack_identifier(), _file_signature(), _get_bm25(), _legacy_successor_guidance() (+35 more)
 
 ### Community 58 - "Community 58"
 Cohesion: 0.24
@@ -930,8 +928,8 @@ Cohesion: 0.17
 Nodes (12): NetworkPolicy Ingress/Egress Graph, Network Policies Screenshot, NetworkPolicy YAML Editor Split, Namespace/Status Filter and Search, Pod List Table View, Pods List Screenshot, ServiceAccount/RoleBinding/Role/ClusterRole Focus Filters, RBAC Subject-Role-Resource Graph (+4 more)
 
 ### Community 60 - "Community 60"
-Cohesion: 0.16
-Nodes (16): ApplyYaml(), GetToolboxLiveObject(), ToolboxLiveObject, T, TestCoverageFindsGaps(), TestCoverageWithoutHeartbeats(), T, TestRollupStartIsRecorded() (+8 more)
+Cohesion: 0.14
+Nodes (18): Context, Store, T, TestReadLatency(), T, TestCoverageCountsEveryTermChange(), TestCoverageFindsGaps(), TestCoverageWithoutHeartbeats() (+10 more)
 
 ### Community 61 - "Community 61"
 Cohesion: 0.26
@@ -974,12 +972,12 @@ Cohesion: 0.18
 Nodes (10): author, email, name, frontend:build, frontend:dev:serverUrl, frontend:dev:watcher, frontend:install, name (+2 more)
 
 ### Community 71 - "Community 71"
-Cohesion: 0.21
-Nodes (13): Business Orchestration Layer, CRDs and Generic Object CRUD, Dockview Panel System, Module-level DataTable Body Helpers, Panel ID Scheme, Per-tab Cluster Isolation, Repository Layer (kubeconfig loading), ResourceListView Shared Scaffold (+5 more)
+Cohesion: 0.16
+Nodes (15): Business Orchestration Layer, Cluster Configuration (~/.kube-ins), ClusterContext, CRDs and Generic Object CRUD, Selenium + pytest E2E Suite, Models Layer (frontend serialization structs), Module-level DataTable Body Helpers, Panel ID Scheme (+7 more)
 
 ### Community 72 - "Community 72"
-Cohesion: 0.13
-Nodes (15): Build(), marshal(), Recover(), stack(), Context, DiscoveryInterface, GroupVersionResource, Int32 (+7 more)
+Cohesion: 0.11
+Nodes (17): ResourceFilter, Resource, Discover(), DiscoveryInterface, GroupVersionResource, hasVerbs(), Context, DiscoveryInterface (+9 more)
 
 ### Community 73 - "Community 73"
 Cohesion: 0.24
@@ -990,12 +988,12 @@ Cohesion: 0.18
 Nodes (3): FakeResizeObserver, resizeCallbacks, Row
 
 ### Community 75 - "Community 75"
-Cohesion: 0.24
-Nodes (15): Duration, result, Actor, Hint, HintSource, ObjectKey, Verb, distance() (+7 more)
+Cohesion: 0.17
+Nodes (22): attemptList, changeList, Duration, result, Actor, Attribution, AuditRecord, Change (+14 more)
 
 ### Community 76 - "Community 76"
-Cohesion: 0.25
-Nodes (9): AI Assistant (Ollama tool-calling agent), AI Tool Registry (aiTools), Event Streaming (terminal, logs, AI, tab transfer), InstanceContext, IPC InstanceHub (WebSocket multi-instance discovery), Multi-Instance Tab Transfer, Go Sidecar Process Lifecycle, TabContext (+1 more)
+Cohesion: 0.17
+Nodes (13): Dockview Panel System, Event Streaming (terminal, logs, AI, tab transfer), InstanceContext, IPC InstanceHub (WebSocket multi-instance discovery), Multi-Instance Tab Transfer, Go Sidecar Process Lifecycle, TabContext, TabInstanceBridge (+5 more)
 
 ### Community 77 - "Community 77"
 Cohesion: 0.29
@@ -1018,32 +1016,32 @@ Cohesion: 0.12
 Nodes (22): CreateNamespace(), DeleteNamespace(), GetNamespaces(), GetNamespaceYaml(), Clientset, namespaceToInfo(), newQuotaEntry(), quantityToComparableNum() (+14 more)
 
 ### Community 82 - "Community 82"
-Cohesion: 0.13
-Nodes (28): ContainerSection(), cpuMem(), Badges(), Expandable(), Item(), Muted(), Section(), podLimit() (+20 more)
+Cohesion: 0.11
+Nodes (33): allKeys(), defaultFilters, flattenLimits(), LimitItemsTable, LimitRangeListComponent(), LimitRow, ContainerSection(), cpuMem() (+25 more)
 
 ### Community 83 - "Community 83"
-Cohesion: 0.05
-Nodes (65): Dialer, GetForwardablePorts(), ListPortForwards(), StartPortForward(), labelSelectorString(), errText(), Clientset, Context (+57 more)
+Cohesion: 0.06
+Nodes (63): Dialer, GetForwardablePorts(), ListPortForwards(), StartPortForward(), errText(), Clientset, Context, Mutex (+55 more)
 
 ### Community 84 - "Community 84"
 Cohesion: 0.17
 Nodes (20): updateState, CheckClusterConnection(), clusterFile(), DeleteCluster(), GetActiveCluster(), GetClusterContent(), init(), kubeInsDir() (+12 more)
 
 ### Community 85 - "Community 85"
-Cohesion: 0.32
-Nodes (5): GetWorkloadAutoscaler(), FindScaleAutoscaler(), Clientset, ScaleWorkload(), HPAInfo
+Cohesion: 0.20
+Nodes (8): GetWorkloadAutoscaler(), RestartWorkload(), ScaleWorkload(), SetCronJobSuspend(), FindScaleAutoscaler(), Clientset, ScaleWorkload(), HPAInfo
 
 ### Community 86 - "Community 86"
 Cohesion: 0.25
 Nodes (5): CreateCliModeSession(), Cmd, File, selfExe(), cliModeSession
 
 ### Community 87 - "Community 87"
-Cohesion: 0.07
-Nodes (36): chatMsg, Client, ListModels(), newClient(), baseName(), Context, IsAvailable(), ModelCatalog() (+28 more)
+Cohesion: 0.15
+Nodes (14): Client, ListModels(), newClient(), baseName(), Context, IsAvailable(), ModelCatalog(), PullModel() (+6 more)
 
 ### Community 88 - "Community 88"
 Cohesion: 0.13
-Nodes (28): check, ListClusters(), addZipLogFile(), addZipText(), buildChecks(), checkClusterAPI(), checkClusterMetrics(), checkClusterRBAC() (+20 more)
+Nodes (33): check, ListClusters(), addZipLogFile(), addZipText(), buildChecks(), checkClusterAPI(), checkClusterMetrics(), checkClusterRBAC() (+25 more)
 
 ### Community 89 - "Community 89"
 Cohesion: 0.19
@@ -1062,12 +1060,12 @@ Cohesion: 0.25
 Nodes (7): compilerOptions, allowSyntheticDefaultImports, composite, module, moduleResolution, include, vite.config.ts
 
 ### Community 93 - "Community 93"
-Cohesion: 0.13
-Nodes (23): ConfigMapEditorPanel(), ConfigMapEditorPanelParams, dataToRows(), KeyValueRow, nextId(), rowsEqual(), nextId(), RoleEditorPanel() (+15 more)
+Cohesion: 0.09
+Nodes (33): ConfigMapEditorPanel(), ConfigMapEditorPanelParams, dataToRows(), KeyValueRow, nextId(), rowsEqual(), nextId(), RoleEditorPanel() (+25 more)
 
 ### Community 94 - "Community 94"
-Cohesion: 0.12
-Nodes (23): GraphIssue, ResourceEdge, ResourceNode, aggregateUsage(), ChangeDetail, ChangeKind, ChangeMark, ChangeMarks (+15 more)
+Cohesion: 0.11
+Nodes (23): GraphIssue, ResourceEdge, aggregateUsage(), ChangeDetail, ChangeKind, ChangeMark, ChangeMarks, changeOrder() (+15 more)
 
 ### Community 95 - "Community 95"
 Cohesion: 0.08
@@ -1078,16 +1076,16 @@ Cohesion: 0.38
 Nodes (7): Cross-Repo / Monorepo Graph Merge, GitHub Repo Clone, BFS Traversal Mode, DFS Traversal Mode, Constrained Query Expansion, Token-Budget-Aware Output, Fast Path for an Existing Graph
 
 ### Community 97 - "Community 97"
-Cohesion: 0.03
-Nodes (103): AiChat(), buildContext(), ConfirmReq, fmtBytes(), Message(), PullState, TOOL_TONE, ToolLines() (+95 more)
+Cohesion: 0.04
+Nodes (63): ConfigMapListComponent(), ConfigMapRow, defaultFilters, CronJobListComponent(), defaultFilters, DaemonSetListComponent(), defaultFilters, getReadySeverity() (+55 more)
 
 ### Community 98 - "Community 98"
 Cohesion: 0.10
 Nodes (20): Can I roll back an update?, Can I use several clusters at once?, Clusters and configuration, Comparisons, Do exec credential plugins (AWS, GCP, Azure) work?, Do I need `kubectl` installed?, Does it need anything installed on the cluster?, Does it support kubeconfig contexts? (+12 more)
 
 ### Community 99 - "Community 99"
-Cohesion: 0.08
-Nodes (37): changeText(), clockTime(), ClusterResourcePanel(), ClusterResourcePanelParams, EDGE_LEGEND, EDGE_STYLE, EdgeData, fileSafe() (+29 more)
+Cohesion: 0.07
+Nodes (51): changeText(), clockTime(), ClusterResourcePanel(), ClusterResourcePanelParams, EDGE_LEGEND, EDGE_STYLE, EdgeData, fileSafe() (+43 more)
 
 ### Community 100 - "Community 100"
 Cohesion: 0.33
@@ -1110,16 +1108,16 @@ Cohesion: 0.24
 Nodes (12): cellToString(), fallbackTable(), GetResourceTable(), GroupVersionResource, Table, requestTable(), rowIdentity(), toResourceTable() (+4 more)
 
 ### Community 106 - "Community 106"
-Cohesion: 0.11
-Nodes (27): fetchPodsForKind(), LogViewerPanel(), LogViewerPanelParams, StreamEntry, StreamState, WorkloadKind, age(), PortForwardsPanel() (+19 more)
+Cohesion: 0.06
+Nodes (34): CrdTree(), CrdTreeProps, groupLabel(), InstanceRow, InstanceTable(), InstanceTableProps, CrdListComponent(), DeleteTarget (+26 more)
 
 ### Community 107 - "Community 107"
 Cohesion: 0.40
 Nodes (5): Call Edge Direction and Language Rule, Hyperedges, Rationale as Node Attribute, semantically_similar_to Edges, Part A - AST Structural Extraction
 
 ### Community 108 - "Community 108"
-Cohesion: 0.12
-Nodes (22): normalizedCall, textCall, Tool, ToolEvent, argsToAPI(), Context, jsonObjects(), parseTextToolCalls() (+14 more)
+Cohesion: 0.18
+Nodes (17): normalizedCall, textCall, Tool, ToolEvent, argsToAPI(), Context, jsonObjects(), parseTextToolCalls() (+9 more)
 
 ### Community 109 - "Community 109"
 Cohesion: 0.40
@@ -1138,20 +1136,20 @@ Cohesion: 0.05
 Nodes (37): 1. Color Palette, 2. Typography, 3. Logo Usage, 4. Voice & Tone, 5. Imagery Guidelines, 6. Design Components, Accessibility, AI Image Generation (+29 more)
 
 ### Community 113 - "Community 113"
-Cohesion: 0.13
-Nodes (20): GetToolboxAttempts(), GetToolboxGaps(), GetToolboxStats(), isToolboxNotFound(), ListToolboxGaps(), ToolboxAttempt, ToolboxAttemptPage, ToolboxBucket (+12 more)
+Cohesion: 0.12
+Nodes (20): ToolboxActor, ToolboxAttempt, ToolboxAttemptPage, ToolboxBucket, ToolboxChange, ToolboxChangeDetail, ToolboxCount, ToolboxCoverage (+12 more)
 
 ### Community 114 - "Community 114"
 Cohesion: 0.26
 Nodes (8): dayFileName(), File, Mutex, Time, newDayWriter(), startOfDay(), truncateRecord(), dayWriter
 
 ### Community 115 - "Community 115"
-Cohesion: 0.11
-Nodes (13): expandHome(), App, headerCell(), Primitive, Table, App, statusColumnIndex(), Context (+5 more)
+Cohesion: 0.12
+Nodes (12): Box, focusBorder(), App, Primitive, Table, App, statusColumnIndex(), Context (+4 more)
 
 ### Community 116 - "Community 116"
-Cohesion: 0.10
-Nodes (30): react, GroupFrame(), ForwardableKind, ActionCell, CellRenderer, ColumnsContext, DeleteImpactSummary, hasFilterValue() (+22 more)
+Cohesion: 0.05
+Nodes (71): react, AboutModal(), DEP_LABELS, Props, GroupFrame(), defaultFilters, getStatusSeverity(), NamespaceListComponent() (+63 more)
 
 ### Community 117 - "Community 117"
 Cohesion: 0.33
@@ -1162,8 +1160,8 @@ Cohesion: 0.33
 Nodes (6): _click_first_row_action(), open_pod_exec_panel(), open_pod_log_panel(), Click the action button at *button_index* on the first data row of the     activ, Click the Logs action button on the first pod row.     Returns True if a pod row, Click the Exec (terminal) action button on the first pod row.     Returns True i
 
 ### Community 120 - "Community 120"
-Cohesion: 0.03
-Nodes (94): RFC-3339, CrdExplorer, ScopeFilter, useCrdExplorer(), EMPTY_EVENTS, EventListComponent(), formatTime(), getTypeSeverity() (+86 more)
+Cohesion: 0.06
+Nodes (41): RFC-3339, AttemptDetail(), Attribution(), ATTRIBUTIONS, isKnown(), Known, LEVEL, ClusterHistoryPanel() (+33 more)
 
 ### Community 121 - "Community 121"
 Cohesion: 0.05
@@ -1210,32 +1208,32 @@ Cohesion: 0.08
 Nodes (30): ansi_ljust(), _detect_page_type(), format_ascii_box(), format_markdown(), format_master_md(), format_page_override_md(), generate_design_system(), _generate_intelligent_overrides() (+22 more)
 
 ### Community 132 - "main.tsx"
-Cohesion: 0.13
-Nodes (31): formatBytes(), Props, Stage, UpdateModal(), UpdateProgress, FloatableTab(), getComponentType(), ghostStyle() (+23 more)
+Cohesion: 0.12
+Nodes (33): formatBytes(), Props, Stage, UpdateModal(), UpdateProgress, FloatableTab(), getComponentType(), ghostStyle() (+25 more)
 
 ### Community 133 - "ModelTags"
 Cohesion: 0.83
 Nodes (3): build(), init(), meta()
 
 ### Community 135 - "Context"
-Cohesion: 0.18
-Nodes (21): FS, Handler, NewServer(), downloadAttempt(), DownloadFile(), FetchExpectedSha256(), Context, Reader (+13 more)
+Cohesion: 0.25
+Nodes (16): FS, Handler, NewServer(), DownloadFile(), T, sortedKeys(), TestParseContentRangeTotal(), TestPlatformAssetResolution() (+8 more)
 
 ### Community 137 - "Incremental --update Flow"
-Cohesion: 0.05
-Nodes (73): NAV_ITEMS, ViewKey, BdRow, BreakdownList(), defaultFilters(), DetailDrawer(), findUsage(), fmtTime() (+65 more)
+Cohesion: 0.06
+Nodes (62): NAV_ITEMS, ViewKey, BdRow, BreakdownList(), defaultFilters(), DetailDrawer(), findUsage(), fmtTime() (+54 more)
 
 ### Community 138 - "main.tsx"
 Cohesion: 0.18
 Nodes (17): declaresPort(), eventTime(), GraphIssue, IngressServiceBackend, IngressSpec, Pod, Service, graphBuilder (+9 more)
 
 ### Community 139 - "main.tsx"
-Cohesion: 0.11
-Nodes (21): BuildToolboxExport(), DryRunToolboxRollback(), GetToolboxChangeDetail(), GetToolboxChanges(), GetToolboxHealth(), GetToolboxStatus(), GetToolboxUsers(), Context (+13 more)
+Cohesion: 0.24
+Nodes (16): BuildToolboxExport(), DryRunToolboxRollback(), GetToolboxAttempts(), GetToolboxChangeDetail(), GetToolboxGaps(), GetToolboxHealth(), GetToolboxLiveObject(), GetToolboxStats() (+8 more)
 
 ### Community 140 - "messages.go"
-Cohesion: 0.20
-Nodes (12): CliModeOverlay(), readClipboard(), markBoot(), prefersReducedMotion(), Listener, Window, useXtermTheme(), withAlpha() (+4 more)
+Cohesion: 0.11
+Nodes (15): CliModeOverlay(), readClipboard(), markBoot(), prefersReducedMotion(), w, displayColor(), buildAppTour(), icon() (+7 more)
 
 ### Community 141 - "Community 141"
 Cohesion: 0.07
@@ -1250,8 +1248,8 @@ Cohesion: 0.67
 Nodes (3): MkDocs Documentation Site, SEO / LLM Discoverability Files, In-app Update Check
 
 ### Community 144 - "Community 144"
-Cohesion: 0.15
-Nodes (18): CLUSTER_SCOPED, DeleteImpactSummary(), DeleteImpactTarget, State, rankOf(), groupImpacts(), IMPACT_LEVELS, ImpactMode (+10 more)
+Cohesion: 0.07
+Nodes (47): AiChat(), buildContext(), ConfirmReq, fmtBytes(), Message(), PullState, TOOL_TONE, ToolLines() (+39 more)
 
 ### Community 145 - "Community 145"
 Cohesion: 0.67
@@ -1286,8 +1284,8 @@ Cohesion: 0.17
 Nodes (9): dep, getGraph, graph, pod, pv, pvc, rs, svc (+1 more)
 
 ### Community 163 - "Community 163"
-Cohesion: 0.13
-Nodes (19): event, eventList, Handler, objectMeta, objectRef, status, userInfo, Request (+11 more)
+Cohesion: 0.16
+Nodes (15): event, eventList, Handler, objectMeta, objectRef, status, userInfo, Request (+7 more)
 
 ### Community 164 - "@fontsource/jetbrains-mono"
 Cohesion: 0.16
@@ -1298,8 +1296,8 @@ Cohesion: 0.22
 Nodes (9): Adding a language, Fixing a string, Getting a language marked "reviewed", Plurals, Related, Translations, What must stay in English, What the checker enforces (+1 more)
 
 ### Community 166 - "Community 166"
-Cohesion: 0.19
-Nodes (9): Adjacency, applyHighlight(), ChainMode, chainOf(), EdgeRef, GraphChain, Step, edges (+1 more)
+Cohesion: 0.10
+Nodes (22): buildFlow(), computeDetail(), DetailItem, DetailSection, EDGE_STYLE, KIND_CONFIG, NodeDetail, nodeHeight() (+14 more)
 
 ### Community 172 - "Zustand Per-tab Stores"
 Cohesion: 0.22
@@ -1319,7 +1317,7 @@ Nodes (5): Time, parseDayFileName(), sweep(), sweepAsync(), touch()
 
 ### Community 176 - "Zustand Per-tab Stores"
 Cohesion: 0.09
-Nodes (28): CONTROLLERS, Impact, ImpactLevel, ImpactReason, index(), isPod(), PodLoss, SEVERITY (+20 more)
+Nodes (29): ResourceNode, CONTROLLERS, Impact, ImpactLevel, ImpactMode, ImpactReason, index(), isPod() (+21 more)
 
 ### Community 177 - "build_merge Replace-on-Re-extract"
 Cohesion: 0.25
@@ -1342,16 +1340,16 @@ Cohesion: 0.20
 Nodes (26): Int32, T, newToolboxFixture(), recordedChange(), TestAttemptsDropChangeOnlyFilters(), TestChangeDetailAndRestorable(), TestChangeParams(), TestChangeParamsGroup() (+18 more)
 
 ### Community 182 - "main.tsx"
-Cohesion: 0.21
-Nodes (14): App, Mutex, historyDef(), historyFilterText(), historyRow(), newHistoryFilter(), parseHistoryFilter(), T (+6 more)
+Cohesion: 0.23
+Nodes (13): App, Mutex, historyDef(), historyFilterText(), historyRow(), newHistoryFilter(), parseHistoryFilter(), T (+5 more)
 
 ### Community 183 - "main.tsx"
 Cohesion: 0.25
 Nodes (7): 1. Remove the application, 2. Remove your data, `~/.kube-ins` — kubeconfigs, logs, caches, preferences, Reinstalling later, Uninstall, What is *not* removed, ever, Window state, theme, language and chat history
 
 ### Community 184 - "AppInfo"
-Cohesion: 0.21
-Nodes (19): managedEntry, Result, Compute(), ContentHash(), copyValue(), deepCopy(), managedEntries(), redact() (+11 more)
+Cohesion: 0.09
+Nodes (50): AdmissionReview, fakeHints, harness, managedEntry, Result, Handler, T, newHandler() (+42 more)
 
 ### Community 185 - "Community 185"
 Cohesion: 0.40
@@ -1362,12 +1360,12 @@ Cohesion: 0.06
 Nodes (32): 1. Mobile-First Design, 2. Consistent Breakpoint Usage, 3. Test at Breakpoint Boundaries, 4. Use Container for Content Width, 5. Progressive Enhancement, 6. Avoid Too Many Breakpoints, Best Practices, Breakpoint System (+24 more)
 
 ### Community 189 - "job.go"
-Cohesion: 0.23
-Nodes (14): Config, Enrich, LeaderElection, Recorder, Retention, Sources, TLS, Watch (+6 more)
+Cohesion: 0.17
+Nodes (18): Config, Enrich, LeaderElection, Recorder, Retention, Sources, TLS, Watch (+10 more)
 
 ### Community 190 - "main.tsx"
-Cohesion: 0.41
-Nodes (17): harness, deploy(), T, Unstructured, key(), newHarness(), TestAdmissionHashMergedWithAudit(), TestAdmissionOnly() (+9 more)
+Cohesion: 0.10
+Nodes (28): buildGraph(), flowNode(), kindOfNode(), NODE_TYPES, PolicyViewerPanel(), PolicyViewerPanelParams, PanelLoading(), Layout (+20 more)
 
 ### Community 192 - "endpoint.go"
 Cohesion: 0.27
@@ -1378,8 +1376,12 @@ Cohesion: 0.16
 Nodes (30): decodeObject(), discoverToolbox(), DryRunToolboxRollback(), getToolboxChange(), GetToolboxChangeDetail(), GetToolboxHealth(), GetToolboxLiveObject(), GetToolboxStats() (+22 more)
 
 ### Community 214 - "limitRange.go"
-Cohesion: 0.25
-Nodes (8): Fixed app:// Origin with protocol.handle Proxy, Live Resource Monitoring Dashboard, Shell Channel (native save dialog bridge), Window Screenshot (SaveSnapshot), theme-monolith.css Variable-Driven Theming, Zustand Per-tab Stores, Nunito Font Family, SIL Open Font License v1.1
+Cohesion: 0.14
+Nodes (6): DesignSystemGenerator, Generates design system recommendations from aggregated searches., Load reasoning rules from CSV., Select best matching result based on priority keywords., TestReasoningMatch, TestReasoningContract
+
+### Community 215 - "ingressClass.go"
+Cohesion: 0.10
+Nodes (11): AttachPodExecSession(), CreatePodExecSession(), DetachPodExecSession(), AttachTerminalSession(), CreateTerminalSession(), GetAvailableShells(), SetTerminalSessionCluster(), terminalKubeconfig() (+3 more)
 
 ### Community 216 - "primereact"
 Cohesion: 0.20
@@ -1390,8 +1392,8 @@ Cohesion: 0.21
 Nodes (7): _query_wants_dark(), True when a styles.csv row describes itself as dark-first., True when the query explicitly asks for a dark theme., Resolve the mode the rest of the output has to agree with., _resolve_color_mode(), _style_is_dark_primary(), TestModeResolution
 
 ### Community 218 - "@fontsource/geist"
-Cohesion: 0.13
-Nodes (18): NodeShellPanelParams, PodExecPanelParams, ExecTerminal(), ExecTerminalProps, loadShells(), readStoredShell(), storeShell(), TerminalPanel() (+10 more)
+Cohesion: 0.14
+Nodes (16): NodeShellPanelParams, PodExecPanelParams, ExecTerminal(), ExecTerminalProps, loadShells(), readStoredShell(), storeShell(), TerminalPanel() (+8 more)
 
 ### Community 219 - "replicaSet.go"
 Cohesion: 0.29
@@ -1418,8 +1420,8 @@ Cohesion: 0.30
 Nodes (8): Correlator, HintSource, item, Context, Mutex, Time, New(), takeDue()
 
 ### Community 228 - "main.tsx"
-Cohesion: 0.16
-Nodes (13): NodeCard, NodeListComponent(), Severity, PayloadSignature, usePayloadSignature(), ResourceRow, createFrom(), defaultFilters (+5 more)
+Cohesion: 0.18
+Nodes (12): chatMsg, SupportsTools(), AiModelSupportsTools(), aiTools(), argInt(), argStr(), asJSON(), RunAiChat() (+4 more)
 
 ### Community 229 - "persistentVolumeClaim.go"
 Cohesion: 0.29
@@ -1446,24 +1448,24 @@ Cohesion: 0.13
 Nodes (16): args, extractTokens(), fs, minimal, MINIMAL_TOKENS, path, projectRoot, tokensPath (+8 more)
 
 ### Community 240 - "namespace.go"
-Cohesion: 0.19
-Nodes (14): CreateTerminalSession(), DetachTerminalSession(), Mutex, Timer, newTerminalHistory(), releaseTerminalSession(), sessionKubeconfigPath(), SetTerminalSessionKubeconfig() (+6 more)
+Cohesion: 0.23
+Nodes (13): build_cip_prompt(), check_logo_required(), generate_cip_set(), generate_with_nano_banana(), load_env(), load_logo_image(), main(), Generate image using Gemini Nano Banana (native image generation)      Supports (+5 more)
 
 ### Community 241 - "main.tsx"
 Cohesion: 0.06
 Nodes (30): Accessibility, Base System, Best Practices, Clean & Modern, Common Font Pairings, Contrast Requirements, CSS Implementation, Editorial (+22 more)
 
 ### Community 242 - "networkPolicy.go"
-Cohesion: 0.07
-Nodes (15): Find matching reasoning rule for a category., Apply reasoning rules to search results., apply_decision_rules(), _object_without_duplicates(), parse_decision_rules(), Return deterministic mutations and an audit trail; never execute data., Parse the canonical condition -> action-array representation., _validate_action() (+7 more)
+Cohesion: 0.15
+Nodes (6): read_rows(), split_values(), style_identities(), TestGeneratedCatalogContract, TestLandingAndStackContract, TestStyleIdentityContract
 
 ### Community 243 - "parse_decision_rules"
 Cohesion: 0.18
 Nodes (8): dep, graph, ids(), lonePod, oldRs, pod, rs, svc
 
 ### Community 244 - "Tool"
-Cohesion: 0.29
-Nodes (15): AttachExecSession(), DetachExecSession(), execHistory(), Timer, releaseExecByHistory(), execRegistered(), T, registerTestExec() (+7 more)
+Cohesion: 0.36
+Nodes (13): AttachExecSession(), DetachExecSession(), execHistory(), releaseExecByHistory(), execRegistered(), T, registerTestExec(), TestExecAttachCancelsDetachGrace() (+5 more)
 
 ### Community 245 - "serviceAccount.go"
 Cohesion: 0.07
@@ -1490,24 +1492,24 @@ Cohesion: 0.07
 Nodes (15): Test adding colors multiple times., Test adding custom breakpoints., Test TailwindConfigGenerator class., Test generating TypeScript configuration., Test generating JavaScript configuration., Test generating config with custom colors., Test generating config with plugins., Test validating valid configuration. (+7 more)
 
 ### Community 251 - "xtermTheme.ts"
-Cohesion: 0.47
-Nodes (9): AdmissionReview, Handler, T, newHandler(), review(), TestAlwaysAllowsAndRecordsUpdate(), TestRejectsGarbage(), TestSkipsDryRunExcludedAndConnect() (+1 more)
+Cohesion: 0.19
+Nodes (8): Find matching reasoning rule for a category., Apply reasoning rules to search results., apply_decision_rules(), _object_without_duplicates(), parse_decision_rules(), Return deterministic mutations and an audit trail; never execute data., Parse the canonical condition -> action-array representation., _validate_action()
 
 ### Community 252 - "MetricsSnapshot"
-Cohesion: 0.22
-Nodes (8): clip(), esc(), graphToSvg(), SvgBox, SvgEdge, SvgFrame, SvgPalette, palette
+Cohesion: 0.18
+Nodes (10): LayoutOptions, clip(), esc(), graphToSvg(), SvgBox, SvgEdge, SvgFrame, SvgPalette (+2 more)
 
 ### Community 253 - "terminalHandoff.ts"
-Cohesion: 0.29
-Nodes (7): Verbatim source_file Rule, build_merge Replace-on-Re-extract, Semantic Extraction Cache, frontend/dist/.gitkeep Embed Bootstrap Cycle, Models Layer (frontend serialization structs), Services Layer (Kubernetes API calls), Generated Wails TypeScript Bindings
+Cohesion: 0.36
+Nodes (7): generate_html(), get_deliverable_info(), get_image_base64(), main(), Convert image to base64 for embedding in HTML, Extract deliverable type from filename and get info, Generate HTML presentation from CIP images
 
 ### Community 254 - "generate_html"
 Cohesion: 0.24
 Nodes (8): Handler, AdmissionRequest, E, actorOf(), decode(), Request, ResponseWriter, Time
 
 ### Community 255 - "@xterm/addon-search"
-Cohesion: 0.24
-Nodes (7): collapsedSet(), GraphFrame, app(), edge(), inside(), node(), opts
+Cohesion: 0.20
+Nodes (9): podSummaryText(), collapsedSet(), GraphFrame, podSummary(), app(), edge(), inside(), node() (+1 more)
 
 ### Community 257 - ".handleRPC"
 Cohesion: 0.05
@@ -1526,8 +1528,8 @@ Cohesion: 0.21
 Nodes (12): GroupBy, defaultGraphView(), NO_SAVED_VIEWS, REFRESH_CHOICES, RefreshSeconds, ResourceGraphStore, ResourceGraphView, SavedView (+4 more)
 
 ### Community 261 - "GetMetricsSnapshot"
-Cohesion: 0.06
-Nodes (42): BM25, detect_domain(), get_cip_brief(), _load_csv(), Load CSV and return list of dicts, Core search function using BM25, Auto-detect the most relevant domain from query, Main search function with auto-domain detection (+34 more)
+Cohesion: 0.11
+Nodes (22): BM25, detect_domain(), get_cip_brief(), _load_csv(), Load CSV and return list of dicts, Core search function using BM25, Auto-detect the most relevant domain from query, Main search function with auto-domain detection (+14 more)
 
 ### Community 262 - "headerCell"
 Cohesion: 0.22
@@ -1538,24 +1540,24 @@ Cohesion: 0.14
 Nodes (24): get_context(), is_allowed_exception(), is_allowed_rgba(), is_inside_block(), load_css_variables(), main(), print_result(), print_summary() (+16 more)
 
 ### Community 264 - ".invoke"
-Cohesion: 0.08
-Nodes (33): DiagnosticsPanel(), ExportTab(), humanBytes(), BACKEND_LEVELS, LEVELS, LogsTab(), ROLES, OverviewTab() (+25 more)
+Cohesion: 0.09
+Nodes (33): DiagnosticsPanel(), ExportTab(), humanBytes(), BACKEND_LEVELS, LEVELS, LogsTab(), ROLES, age() (+25 more)
 
 ### Community 265 - "4"
 Cohesion: 0.22
 Nodes (18): boolStr(), buildRegistry(), clusterScopedDelete(), clusterScopedUpdate(), clusterScopedYAML(), dash(), App, i32() (+10 more)
 
 ### Community 266 - "GetPods"
-Cohesion: 0.10
-Nodes (9): _exact_stack_identifier(), Resolve a deprecated in-domain alias, or expose a cross-domain redirect., Main search function with auto-domain detection, Resolve a standalone API identifier even when its BM25 IDF is low., search(), _style_search_destination(), TestSearchDomains, read_rows() (+1 more)
+Cohesion: 0.13
+Nodes (5): Main search function with auto-domain detection, search(), TestSearchDomains, read_rows(), TestStyleTaxonomy
 
 ### Community 267 - "shellChannel"
-Cohesion: 0.29
-Nodes (10): csvCell(), ExportToolboxHistory(), Context, RawMessage, joinCells(), toolboxCSV(), attemptParams(), changeParams() (+2 more)
+Cohesion: 0.14
+Nodes (19): GetToolboxChanges(), csvCell(), ExportToolboxHistory(), Context, RawMessage, joinCells(), toolboxCSV(), attemptParams() (+11 more)
 
 ### Community 268 - "ingress.go"
-Cohesion: 0.08
-Nodes (25): Accessibility, Animation Triggers, Availability, Choosing Animation Style, Core Concepts, Critical Placement Rule, CSS Pseudo-Elements, Full Compiled Document (+17 more)
+Cohesion: 0.07
+Nodes (28): Accessibility, Animation Triggers, Availability, Choosing Animation Style, Common Patterns, Composing Shared Elements with List Identity, Core Concepts, Critical Placement Rule (+20 more)
 
 ### Community 269 - "cronJob.go"
 Cohesion: 0.19
@@ -1570,8 +1572,8 @@ Cohesion: 0.08
 Nodes (25): Common Pitfalls, Core Prompt Structure, Detailed Brief, Eco/Sustainable, Effective Keywords by Style, Fashion Brand, Healthcare, Industry-Specific Prompts (+17 more)
 
 ### Community 272 - "InstanceContext.tsx"
-Cohesion: 0.33
-Nodes (4): Context, Store, T, TestReadLatency()
+Cohesion: 0.38
+Nodes (4): expandHome(), App, headerCell(), TableCell
 
 ### Community 274 - "shells_other.go"
 Cohesion: 0.22
@@ -1606,8 +1608,8 @@ Cohesion: 0.08
 Nodes (23): Art Direction Styles (Reuse from Banner), Color & Contrast, Design Best Practices, HTML Design Rules, HTML Template Structure, Option A: Chrome Headless CLI (Recommended — zero dependencies), Option B: chrome-devtools skill, Option C: Playwright script (+15 more)
 
 ### Community 282 - "_select_palette_for_mode"
-Cohesion: 0.08
-Nodes (19): _contrast_ratio(), _derive_dark_palette(), DesignSystemGenerator, _palette_is_dark(), WCAG relative luminance of a #RRGGBB string, or None if unparseable., True when a colors.csv row's Background is a dark surface., WCAG contrast ratio for two hex colors, or None if either is invalid., Keep product brand tokens while deriving accessible dark surfaces. (+11 more)
+Cohesion: 0.10
+Nodes (14): _contrast_ratio(), _derive_dark_palette(), _palette_is_dark(), WCAG relative luminance of a #RRGGBB string, or None if unparseable., True when a colors.csv row's Background is a dark surface., WCAG contrast ratio for two hex colors, or None if either is invalid., Keep product brand tokens while deriving accessible dark surfaces., Pick the highest-ranked palette matching the resolved mode.      Only the dark c (+6 more)
 
 ### Community 283 - "React View Transitions"
 Cohesion: 0.08
@@ -1622,16 +1624,16 @@ Cohesion: 0.09
 Nodes (22): @apply Directive, Best Practices, Color Customization, Complete Tailwind Config, Configuration Examples, Content Configuration, Custom Color Palette, Custom Font Sizes (+14 more)
 
 ### Community 286 - "BM25"
-Cohesion: 0.15
-Nodes (5): BM25, BM25 ranking algorithm for text search, TestBm25CoreBehavior, TestDiagnosticsContracts, TestTokenizer
+Cohesion: 0.11
+Nodes (10): BM25, BM25 ranking algorithm for text search, Lowercase, normalize synonyms, split, remove punctuation, filter stopwords, Build BM25 index from documents, Score all documents against query, Suggest complete public identities so a retry can bypass score thresholds., _suggest_identities(), TestBm25CoreBehavior (+2 more)
 
 ### Community 287 - "useTerminalActions.tsx"
-Cohesion: 0.24
-Nodes (6): ResourceFilter, Resource, Discover(), DiscoveryInterface, GroupVersionResource, hasVerbs()
+Cohesion: 0.33
+Nodes (3): StartLogStream(), LogContainerInfo, LogStreamOptions
 
 ### Community 288 - "k8sYamlIntellisense.ts"
-Cohesion: 0.19
-Nodes (20): childShape(), ensureK8sYamlIntellisense(), k8sYamlSuggestOptions, register(), registerCompletion(), registerHover(), registerValidation(), SCAFFOLD_KEYS (+12 more)
+Cohesion: 0.22
+Nodes (18): childShape(), register(), registerCompletion(), registerHover(), registerValidation(), SCAFFOLD_KEYS, buildSchemaIndex(), collectSchemaMarkers() (+10 more)
 
 ### Community 289 - "Routing by Task Type"
 Cohesion: 0.10
@@ -1766,8 +1768,8 @@ Cohesion: 0.13
 Nodes (14): AIDA (Attention-Interest-Desire-Action), Before-After-Bridge, Contrast Patterns, Copywriting Formulas, Core Formulas, Cost of Inaction, FAB (Features-Advantages-Benefits), Formula-to-Slide Mapping (+6 more)
 
 ### Community 323 - "PingCluster"
-Cohesion: 0.29
-Nodes (7): Common Patterns, Composing Shared Elements with List Identity, Enter/Exit, Force Re-Enter with `key`, Layout Displacement Morph, List Reorder, Suspense Fallback to Content
+Cohesion: 0.53
+Nodes (5): fetchRegistryToken(), Header, ModelTags(), regGet(), ListAiModelTags()
 
 ### Community 324 - "Copywriting Formulas"
 Cohesion: 0.13
@@ -1850,8 +1852,8 @@ Cohesion: 0.14
 Nodes (13): Card Styles, Component Variants, CSS Structures, Feature Grid (3 columns), Layout Decision Flow, Layout Patterns, Layout Selection by Use Case, Metric Styles (+5 more)
 
 ### Community 344 - "Tool"
-Cohesion: 0.38
-Nodes (4): eventToInfo(), GetEvents(), Clientset, EventInfo
+Cohesion: 0.28
+Nodes (5): GetEvents(), eventToInfo(), GetEvents(), Clientset, EventInfo
 
 ### Community 345 - "Patterns and Guidelines"
 Cohesion: 0.14
@@ -1914,8 +1916,8 @@ Cohesion: 0.17
 Nodes (12): 6.10 Use React DOM Resource Hints, 6.11 Use useTransition Over Manual Loading States, 6.1 Animate SVG Wrapper Instead of SVG Element, 6.2 CSS content-visibility for Long Lists, 6.3 Hoist Static JSX Elements, 6.4 Optimize SVG Precision, 6.5 Prevent Hydration Mismatch Without Flickering, 6.6 Suppress Expected Hydration Mismatches (+4 more)
 
 ### Community 361 - "fetchGraphInputs"
-Cohesion: 0.60
-Nodes (5): CanListPods(), Clientset, Context, HasMetricsServer(), PingCluster()
+Cohesion: 0.33
+Nodes (5): InstanceInfo, SerializedPanel, InstanceListPayload, RegisterPayload, TransferPayload
 
 ### Community 362 - "React Composition Patterns"
 Cohesion: 0.18
@@ -2022,8 +2024,8 @@ Cohesion: 0.60
 Nodes (5): sm, sm, sm, $type, $value
 
 ### Community 388 - "fakeStore"
-Cohesion: 0.17
-Nodes (12): attemptList, changeList, fakeStore, Attribution, AuditRecord, Change, Context, Mutex (+4 more)
+Cohesion: 0.30
+Nodes (5): fakeStore, AttemptFilter, Context, Mutex, Time
 
 ### Community 390 - "sync-brand-to-tokens.cjs"
 Cohesion: 0.33
@@ -2113,10 +2115,6 @@ Nodes (7): Common Patterns, Composing Shared Elements with List Identity, Enter/
 Cohesion: 0.29
 Nodes (7): Can I change the language or theme?, Can I move a tab into its own window?, Can it edit resources, or is it read-only?, Does editing YAML trigger a rollout?, How do I see `kubectl describe` output?, Is there a terminal version?, Using it
 
-### Community 413 - "50"
-Cohesion: 0.33
-Nodes (5): allKeys(), defaultFilters, flattenLimits(), LimitItemsTable, LimitRow
-
 ### Community 414 - "Sections"
 Cohesion: 0.33
 Nodes (5): 1. Component Architecture (architecture), 2. State Management (state), 3. Implementation Patterns (patterns), 4. React 19 APIs (react19), Sections
@@ -2130,8 +2128,8 @@ Cohesion: 0.33
 Nodes (5): Installation, React View Transitions Skill, Resources, Skill Structure, What This Skill Covers
 
 ### Community 417 - "ingressClass.go"
-Cohesion: 0.47
-Nodes (3): Box, focusBorder(), App
+Cohesion: 0.67
+Nodes (4): $type, $value, md, md
 
 ### Community 418 - ".handleRPC"
 Cohesion: 0.50
@@ -2174,8 +2172,8 @@ Cohesion: 0.40
 Nodes (4): Brand Guidelines Template, Document Structure, Extractable Fields, Usage
 
 ### Community 429 - "ListToolboxAttempts"
-Cohesion: 0.33
-Nodes (6): Controller Layer (Wails binding point), Go-embedded Kubernetes JSON Schema, kube-ins Desktop Application, Layered Go Backend Architecture, Shell-Agnostic Transport Interface, Wails Shell (development-only target)
+Cohesion: 0.18
+Nodes (11): Verbatim source_file Rule, build_merge Replace-on-Re-extract, Semantic Extraction Cache, Controller Layer (Wails binding point), frontend/dist/.gitkeep Embed Bootstrap Cycle, Go-embedded Kubernetes JSON Schema, kube-ins Desktop Application, Layered Go Backend Architecture (+3 more)
 
 ### Community 430 - "Common Rules for Professional UI"
 Cohesion: 0.40
@@ -2225,6 +2223,10 @@ Nodes (3): File-System Paths, Import Paths, Prefer Statically Analyzable Paths
 Cohesion: 0.67
 Nodes (3): $type, $value, 8
 
+### Community 450 - "terminalSearch.test.ts"
+Cohesion: 0.50
+Nodes (4): `router.back()` and Browser Back Button, Shared Element Readiness, Transition Types, Types and Suspense
+
 ### Community 451 - "muted"
 Cohesion: 0.60
 Nodes (5): $type, $value, border, border, border
@@ -2237,10 +2239,6 @@ Nodes (8): padding-x, input, $type, $value, focus-ring, padding-x, $type, $value
 Cohesion: 0.40
 Nodes (4): open_resource_graph(), Click the 'Resource Graph' button in the ClusterBar, which opens the     cluster, Opening the Resource Graph from the ClusterBar mounts the ClusterResourcePanel, TestResourceGraphPanel
 
-### Community 631 - "primary-hover"
-Cohesion: 0.60
-Nodes (4): CrdTree(), CrdTreeProps, groupLabel(), CrdGroup
-
 ### Community 632 - ".reportExecFailure"
 Cohesion: 0.73
 Nodes (5): changes(), check_scenario1(), check_scenario2(), find(), get()
@@ -2249,13 +2247,9 @@ Nodes (5): changes(), check_scenario1(), check_scenario2(), find(), get()
 Cohesion: 0.47
 Nodes (4): install(), KUBECONFIG, log(), e2e.sh script
 
-### Community 635 - "secondary-foreground"
-Cohesion: 0.67
-Nodes (4): $type, $value, none, none
-
 ### Community 636 - ".GetClusterGraph"
-Cohesion: 0.50
-Nodes (3): fakeHints, Context, Time
+Cohesion: 0.67
+Nodes (3): $type, $value, 16
 
 ### Community 637 - ".GetSecurityGraph"
 Cohesion: 0.40
@@ -2270,8 +2264,8 @@ Cohesion: 0.60
 Nodes (5): radius, radius, radius, $type, $value
 
 ### Community 640 - ".GetGraphUsage"
-Cohesion: 1.00
-Nodes (3): lastNewline(), Recover(), Stack()
+Cohesion: 0.52
+Nodes (5): lastNewline(), Recover(), Stack(), Recover(), stack()
 
 ### Community 641 - "sm"
 Cohesion: 0.43
@@ -2279,7 +2273,7 @@ Nodes (5): shellQuote(), swapHelperScript(), T, TestSwapHelperScriptContent(), T
 
 ### Community 642 - "LogContainerInfo"
 Cohesion: 0.67
-Nodes (3): $type, $value, 0
+Nodes (3): $type, $value, 2
 
 ### Community 643 - "padding-y"
 Cohesion: 0.67
@@ -2287,15 +2281,11 @@ Nodes (4): padding-y, padding-y, $type, $value
 
 ### Community 644 - ".TransferTab"
 Cohesion: 0.67
-Nodes (3): $type, $value, 1
-
-### Community 646 - "3"
-Cohesion: 0.67
-Nodes (3): $type, $value, 3
+Nodes (3): $type, $value, 4
 
 ### Community 652 - "plan.md"
 Cohesion: 0.06
-Nodes (31): A. API'de olup hiçbir ekranın kullanmadığı yetenekler, Aşama 0 — Bulgular (inceleme sonucu), Aşama 1 — Kapsam ve önceliklendirme, B. Desktop Cluster History ekranı, C. Rollback / ChangeDiff, Context, D. ToolboxPanel (durum / kurulum), Doğrulama (+23 more)
+Nodes (32): A. API'de olup hiçbir ekranın kullanmadığı yetenekler, Aşama 0 — Bulgular (inceleme sonucu), Aşama 1 — Kapsam ve önceliklendirme, B. Desktop Cluster History ekranı, C. Rollback / ChangeDiff, Context, D. ToolboxPanel (durum / kurulum), Doğrulama (+24 more)
 
 ### Community 653 - "destructive-foreground"
 Cohesion: 0.67
@@ -2312,6 +2302,10 @@ Nodes (3): primary-foreground, $type, $value
 ### Community 656 - "secondary-foreground"
 Cohesion: 0.67
 Nodes (3): secondary-foreground, $type, $value
+
+### Community 657 - "progressWriter"
+Cohesion: 0.24
+Nodes (8): downloadAttempt(), FetchExpectedSha256(), Context, Reader, Time, parseContentRangeTotal(), ctxReader, progressWriter
 
 ### Community 658 - "destructive"
 Cohesion: 0.67
@@ -2330,9 +2324,9 @@ Nodes (3): ring, $type, $value
   frontend/src/assets/fonts/OFL.txt · relation: references
 
 ## Knowledge Gaps
-- **2363 isolated node(s):** `fs`, `path`, `fs`, `path`, `fs` (+2358 more)
+- **2364 isolated node(s):** `fs`, `path`, `fs`, `path`, `fs` (+2359 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **225 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **224 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
@@ -2343,11 +2337,11 @@ _Questions this graph is uniquely positioned to answer:_
   _Edge tagged AMBIGUOUS (relation: semantically_similar_to) - confidence is low._
 - **What is the exact relationship between `theme-monolith.css Variable-Driven Theming` and `Nunito Font Family`?**
   _Edge tagged AMBIGUOUS (relation: references) - confidence is low._
-- **Why does `With()` connect `CRD List & Shared List View` to `.GetGraphUsage`, `.handleRPC`, `App Bootstrap & IPC Hub`, `SweepStaleUpdateTemps`, `Monitoring & Overview Dashboards`, `main.tsx`, `Log Streaming Business Layer`, `Community 161`, `Community 38`, `Community 42`, `sweep`, `3`, `Community 185`, `Community 83`, `Community 84`, `Community 85`, `Community 87`, `Community 88`, `Community 89`, `Community 101`, `Community 110`, `Community 123`?**
+- **Why does `With()` connect `CRD List & Shared List View` to `.GetGraphUsage`, `.handleRPC`, `App Bootstrap & IPC Hub`, `SweepStaleUpdateTemps`, `main.tsx`, `Log Streaming Business Layer`, `Community 161`, `Community 38`, `Community 42`, `sweep`, `3`, `Community 185`, `Community 83`, `Community 84`, `Community 85`, `Community 88`, `Community 89`, `Community 101`, `Community 110`, `Community 123`?**
   _High betweenness centrality (0.031) - this node is a cross-community bridge._
-- **Why does `NewK8sClientForCluster()` connect `Log Streaming Business Layer` to `Trivy Vulnerability Scanning`, `Monitoring & Overview Dashboards`, `main.tsx`, `Network Policy Stack`, `RoleBinding Stack`, `Community 40`, `Community 42`, `Community 44`, `Community 53`, `Community 54`, `NewK8sClientAndConfigForCluster`, `Community 58`, `Community 63`, `Community 65`, `Community 66`, `Community 73`, `Community 83`, `Community 85`, `Community 87`, `Community 88`, `monaco-yaml`?**
+- **Why does `NewK8sClientForCluster()` connect `Log Streaming Business Layer` to `Trivy Vulnerability Scanning`, `main.tsx`, `Network Policy Stack`, `50`, `RoleBinding Stack`, `Role Stack`, `Community 40`, `Community 42`, `Community 44`, `Community 54`, `NewK8sClientAndConfigForCluster`, `Community 58`, `Community 63`, `Community 65`, `Community 66`, `Community 73`, `Community 83`, `Community 85`, `Tool`, `Community 88`, `monaco-yaml`, `main.tsx`?**
   _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `useT()` connect `Community 97` to `main.tsx`, `YAML Editor & Policy Panels`, `Trivy Scanner Frontend`, `.invoke`, `Incremental --update Flow`, `messages.go`, `Community 144`, `50`, `Events View & Store`, `Community 62`, `endpoint.go`, `InstancePickerMenu.tsx`, `Community 82`, `primereact`, `@fontsource/geist`, `Community 93`, `Community 99`, `main.tsx`, `Community 106`, `Community 116`, `primary-hover`, `Community 120`?**
+- **Why does `useT()` connect `Community 116` to `main.tsx`, `YAML Editor & Policy Panels`, `Trivy Scanner Frontend`, `.invoke`, `Incremental --update Flow`, `messages.go`, `Community 144`, `Events View & Store`, `Community 166`, `main.tsx`, `Community 62`, `endpoint.go`, `InstancePickerMenu.tsx`, `Community 82`, `primereact`, `@fontsource/geist`, `Community 93`, `Community 97`, `Community 99`, `Community 106`, `Community 120`?**
   _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Are the 125 inferred relationships involving `NewK8sClientForCluster()` (e.g. with `GetClusterCounts()` and `DeleteConfigMap()`) actually correct?**
   _`NewK8sClientForCluster()` has 125 INFERRED edges - model-reasoned connections that need verification._

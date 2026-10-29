@@ -20,14 +20,18 @@ attention.
 ## Recording gaps
 
 Only one toolbox pod records at a time (the others stand by). It writes a
-heartbeat every 15 seconds; a stretch of more than 45 seconds without one — no
-pod running, a node lost, ClickHouse unreachable — is a **gap**: changes made
-then were never seen.
+heartbeat every 15 seconds. A **gap** is a stretch in which changes were never
+seen:
+
+- **Every change of the recording pod** — a failover to the standby, a
+  restart, an upgrade. The new pod starts watching from the cluster as it is
+  then, so whatever changed in between, even for 15 seconds, was not recorded.
+- **A silence of more than 45 seconds** from the same pod — ClickHouse
+  unreachable, the pod stalled — or no pod running at all.
 
 Gaps appear where they happened: as a band in the Changes list, as a divider in
 an object's timeline, hatched in the activity chart, and in the coverage line
-above. An ordinary hand-over between pods takes 15–20 seconds and does not
-count.
+above.
 
 Coverage is counted from the first heartbeat toolbox kept, so a toolbox
 upgraded from a release without heartbeats does not report its past as a gap.

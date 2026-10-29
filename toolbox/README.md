@@ -134,10 +134,13 @@ preceded by a `test` op holding the old value.
 ## Recording gaps
 
 The leader writes a heartbeat to `recorder_heartbeats` every
-`recorder.heartbeatInterval` (15s) while it watches. Consecutive heartbeats
-further apart than `recorder.gapThreshold` (45s — above the 15s lease plus a
-hand-over, so an ordinary failover is not a gap), or none since the newest one,
-are reported as gaps by `/api/v1/gaps` and `/api/v1/health`. Heartbeats are kept
+`recorder.heartbeatInterval` (15s) while it watches, tagged with an ID for its
+term (one run of the watchers). A new term starts its informers from a fresh
+list, which is never recorded as changes, so every change of term — a
+failover, a restart, an upgrade — is a gap however short it is. Within one
+term, heartbeats further apart than `recorder.gapThreshold` (45s) are a gap
+too, and so is no heartbeat since the newest one. `/api/v1/gaps` and
+`/api/v1/health` report them. Heartbeats are kept
 30 days. Coverage is counted from the first heartbeat ever kept, so a toolbox
 upgraded from a release without heartbeats does not report its past as a gap.
 

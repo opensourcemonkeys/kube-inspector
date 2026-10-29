@@ -80,3 +80,36 @@ func TestCoverageWithoutHeartbeats(t *testing.T) {
 		t.Fatalf("last = %v err = %v", last, err)
 	}
 }
+
+func TestCoverageCountsEveryTermChange(t *testing.T) {
+	s := testStore(t)
+	ctx := context.Background()
+	t0 := time.Date(2026, 10, 25, 12, 0, 0, 0, time.UTC)
+	beat := func(off time.Duration, term string) {
+		t.Helper()
+		if err := s.WriteHeartbeat(ctx, Heartbeat{Time: t0.Add(off), Cluster: "prod", Identity: "toolbox-0", Term: term}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// Term a every 15s for a minute; then, 20s later — under the 45s
+	// threshold, a container restart in the same pod — term b takes over.
+	for off := time.Duration(0); off <= time.Minute; off += 15 * time.Second {
+		beat(off, "a")
+	}
+	for off := 80 * time.Second; off <= 2*time.Minute; off += 15 * time.Second {
+		beat(off+250*time.Millisecond, "b")
+	}
+	cov, err := s.Coverage(ctx, "prod", t0, t0.Add(2*time.Minute+time.Second), 45*time.Second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := Gap{From: t0.Add(time.Minute), To: t0.Add(80*time.Second + 250*time.Millisecond)}
+	if len(cov.Gaps) != 1 || !cov.Gaps[0].From.Equal(want.From) || !cov.Gaps[0].To.Equal(want.To) {
+		t.Fatalf("gaps = %+v, want the term change %+v", cov.Gaps, want)
+	}
+	// Milliseconds survive the round trip (they were bound at second precision).
+	last, err := s.LastHeartbeat(ctx, "prod")
+	if err != nil || last.Time.Nanosecond() == 0 || last.Term != "b" {
+		t.Fatalf("last = %+v err = %v", last, err)
+	}
+}

@@ -110,8 +110,9 @@ type TLS struct {
 }
 
 // Recorder is the leader's heartbeat: a row every HeartbeatInterval while it
-// is watching, so a stretch with none longer than GapThreshold is a period in
-// which changes went unrecorded.
+// is watching, each tagged with that leader term. A change of term, or a
+// stretch with none longer than GapThreshold, is a period in which changes
+// went unrecorded.
 type Recorder struct {
 	HeartbeatInterval Duration `json:"heartbeatInterval"`
 	GapThreshold      Duration `json:"gapThreshold"`
@@ -172,8 +173,8 @@ func Default() Config {
 			WebhookConfigName: "toolbox",
 		},
 		LeaderElection: LeaderElection{Enabled: true, LeaseName: "toolbox-leader"},
-		// The lease lasts 15s, so a normal hand-over (~15-20s) stays under
-		// the threshold and only a real outage reads as a gap.
+		// The threshold is for one leader going quiet; a change of leader is a
+		// gap however short (see store.Coverage), so it needs no slack for one.
 		Recorder: Recorder{HeartbeatInterval: Duration{15 * time.Second}, GapThreshold: Duration{45 * time.Second}},
 		Sources:  Sources{AdmissionWebhook: true, AuditWebhook: true},
 	}

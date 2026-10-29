@@ -422,6 +422,11 @@ Operatör `GET /api/v1/stats?since=&bucket=` zaten var: zaman kovası × verb sa
 - **[ONAY]** Image `ghcr.io/opensourcemonkeys/kube-inspector-toolbox`, chart `oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox` (`Chart.yaml` adı `kube-inspector-toolbox`; `helm push` yolu chart adından alıyor).
 - Cluster içi adlar değişmedi: `_helpers.tpl` artık `.Chart.Name` değil sabit `toolbox` tabanını (`nameOverride`) kullanıyor; nesne adları ve `app.kubernetes.io/name=toolbox` etiketi aynı kaldı (render diff'i ile doğrulandı: yalnız `# Source` yorumları, image ve `helm.sh/chart` etiketi değişti). Desktop'un keşfi ve eski kurulumların yükseltmesi bu yüzden etkilenmiyor.
 
+### Sonrası: kurulum kontrolü ve heartbeat düzeltmeleri (2026-10-30)
+- Yeni kurulum kontrol edildi: 2 replika + ClickHouse sağlıklı, lease yenileniyor, webhook caBundle dolu; admission yeniden kurulumdan beri çalışıyor (eski kurulumda hiç istek gelmiyordu), 142 kayıt korunmuş, uygulamada "Canlı" akış ve gerçek kullanıcılar görünüyor.
+- **Bulgu 1:** clickhouse-go `time.Time` parametresini saniye hassasiyetinde bağlıyor; heartbeat'ler `.000` ile yazılıyordu. Düzeltme: `fromUnixTimestamp64Milli`.
+- **Bulgu 2:** yeniden kurulumdaki 44 sn'lik kesinti 45 sn eşiğinin altında kaldığı için boşluk sayılmadı, oysa yeni leader baştan listelediği için o arada olan değişiklikler kaçtı (her leader devrinde de böyle). Düzeltme: heartbeat'e leader dönemi (`term`, `0004_heartbeat_term.sql`) eklendi; term değişimi ne kadar kısa olursa olsun boşluk, eşik yalnız aynı term içindeki sessizlik için. Doküman, README, values ve CLAUDE.md düzeltildi. Test: `TestCoverageCountsEveryTermChange` (gerçek ClickHouse).
+
 ---
 
 ## Uygulama düzeni

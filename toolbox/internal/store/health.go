@@ -10,6 +10,7 @@ type Heartbeat struct {
 	Time             time.Time `json:"time"`
 	Cluster          string    `json:"-"`
 	Identity         string    `json:"identity"`
+	Term             string    `json:"term,omitempty"`
 	WatchedResources uint32    `json:"watchedResources"`
 	Pending          uint32    `json:"pending"`
 }
@@ -17,9 +18,12 @@ type Heartbeat struct {
 // WriteHeartbeat inserts one heartbeat directly rather than through a batched
 // Writer: it is one row every few seconds, and a heartbeat that sat in a
 // queue would claim the leader was alive later than it was.
+//
+// The time goes in as Unix milliseconds: clickhouse-go binds a time.Time
+// parameter at second precision, which stored every heartbeat as hh:mm:ss.000.
 func (s *Store) WriteHeartbeat(ctx context.Context, h Heartbeat) error {
-	return s.conn.Exec(ctx, `INSERT INTO recorder_heartbeats (ts, cluster, identity, watched_resources, pending)
-		VALUES (?, ?, ?, ?, ?)`, h.Time, h.Cluster, h.Identity, h.WatchedResources, h.Pending)
+	return s.conn.Exec(ctx, `INSERT INTO recorder_heartbeats (ts, cluster, identity, term, watched_resources, pending)
+		VALUES (fromUnixTimestamp64Milli(?, 'UTC'), ?, ?, ?, ?, ?)`, h.Time.UnixMilli(), h.Cluster, h.Identity, h.Term, h.WatchedResources, h.Pending)
 }
 
 // LastHeartbeat returns the newest heartbeat, or nil when there is none
@@ -27,7 +31,7 @@ func (s *Store) WriteHeartbeat(ctx context.Context, h Heartbeat) error {
 func (s *Store) LastHeartbeat(ctx context.Context, cluster string) (*Heartbeat, error) {
 	var w where
 	w.eq("cluster", cluster)
-	rows, err := s.conn.Query(ctx, "SELECT ts, cluster, identity, watched_resources, pending FROM recorder_heartbeats"+
+	rows, err := s.conn.Query(ctx, "SELECT ts, cluster, identity, term, watched_resources, pending FROM recorder_heartbeats"+
 		w.String()+" ORDER BY ts DESC LIMIT 1", w.args...)
 	if err != nil {
 		return nil, err
@@ -37,7 +41,7 @@ func (s *Store) LastHeartbeat(ctx context.Context, cluster string) (*Heartbeat, 
 		return nil, rows.Err()
 	}
 	var h Heartbeat
-	if err := rows.Scan(&h.Time, &h.Cluster, &h.Identity, &h.WatchedResources, &h.Pending); err != nil {
+	if err := rows.Scan(&h.Time, &h.Cluster, &h.Identity, &h.Term, &h.WatchedResources, &h.Pending); err != nil {
 		return nil, err
 	}
 	return &h, nil
@@ -65,9 +69,13 @@ type Coverage struct {
 	Ratio float64 `json:"ratio"`
 }
 
-// Coverage finds the gaps in [since, until]: consecutive heartbeats further
-// apart than threshold, plus a trailing gap when the newest heartbeat is
-// already older than threshold at until.
+// Coverage finds the gaps in [since, until]:
+//   - between consecutive heartbeats of different leader terms, however close:
+//     a new term lists every object afresh and records nothing from before
+//     its first heartbeat, so the time in between was not recorded;
+//   - between heartbeats of one term further apart than threshold (a leader
+//     that stalled or could not reach ClickHouse);
+//   - and a trailing one when the newest heartbeat is older than threshold.
 func (s *Store) Coverage(ctx context.Context, cluster string, since, until time.Time, threshold time.Duration) (*Coverage, error) {
 	cov := &Coverage{Since: since, Until: until, Gaps: []Gap{}, Ratio: 1}
 	var w where
@@ -94,8 +102,10 @@ func (s *Store) Coverage(ctx context.Context, cluster string, since, until time.
 	// before the window is included so a gap that started outside it is seen.
 	w.add("ts >= ?", cov.Since.Add(-threshold))
 	w.add("ts <= ?", cov.Until)
-	rows, err := s.conn.Query(ctx, `SELECT prev, ts FROM (
-		SELECT ts, lagInFrame(ts, 1) OVER (ORDER BY ts ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS prev
+	rows, err := s.conn.Query(ctx, `SELECT prev, prev_term, ts, term FROM (
+		SELECT ts, term,
+			lagInFrame(ts, 1) OVER (ORDER BY ts ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS prev,
+			lagInFrame(term, 1) OVER (ORDER BY ts ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) AS prev_term
 		FROM recorder_heartbeats`+w.String()+`
 	) ORDER BY ts`, w.args...)
 	if err != nil {
@@ -105,13 +115,15 @@ func (s *Store) Coverage(ctx context.Context, cluster string, since, until time.
 	var last time.Time
 	for rows.Next() {
 		var prev, ts time.Time
-		if err := rows.Scan(&prev, &ts); err != nil {
+		var prevTerm, term string
+		if err := rows.Scan(&prev, &prevTerm, &ts, &term); err != nil {
 			return nil, err
 		}
-		if last.IsZero() && ts.Sub(cov.Since) > threshold {
+		switch {
+		case last.IsZero() && ts.Sub(cov.Since) > threshold:
 			// Nothing from the start of the window to the first heartbeat in it.
 			cov.Gaps = append(cov.Gaps, Gap{From: cov.Since, To: ts})
-		} else if prev.Unix() > 0 && ts.Sub(prev) > threshold {
+		case prev.Unix() > 0 && (term != prevTerm || ts.Sub(prev) > threshold):
 			cov.Gaps = append(cov.Gaps, Gap{From: prev, To: ts})
 		}
 		last = ts

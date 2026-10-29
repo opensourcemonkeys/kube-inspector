@@ -16,6 +16,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/discovery"
@@ -167,7 +168,9 @@ func run(configPath string) error {
 		w := watcher.New(dyn, disc, cfg.Watch, corr.Observe)
 		safego.Go("correlator", func() { defer wg.Done(); corr.Run(lctx) })
 		safego.Go("watcher", func() { defer wg.Done(); w.Run(lctx) })
-		safego.Go("heartbeat", func() { defer wg.Done(); heartbeat(lctx, st, cfg, identity, w, corr) })
+		// A new term per run of the watchers: see recorder_heartbeats.term.
+		term := uuid.NewString()
+		safego.Go("heartbeat", func() { defer wg.Done(); heartbeat(lctx, st, cfg, identity, term, w, corr) })
 		wg.Wait()
 	}
 
@@ -271,13 +274,13 @@ func runLeaderElection(ctx context.Context, kube kubernetes.Interface, cfg confi
 // heartbeat writes a row every recorder.heartbeatInterval while this replica
 // leads, so the history can show when nobody was recording. A failed write is
 // only logged: the heartbeat must never take the recording down with it.
-func heartbeat(ctx context.Context, st *store.Store, cfg config.Config, identity string, w *watcher.Watcher, corr *correlate.Correlator) {
+func heartbeat(ctx context.Context, st *store.Store, cfg config.Config, identity, term string, w *watcher.Watcher, corr *correlate.Correlator) {
 	t := time.NewTicker(cfg.Recorder.HeartbeatInterval.Duration)
 	defer t.Stop()
 	for {
 		wctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 		err := st.WriteHeartbeat(wctx, store.Heartbeat{
-			Time: time.Now(), Cluster: cfg.ClusterName, Identity: identity,
+			Time: time.Now(), Cluster: cfg.ClusterName, Identity: identity, Term: term,
 			WatchedResources: uint32(w.Watched()), Pending: uint32(corr.Pending()),
 		})
 		cancel()
