@@ -990,12 +990,93 @@ func (a *App) GetToolboxChangeDetail(clusterName, eventId string) (models.Toolbo
 	return bussiness.GetToolboxChangeDetail(clusterName, eventId)
 }
 
-func (a *App) GetToolboxAttempts(clusterName string, filter models.ToolboxChangeFilter) ([]models.ToolboxAttempt, error) {
+func (a *App) GetToolboxAttempts(clusterName string, filter models.ToolboxChangeFilter) (models.ToolboxAttemptPage, error) {
 	return bussiness.GetToolboxAttempts(clusterName, filter)
 }
 
 func (a *App) GetToolboxUsers(clusterName, since string) ([]models.ToolboxUser, error) {
 	return bussiness.GetToolboxUsers(clusterName, since)
+}
+
+// GetToolboxHealth reports how well toolbox is recording: its sources, leader,
+// last 7 days' coverage and configuration. Supported is false for an older toolbox.
+func (a *App) GetToolboxHealth(clusterName string) (models.ToolboxHealth, error) {
+	return bussiness.GetToolboxHealth(clusterName)
+}
+
+// toolboxStreams holds one live change stream per session id.
+var toolboxStreams = newCancelRegistry()
+
+// StartToolboxStream follows the cluster's new changes matching filter and
+// pushes each as "toolbox:change:<sessionId>". When the stream ends for any
+// reason but StopToolboxStream (an older toolbox without the stream, a lost
+// connection) it emits "toolbox:stream-end:<sessionId>" with the reason, and
+// the panel falls back to polling. Starting the same session id again
+// replaces the stream.
+func (a *App) StartToolboxStream(sessionId, clusterName string, filter models.ToolboxChangeFilter) error {
+	ctx, cancel := context.WithCancel(context.Background())
+	tok := toolboxStreams.begin(sessionId, cancel)
+	safego.Go("controller.toolboxStream", func() {
+		err := bussiness.StreamToolboxChanges(ctx, clusterName, filter, func(c models.ToolboxChange) {
+			a.emit("toolbox:change:"+sessionId, c)
+		})
+		// Only the stream still registered may report: a replaced one ending
+		// would otherwise tell the new one's panel that it died.
+		if owned := toolboxStreams.done(sessionId, tok); owned && err != nil {
+			a.emit("toolbox:stream-end:"+sessionId, map[string]any{"message": err.Error()})
+		}
+	})
+	return nil
+}
+
+// StopToolboxStream ends a stream started by StartToolboxStream.
+func (a *App) StopToolboxStream(sessionId string) {
+	toolboxStreams.cancel(sessionId)
+}
+
+// ExportToolboxHistory asks where to save, then writes every change (view
+// "changes") or refused write ("attempts") the filter matches as "csv" or
+// "json". The save dialog comes first so nothing is fetched for an export
+// that is then cancelled; an empty Path means it was.
+func (a *App) ExportToolboxHistory(clusterName, view string, filter models.ToolboxChangeFilter, format string) (models.ToolboxExportResult, error) {
+	res := models.ToolboxExportResult{Limit: bussiness.ToolboxExportLimit}
+	ext := "." + format
+	filterName := "CSV (*.csv)"
+	if format == "json" {
+		filterName = "JSON (*.json)"
+	}
+	path, err := a.saveFile(SaveFileOptions{
+		Title:       "Export history",
+		DefaultName: fmt.Sprintf("%s-%s-%s%s", clusterName, view, time.Now().Format("20060102-150405"), ext),
+		FilterName:  filterName,
+		Pattern:     "*" + ext,
+	})
+	if err != nil || path == "" {
+		return res, err
+	}
+	if !strings.HasSuffix(strings.ToLower(path), ext) {
+		path += ext
+	}
+	out, err := bussiness.BuildToolboxExport(clusterName, view, filter, format)
+	if err != nil {
+		return res, err
+	}
+	if res.Path, err = bussiness.SaveTextFile(path, string(out.Data)); err != nil {
+		return res, err
+	}
+	res.Rows, res.Truncated = out.Rows, out.Truncated
+	return res, nil
+}
+
+// GetToolboxStats is the overview of a period: activity per bucket and verb,
+// top resources/users/namespaces, and totals against the previous period.
+func (a *App) GetToolboxStats(clusterName string, filter models.ToolboxStatsFilter) (models.ToolboxStats, error) {
+	return bussiness.GetToolboxStats(clusterName, filter)
+}
+
+// GetToolboxGaps lists recording gaps between since and until ("168h" or RFC 3339).
+func (a *App) GetToolboxGaps(clusterName, since, until string) (models.ToolboxCoverage, error) {
+	return bussiness.GetToolboxGaps(clusterName, since, until)
 }
 
 func (a *App) GetToolboxLiveObject(clusterName, group, version, resource, namespace, name string) (models.ToolboxLiveObject, error) {
@@ -1005,6 +1086,12 @@ func (a *App) GetToolboxLiveObject(clusterName, group, version, resource, namesp
 // RollbackToolboxChange restores side ("before" or "after") of a recorded change.
 func (a *App) RollbackToolboxChange(clusterName, eventId, side string) (string, error) {
 	return bussiness.RollbackToolboxChange(clusterName, eventId, side)
+}
+
+// DryRunToolboxRollback checks RollbackToolboxChange with the API server
+// without writing anything.
+func (a *App) DryRunToolboxRollback(clusterName, eventId, side string) (string, error) {
+	return bussiness.DryRunToolboxRollback(clusterName, eventId, side)
 }
 
 // ============================================================================

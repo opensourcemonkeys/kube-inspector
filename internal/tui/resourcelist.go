@@ -218,6 +218,9 @@ func (a *App) buildResource(def *resourceDef) (tview.Primitive, *tview.Table, st
 	if def.drill != nil {
 		hints = hintListDrill
 	}
+	if def.hints != "" {
+		hints = def.hints
+	}
 
 	table.SetInputCapture(func(ev *tcell.EventKey) *tcell.EventKey {
 		switch ev.Key() {
@@ -232,7 +235,7 @@ func (a *App) buildResource(def *resourceDef) (tview.Primitive, *tview.Table, st
 			}
 			return nil
 		case tcell.KeyEnter:
-			if r, ok := selected(); ok {
+			if r, ok := selected(); ok && !def.noDescribe {
 				if def.drill != nil {
 					if child := def.drill(a.cluster, r); child != nil {
 						a.mountResource(child)
@@ -329,6 +332,14 @@ func (a *App) buildResource(def *resourceDef) (tview.Primitive, *tview.Table, st
 			}
 			// extra per-resource actions (e.g. cordon/drain on nodes)
 			for _, act := range def.actions {
+				if ev.Rune() == act.key && act.custom != nil {
+					var row *rowData
+					if r, ok := selected(); ok {
+						row = &r
+					}
+					act.custom(a, row, reload)
+					return nil
+				}
 				if ev.Rune() == act.key {
 					if r, ok := selected(); ok {
 						finish := func(err error) {

@@ -18,6 +18,7 @@ import { RefLink, RefList, type Nav } from './refs';
 import ContainerSection from './ContainerSection';
 import UsageChart, { type UsagePoint } from './UsageChart';
 import RowAction from '../../shared/RowAction';
+import HistoryButton from '../../toolbox/history/HistoryButton';
 import Spinner from '../../shared/Spinner';
 import StatusLamp from '../../shared/StatusLamp';
 
@@ -127,6 +128,7 @@ export default function PodDetailPanel({ clusterName, name, namespace, reference
                 <RowAction icon={<VscTerminal size={15} />} label={t('resources:pod.detail.exec')} onClick={openExec} />
                 <RowAction icon={<VscListFlat size={15} />} label={t('resources:pod.detail.logs')}
                     onClick={() => openLogPanel({ clusterName, resourceKind: 'pod', name, namespace, referencePanel })} />
+                <HistoryButton variant="icon" def={{ clusterName, resource: 'pods', group: 'core', name, namespace, referencePanel: `pods:${clusterName}` }} />
                 <RowAction icon={<VscEdit size={15} />} label={t('resources:pod.detail.edit')}
                     onClick={() => openYamlPanel({ clusterName, resourceKind: 'pod', name, namespace, referencePanel })} />
                 <RowAction icon={<VscTrash size={15} />} label={t('action.delete')} severity="danger" onClick={() => setConfirmDelete(true)} />

@@ -1,0 +1,123 @@
+name: Toolbox
+
+# The in-cluster change recorder (toolbox/) ships on its own tags, apart from
+# the app: `toolbox-v1.2.3` publishes the image and the Helm chart, both at
+# version 1.2.3. Branch pushes only test, like ci.yml (main is not tested
+# here for the same reason: it receives finished work).
+#
+# Only actions this repository already pins are used. The registry login,
+# the multi-arch build and the chart push are plain CLI calls — docker buildx
+# is on the runner image, helm runs from a digest-pinned container — so no new
+# third-party action gets write access to the registry.
+on:
+  push:
+    branches-ignore:
+      - main
+    tags:
+      - 'toolbox-v*'
+  workflow_dispatch:
+
+concurrency:
+  group: toolbox-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: ghcr.io/opensourcemonkeys/toolbox
+  CHART_REPO: oci://ghcr.io/opensourcemonkeys/charts
+  HELM_IMAGE: alpine/helm:3.16.4@sha256:9b25e60ae264940b276e32866d37e3088e70c4e2d1784b964dc3f90346281a74
+  BUILDKIT_IMAGE: moby/buildkit:v0.18.2@sha256:86c0ad9d1137c186e9d455912167df20e530bdf7f7c19de802e892bb8ca16552
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (unit, store, chart)
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: toolbox
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Go
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: '1.26'
+          cache-dependency-path: toolbox/go.sum
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Unit tests
+        run: make test
+
+      # Against a throwaway ClickHouse container: the gap and coverage
+      # queries are window functions that only a real server can check.
+      - name: Store tests
+        run: make test-store
+
+      - name: Helm lint
+        run: |
+          docker run --rm -v "$PWD":/w -w /w "$HELM_IMAGE" lint deploy/helm/toolbox
+          docker run --rm -v "$PWD":/w -w /w "$HELM_IMAGE" lint deploy/helm/toolbox \
+            --set clickhouse.enabled=false --set 'externalClickhouse.addr[0]=ch:9000'
+
+  release:
+    name: Publish image and chart
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/toolbox-v')
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      packages: write
+    defaults:
+      run:
+        working-directory: toolbox
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Resolve version
+        # toolbox-v1.2.3 -> 1.2.3. Helm rejects a chart version that is not
+        # semver, and the image tag must match the chart's appVersion, so a
+        # malformed tag stops here rather than half-publishing.
+        run: |
+          VERSION="${GITHUB_REF_NAME#toolbox-v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::tag $GITHUB_REF_NAME is not toolbox-v<semver>"
+            exit 1
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+
+      - name: Log in to GHCR
+        env:
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "$TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          mkdir -p "$HOME/.config/helm"
+          echo "$TOKEN" | docker run --rm -i -v "$HOME/.config/helm":/root/.config/helm "$HELM_IMAGE" \
+            registry login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      # linux/amd64 and linux/arm64. The Dockerfile cross-compiles on the
+      # build platform, so no QEMU is involved; the docker-container driver
+      # is what lets one build push a multi-platform manifest.
+      - name: Build and push image
+        run: |
+          docker buildx create --name toolbox --driver docker-container \
+            --driver-opt "image=$BUILDKIT_IMAGE" --use
+          docker buildx build . \
+            --platform linux/amd64,linux/arm64 \
+            --build-arg VERSION="$VERSION" \
+            --label org.opencontainers.image.source="https://github.com/${GITHUB_REPOSITORY}" \
+            --label org.opencontainers.image.version="$VERSION" \
+            --tag "$IMAGE:$VERSION" \
+            --push
+
+      - name: Package and push chart
+        run: |
+          docker run --rm -v "$PWD":/w -w /w "$HELM_IMAGE" \
+            package deploy/helm/toolbox --version "$VERSION" --app-version "$VERSION" --destination /w/dist
+          docker run --rm -v "$PWD":/w -w /w -v "$HOME/.config/helm":/root/.config/helm "$HELM_IMAGE" \
+            push "dist/toolbox-$VERSION.tgz" "$CHART_REPO"

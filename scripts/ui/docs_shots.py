@@ -151,6 +151,43 @@ def vulnerability_scan(d):
     time.sleep(1.5)
 
 
+def toolbox_health(d):
+    capture.open_toolbox(d)
+    time.sleep(2)
+    # Opens by itself when something needs attention; open it either way.
+    d.execute_script("const b = document.querySelector('.tool-health__toggle');"
+                     "if (b && b.getAttribute('aria-expanded') !== 'true') b.click();")
+    time.sleep(1)
+
+
+def history_overview(d):
+    capture.open_history(d)
+    capture.history_since(d, "7 days")
+    time.sleep(3)
+
+
+def history_changes(d):
+    capture.open_history(d)
+    capture.history_view(d, "Changes")
+    capture.history_since(d, "7 days")
+    time.sleep(2)
+    row = capture.first_row(d)
+    d.execute_script("arguments[0].querySelectorAll('td')[2]?.click()", row)
+    time.sleep(4)
+
+
+def object_history(d):
+    capture.nav(d, "Deployments"); time.sleep(3)
+    d.execute_script("""
+        for (const tr of document.querySelectorAll('.p-datatable-tbody > tr')) {
+            if (tr.textContent.includes('whoami') && tr.textContent.includes('ingress-test')) {
+                tr.querySelector('button[aria-label="More actions"]').click(); return; }
+        }""")
+    time.sleep(0.6)
+    capture.js_click_text(d, ".p-menuitem-link", "History", exact=False)
+    time.sleep(6)
+
+
 SCENES = [
     ("pods", pods),
     ("deployments", deployments),
@@ -161,6 +198,10 @@ SCENES = [
     ("split-view", split_view),
     ("terminal", terminal),
     ("vulnerability-scan", vulnerability_scan),
+    ("toolbox-health", toolbox_health),
+    ("history-overview", history_overview),
+    ("history-changes", history_changes),
+    ("object-history", object_history),
 ]
 
 

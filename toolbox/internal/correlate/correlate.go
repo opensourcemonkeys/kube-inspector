@@ -77,6 +77,13 @@ func (c *Correlator) Observe(ev watcher.Event) {
 	c.mu.Unlock()
 }
 
+// Pending is how many changes are waiting for (another try at) attribution.
+func (c *Correlator) Pending() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return len(c.pending) + len(c.retry)
+}
+
 // Run processes due changes every second until ctx ends, then attributes
 // whatever is still pending as best it can right away rather than lose it.
 func (c *Correlator) Run(ctx context.Context) {
@@ -107,10 +114,10 @@ func (c *Correlator) Step(ctx context.Context, all bool) {
 	c.mu.Unlock()
 
 	if len(first) > 0 {
-		c.attribute(ctx, first, upcoming, false)
+		c.attribute(ctx, first, upcoming, false, all)
 	}
 	if len(second) > 0 {
-		c.attribute(ctx, second, upcoming, true)
+		c.attribute(ctx, second, upcoming, true, all)
 	}
 	c.mu.Lock()
 	metrics.PendingChanges.Set(float64(len(c.pending) + len(c.retry)))
@@ -130,7 +137,12 @@ func takeDue(q *[]*item, now time.Time, all bool) []*item {
 	return due
 }
 
-func (c *Correlator) attribute(ctx context.Context, items, upcoming []*item, isRetry bool) {
+// attribute matches items to hints and writes them. Each change is written
+// exactly once: one that finds no hint on its first pass is held for the
+// retry rather than written unattributed and re-written later, so a row never
+// has a second version and the hourly rollup (a materialized view over the
+// inserts) counts it once. final (shutdown) writes everything now.
+func (c *Correlator) attribute(ctx context.Context, items, upcoming []*item, isRetry, final bool) {
 	sort.Slice(items, func(i, j int) bool { return items[i].change.Time.Before(items[j].change.Time) })
 
 	names := make([]string, 0, len(items))
@@ -159,18 +171,15 @@ func (c *Correlator) attribute(ctx context.Context, items, upcoming []*item, isR
 		ch := &it.change
 		if r := results[i]; r != nil {
 			ch.Actor, ch.Attribution = r.actor, r.attr
-			if isRetry {
-				ch.Version++
-			}
-		} else if isRetry {
-			continue // the first write already holds the fallback attribution
 		} else {
+			// A final removal has no request of its own to wait for.
+			if !isRetry && !final && ch.Verb != model.VerbFinalized {
+				c.retry = append(c.retry, &item{change: *ch, hash: it.hash, due: ch.Time.Add(c.RetryAfter)})
+				continue
+			}
 			ch.Attribution = model.AttrNone
 			if ch.FieldManager != "" {
 				ch.Attribution = model.AttrManagedFields
-			}
-			if ch.Verb != model.VerbFinalized {
-				c.retry = append(c.retry, &item{change: *ch, hash: it.hash, due: ch.Time.Add(c.RetryAfter)})
 			}
 		}
 		metrics.ChangesAttributed.WithLabelValues(string(ch.Attribution)).Inc()

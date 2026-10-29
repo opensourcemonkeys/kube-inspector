@@ -9,6 +9,8 @@ import { errText } from '../../lib/errText';
 import { useT } from '../../i18n/useT';
 import StatusLamp, { type LampTone } from '../shared/StatusLamp';
 import RowAction from '../shared/RowAction';
+import RecordingHealth from './RecordingHealth';
+import InstallGuide from './InstallGuide';
 
 const STATE_TONE: Record<string, LampTone> = { ok: 'ok', notInstalled: 'idle', forbidden: 'warn', unreachable: 'err' };
 
@@ -25,6 +27,8 @@ export default function ToolboxPanel({ params, api }: IDockviewPanelProps<{ clus
     const { openClusterHistory } = useTabContext();
     const [status, setStatus] = useState<models.ToolboxStatus | null>(null);
     const [checking, setChecking] = useState(false);
+    // Bumped by Refresh so the health section re-reads too.
+    const [refreshKey, setRefreshKey] = useState(0);
 
     const check = useCallback(async () => {
         setChecking(true);
@@ -66,7 +70,8 @@ export default function ToolboxPanel({ params, api }: IDockviewPanelProps<{ clus
                     {t('panels:toolbox.label')}
                 </span>
                 <div className="panel-toolbar__actions">
-                    <RowAction icon={<VscRefresh size={14} />} label={t('panels:toolbox.refresh')} loading={checking} onClick={() => void check()} />
+                    <RowAction icon={<VscRefresh size={14} />} label={t('panels:toolbox.refresh')} loading={checking}
+                        onClick={() => { void check(); setRefreshKey((n) => n + 1); }} />
                 </div>
             </div>
 
@@ -90,6 +95,8 @@ export default function ToolboxPanel({ params, api }: IDockviewPanelProps<{ clus
                                 </>
                             )}
                         </div>
+                        {state === 'notInstalled' && <InstallGuide clusterName={clusterName} />}
+                        {ready && <RecordingHealth clusterName={clusterName} refreshKey={refreshKey} />}
                     </div>
                     <Button
                         className="tool-row__action"

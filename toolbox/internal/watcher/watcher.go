@@ -6,6 +6,7 @@ package watcher
 import (
 	"context"
 	"log/slog"
+	"sync/atomic"
 	"time"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -45,7 +46,11 @@ type Watcher struct {
 	handle   func(Event)
 
 	running map[schema.GroupVersionResource]chan struct{}
+	watched atomic.Int32 // len(running), readable from other goroutines
 }
+
+// Watched is how many resources are being watched right now.
+func (w *Watcher) Watched() int { return int(w.watched.Load()) }
 
 func New(dyn dynamic.Interface, disc discoveryclient.DiscoveryInterface, w config.Watch, handle func(Event)) *Watcher {
 	return &Watcher{
@@ -94,6 +99,7 @@ func (w *Watcher) sync() {
 			slog.Info("stopped watching", "resource", gvr.String())
 		}
 	}
+	w.watched.Store(int32(len(w.running)))
 	metrics.WatchedResources.Set(float64(len(w.running)))
 }
 

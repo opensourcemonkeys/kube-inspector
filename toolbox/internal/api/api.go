@@ -29,9 +29,14 @@ const TokenHeader = "X-Toolbox-Token"
 type Store interface {
 	ListChanges(ctx context.Context, f store.ChangeFilter) ([]model.Change, string, error)
 	GetChange(ctx context.Context, id uuid.UUID) (*model.Change, error)
-	ListAttempts(ctx context.Context, f store.AttemptFilter) ([]model.AuditRecord, error)
-	Stats(ctx context.Context, cluster string, since time.Time, bucket time.Duration) (*store.Stats, error)
+	ListAttempts(ctx context.Context, f store.AttemptFilter) ([]model.AuditRecord, string, error)
+	Stats(ctx context.Context, f store.StatsFilter) (*store.Stats, error)
 	Users(ctx context.Context, cluster string, since time.Time, limit int) ([]store.UserSummary, error)
+	Coverage(ctx context.Context, cluster string, since, until time.Time, threshold time.Duration) (*store.Coverage, error)
+	LastHeartbeat(ctx context.Context, cluster string) (*store.Heartbeat, error)
+	LastHints(ctx context.Context, cluster string) (map[string]time.Time, error)
+	AttributionCounts(ctx context.Context, cluster string, since time.Time) ([]store.Count, error)
+	RecentChanges(ctx context.Context, f store.ChangeFilter, since time.Time, seen map[uuid.UUID]time.Time, limit int) ([]model.Change, error)
 }
 
 type Server struct {
@@ -40,17 +45,31 @@ type Server struct {
 	Token   string // empty disables authentication
 	Version string
 	Now     func() time.Time
+	// Recording is what the health report says about this release's setup.
+	Recording Recording
+	// Leader reads who holds the leader lease; nil when there is no election.
+	Leader func(ctx context.Context) (*LeaderInfo, error)
+	// StreamLookback is how far back each poll of /changes/stream looks: the
+	// longest a change can take to be written (enrich delay + retry + writer
+	// flush), so a late one is still caught.
+	StreamLookback time.Duration
+	// StreamPoll is how often a stream polls; zero means 2s.
+	StreamPoll time.Duration
 }
 
 // Routes registers the API under /api/v1 on mux.
 func (s *Server) Routes(mux *http.ServeMux) {
 	mux.Handle("GET /api/v1/info", s.auth(s.info))
 	mux.Handle("GET /api/v1/changes", s.auth(s.listChanges))
+	// Registered before {id}: a literal segment wins over a wildcard.
+	mux.Handle("GET /api/v1/changes/stream", s.auth(s.stream))
 	mux.Handle("GET /api/v1/changes/{id}", s.auth(s.getChange))
 	mux.Handle("GET /api/v1/objects/{group}/{version}/{resource}/{namespace}/{name}/history", s.auth(s.history))
 	mux.Handle("GET /api/v1/attempts", s.auth(s.attempts))
 	mux.Handle("GET /api/v1/stats", s.auth(s.stats))
 	mux.Handle("GET /api/v1/users", s.auth(s.users))
+	mux.Handle("GET /api/v1/gaps", s.auth(s.gaps))
+	mux.Handle("GET /api/v1/health", s.auth(s.health))
 }
 
 type handlerFunc func(w http.ResponseWriter, r *http.Request) error
@@ -157,6 +176,11 @@ func group(v string) string {
 	return v
 }
 
+type attemptList struct {
+	Items      []model.AuditRecord `json:"items"`
+	NextCursor string              `json:"nextCursor,omitempty"`
+}
+
 type changeList struct {
 	Items      []model.Change `json:"items"`
 	NextCursor string         `json:"nextCursor,omitempty"`
@@ -244,7 +268,7 @@ func (s *Server) attempts(w http.ResponseWriter, r *http.Request) error {
 	q := r.URL.Query()
 	f := store.AttemptFilter{
 		Cluster: s.cluster(r), Namespace: q.Get("namespace"), Resource: q.Get("resource"),
-		Name: q.Get("name"), User: q.Get("user"), MinCode: 400,
+		Name: q.Get("name"), User: q.Get("user"), MinCode: 400, Cursor: q.Get("cursor"),
 	}
 	if v := q.Get("minCode"); v != "" {
 		n, err := strconv.Atoi(v)
@@ -263,14 +287,17 @@ func (s *Server) attempts(w http.ResponseWriter, r *http.Request) error {
 	if f.Limit, err = parseLimit(q.Get("limit")); err != nil {
 		return err
 	}
-	items, err := s.Store.ListAttempts(r.Context(), f)
+	items, next, err := s.Store.ListAttempts(r.Context(), f)
 	if err != nil {
+		if errors.Is(err, store.ErrBadCursor) {
+			return badRequest("bad cursor")
+		}
 		return err
 	}
 	if items == nil {
 		items = []model.AuditRecord{}
 	}
-	writeJSON(w, http.StatusOK, map[string]any{"items": items})
+	writeJSON(w, http.StatusOK, attemptList{Items: items, NextCursor: next})
 	return nil
 }
 
@@ -287,13 +314,29 @@ func (s *Server) stats(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
+	until := s.now()
+	if v := r.URL.Query().Get("until"); v != "" {
+		if until, err = s.parseTime(v); err != nil {
+			return err
+		}
+	}
+	if !until.After(since) {
+		return badRequest("until must be after since")
+	}
 	bucket := time.Hour
 	if v := r.URL.Query().Get("bucket"); v != "" {
 		if bucket, err = time.ParseDuration(v); err != nil || bucket < time.Minute {
 			return badRequest("bucket must be a duration of at least 1m")
 		}
 	}
-	st, err := s.Store.Stats(r.Context(), s.cluster(r), since, bucket)
+	// A chart of more than this many columns is noise, and the query would
+	// return one row per bucket and verb.
+	if until.Sub(since)/bucket > 2000 {
+		return badRequest("bucket too small for this range (more than 2000 buckets)")
+	}
+	st, err := s.Store.Stats(r.Context(), store.StatsFilter{
+		Cluster: s.cluster(r), Namespace: r.URL.Query().Get("namespace"), Since: since, Until: until, Bucket: bucket,
+	})
 	if err != nil {
 		return err
 	}

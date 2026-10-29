@@ -3,7 +3,7 @@
 clusterName: ""
 
 image:
-  repository: ghcr.io/kubeinspector/toolbox
+  repository: ghcr.io/opensourcemonkeys/toolbox
   # -- Defaults to the chart's appVersion.
   tag: ""
   pullPolicy: IfNotPresent
@@ -80,10 +80,19 @@ enrich:
   # -- How long a change waits for its audit/admission hints before being
   # attributed. Must exceed the API server's audit batch wait.
   delay: 15s
-  # -- Unattributed changes are tried once more after this and re-written if
-  # a late hint matches.
+  # -- A change with no hint yet is held and tried once more after this, then
+  # written (attributed or not): unattributed changes appear this late.
   retryAfter: 90s
   window: 2m
+
+# The elected leader writes a heartbeat while it records. A stretch without
+# one longer than gapThreshold is shown in Kube Inspector as a recording gap:
+# changes made then were not seen.
+recorder:
+  heartbeatInterval: 15s
+  # -- Keep above the leader lease (15s) plus a hand-over, or every failover
+  # reads as a gap.
+  gapThreshold: 45s
 
 retention:
   changesDays: 90

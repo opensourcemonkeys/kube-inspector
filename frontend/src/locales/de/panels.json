@@ -12,7 +12,8 @@
     "resourceGraph": "Ressourcengraph",
     "describe": "{{name}} beschreiben",
     "toolbox": "Toolbox",
-    "clusterHistory": "Cluster-Verlauf"
+    "clusterHistory": "Cluster-Verlauf",
+    "objectHistory": "Verlauf {{name}}"
   },
   "portForward": {
     "startedSummary": "Port-Weiterleitung gestartet",
@@ -887,6 +888,46 @@
       "notInstalled": "Installieren Sie das toolbox-Helm-Chart in diesem Cluster, um Änderungen zu erfassen.",
       "forbidden": "Ihre Berechtigungen erlauben weder das Lesen des toolbox-API-Tokens noch den Zugriff über den API-Server.",
       "unreachable": "toolbox wurde gefunden, hat aber nicht geantwortet."
+    },
+    "health": {
+      "title": "Aufzeichnungsstatus",
+      "attention": "Prüfen",
+      "unsupported": "Diese toolbox-Version meldet ihren Status nicht. Aktualisieren Sie toolbox, um ihn zu sehen.",
+      "ago": "vor {{age}}",
+      "off": "Ausgeschaltet",
+      "quiet": "Nichts in den letzten 24 Stunden",
+      "noAdmission": "Benutzer und Gruppen werden nicht aufgezeichnet.",
+      "noAudit": "Quell-IPs und User-Agents werden nicht aufgezeichnet.",
+      "admission": "Admission-Webhook",
+      "audit": "Audit-Webhook",
+      "leader": "Leader",
+      "noLeader": "Kein Leader — Änderungen werden nicht aufgezeichnet",
+      "leaderSince": "Leader seit {{age}}",
+      "watching_one": "{{count}} Ressource",
+      "watching_other": "{{count}} Ressourcen",
+      "staleBeat": "Sein letzter Heartbeat war vor {{age}}.",
+      "coverage": "Abdeckung (7 Tage)",
+      "noCoverage": "Noch nicht gemeldet",
+      "coverageRatio": "{{ratio}} % aufgezeichnet",
+      "lastGap": "letzte Lücke vor {{age}}, {{duration}}",
+      "noGaps": "keine Lücken",
+      "coverageSince": "Gezählt ab {{since}}, seit diese toolbox meldet.",
+      "attribution": "Zuordnung über (24 h)",
+      "noChanges": "Keine Änderungen",
+      "config": "Einstellungen",
+      "retention": "{{days}} Tage aufbewahrt",
+      "statusOn": "Statusänderungen werden aufgezeichnet",
+      "statusOff": "Statusänderungen werden nicht aufgezeichnet",
+      "excluded_one": "{{count}} Ausschluss",
+      "excluded_other": "{{count}} Ausschlüsse"
+    },
+    "install": {
+      "intro": "toolbox ist nicht installiert. Mit Helm installieren (benötigt cluster-admin):",
+      "copy": "Befehl kopieren",
+      "copied": "Kopiert",
+      "audit": "Für Quell-IPs und User-Agents zusätzlich den Audit-Webhook in kube-apiserver einbinden: --set audit.service.clusterIP=<freie IP im Service-CIDR> hinzufügen und dann den Schritten aus `helm get notes toolbox -n toolbox` folgen.",
+      "managed": "Auf verwalteten Clustern (EKS, GKE, AKS) lässt sich der API-Server nicht konfigurieren; Benutzer und Gruppen werden über den Admission-Webhook trotzdem aufgezeichnet.",
+      "guide": "Vollständige Installationsanleitung"
     }
   },
   "clusterHistory": {
@@ -894,6 +935,7 @@
     "viewAria": "Verlaufsansicht",
     "refresh": "Aktualisieren",
     "view": {
+      "overview": "Übersicht",
       "changes": "Änderungen",
       "attempts": "Abgelehnt",
       "users": "Benutzer"
@@ -904,14 +946,20 @@
       "resource": "Ressource",
       "user": "Benutzer",
       "anyVerb": "Alle Verben",
-      "sinceAria": "Zeitraum"
+      "sinceAria": "Zeitraum",
+      "kind": "Art",
+      "name": "Name",
+      "path": "Pfad, z. B. /spec/replicas",
+      "anySource": "Alle Quellen",
+      "range": "Zeitraum wählen"
     },
     "since": {
       "1h": "1 Stunde",
       "24h": "24 Stunden",
       "168h": "7 Tage",
       "720h": "30 Tage",
-      "all": "Gesamter Zeitraum"
+      "all": "Gesamter Zeitraum",
+      "custom": "Eigener Zeitraum…"
     },
     "col": {
       "time": "Zeit",
@@ -919,7 +967,6 @@
       "object": "Objekt",
       "namespace": "Namespace",
       "user": "Benutzer",
-      "sourceIp": "Quell-IP",
       "via": "Über",
       "changed": "Geändert",
       "response": "Antwort",
@@ -985,7 +1032,106 @@
       "blocked": {
         "secretRedacted": "Secrets können nicht zurückgesetzt werden: toolbox speichert ihre Werte nicht.",
         "noVersion": "Links gibt es keine Version zum Wiederherstellen."
+      },
+      "dryRun": {
+        "running": "Prüfung beim API-Server…",
+        "ok": "Der API-Server akzeptiert diese Änderung (Dry Run).",
+        "failed": "Der API-Server würde diese Änderung ablehnen:"
       }
+    },
+    "pivot": {
+      "namespace": "Nach diesem Namespace filtern",
+      "object": "Nach diesem Objekt filtern",
+      "user": "Nach diesem Benutzer filtern"
+    },
+    "via": {
+      "audit": "Audit",
+      "admission": "Admission",
+      "managedFields": "Field Manager",
+      "none": "Unbekannt"
+    },
+    "viaHint": {
+      "audit": "Audit-Log: Benutzer, Gruppen, Quell-IP und User-Agent.",
+      "admission": "Admission-Webhook: Benutzer und Gruppen, keine Netzwerkdaten.",
+      "managedFields": "Nur der Name des schreibenden Clients; der Benutzer ist unbekannt.",
+      "none": "Keine Quelle nennt, wer diese Änderung vorgenommen hat."
+    },
+    "gap": {
+      "closed": "Nicht aufgezeichnet {{from}} – {{to}} ({{duration}}): Änderungen aus dieser Zeit fehlen.",
+      "open": "Keine Aufzeichnung seit {{from}} ({{duration}}): kein toolbox-Leader läuft."
+    },
+    "overview": {
+      "total_one": "{{count}} Änderung",
+      "total_other": "{{count}} Änderungen",
+      "same": "Wie im vorigen Zeitraum",
+      "newSince": "Keine im vorigen Zeitraum",
+      "up": "▲ {{pct}} % ggü. vorigem Zeitraum",
+      "down": "▼ {{pct}} % ggü. vorigem Zeitraum",
+      "points": "{{before}} % im vorigen Zeitraum",
+      "noTotals": "Aktualisieren Sie toolbox für die Kennzahlen; Diagramm und Ranglisten unten funktionieren schon.",
+      "activity": "Aktivität",
+      "legend": "Verben",
+      "gapKey": "Nicht aufgezeichnet",
+      "bucket": "Spaltenbreite",
+      "per": "je {{width}}",
+      "modeAria": "Anzeigen als",
+      "chart": "Diagramm",
+      "table": "Tabelle",
+      "totalCol": "Summe",
+      "none": "Nichts in diesem Zeitraum.",
+      "clusterScoped": "(clusterweit)",
+      "showChanges": "Änderungen von {{name}} anzeigen",
+      "tile": {
+        "changes": "Änderungen",
+        "deletes": "Löschungen",
+        "attempts": "Abgelehnte Anfragen",
+        "unattributed": "Nicht zugeordnet"
+      },
+      "top": {
+        "resources": "Meistgeänderte Ressourcen",
+        "users": "Aktivste Benutzer",
+        "namespaces": "Aktivste Namespaces"
+      }
+    },
+    "export": {
+      "button": "Exportieren",
+      "csv": "CSV (Tabelle)",
+      "json": "JSON (mit Patches)",
+      "done_one": "{{count}} Zeile exportiert",
+      "done_other": "{{count}} Zeilen exportiert",
+      "truncated_one": "Nur die neueste {{count}} Zeile exportiert",
+      "truncated_other": "Nur die neuesten {{count}} Zeilen exportiert",
+      "truncatedDetail": "Der Filter traf mehr als {{limit}} Zeilen; grenzen Sie ihn ein, um den Rest zu exportieren. Gespeichert unter {{path}}",
+      "failed": "Export fehlgeschlagen"
+    },
+    "attempt": {
+      "requestUri": "Anfrage",
+      "message": "Antwort des Servers"
+    },
+    "live": "Live",
+    "liveHint": "Neue Änderungen erscheinen, sobald toolbox sie aufzeichnet."
+  },
+  "objectHistory": {
+    "open": "Verlauf",
+    "live": "Aktueller Stand",
+    "liveGone": "Gelöscht — derzeit nicht im Cluster",
+    "after": "nach {{verb}} von {{user}} um {{time}}",
+    "pickA": "Vergleichen von: {{version}}",
+    "pickB": "Vergleichen mit: {{version}}",
+    "timelineAria": "Aufgezeichnete Änderungen, neueste zuerst",
+    "recreated": "Neu erstellt: UID {{from}}… → {{to}}…",
+    "empty": "toolbox hat für dieses Objekt keine Änderungen aufgezeichnet.",
+    "compareLive": "Mit aktuellem Stand vergleichen",
+    "waiting": "Warte, bis toolbox das Zurücksetzen aufzeichnet…",
+    "restore": {
+      "button": "Wiederherstellen",
+      "message": "{{kind}} {{name}} wird durch den Stand nach der Änderung um {{time}} ersetzt. Seitdem hinzugefügte Felder werden entfernt.",
+      "recreate": "{{kind}} {{name}} existiert nicht mehr und wird so neu erstellt, wie es nach der Änderung um {{time}} war."
+    },
+    "unavailable": {
+      "notInstalled": "toolbox ist auf diesem Cluster nicht installiert.",
+      "forbidden": "Ihre Berechtigungen erlauben es nicht, toolbox auf diesem Cluster zu lesen.",
+      "unreachable": "toolbox hat auf diesem Cluster nicht geantwortet."
     }
   }
 }

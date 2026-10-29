@@ -12,7 +12,8 @@
     "resourceGraph": "リソースグラフ",
     "describe": "{{name}} を Describe",
     "toolbox": "Toolbox",
-    "clusterHistory": "クラスター履歴"
+    "clusterHistory": "クラスター履歴",
+    "objectHistory": "履歴 {{name}}"
   },
   "portForward": {
     "startedSummary": "ポートフォワードを開始しました",
@@ -872,6 +873,44 @@
       "notInstalled": "変更を記録するには、このクラスターに toolbox Helm チャートをインストールしてください。",
       "forbidden": "toolbox API トークンの読み取り、または API サーバー経由でのアクセスが権限で許可されていません。",
       "unreachable": "toolbox は見つかりましたが応答しませんでした。"
+    },
+    "health": {
+      "title": "記録の状態",
+      "attention": "要確認",
+      "unsupported": "この toolbox のバージョンは状態を報告しません。表示するには toolbox を更新してください。",
+      "ago": "{{age}} 前",
+      "off": "無効",
+      "quiet": "過去 24 時間に受信なし",
+      "noAdmission": "ユーザーとグループは記録されません。",
+      "noAudit": "送信元 IP とユーザーエージェントは記録されません。",
+      "admission": "Admission Webhook",
+      "audit": "Audit Webhook",
+      "leader": "リーダー",
+      "noLeader": "リーダーなし — 変更は記録されていません",
+      "leaderSince": "{{age}} 前からリーダー",
+      "watching_other": "{{count}} 個のリソース",
+      "staleBeat": "最後のハートビートは {{age}} 前です。",
+      "coverage": "記録率（7 日間）",
+      "noCoverage": "まだ報告されていません",
+      "coverageRatio": "{{ratio}}% 記録",
+      "lastGap": "最後の欠落は {{age}} 前、{{duration}}",
+      "noGaps": "欠落なし",
+      "coverageSince": "この toolbox が報告を始めた {{since}} から集計。",
+      "attribution": "特定方法（24 時間）",
+      "noChanges": "変更なし",
+      "config": "設定",
+      "retention": "{{days}} 日間保持",
+      "statusOn": "status の変更を記録",
+      "statusOff": "status の変更は記録しない",
+      "excluded_other": "除外 {{count}} 件"
+    },
+    "install": {
+      "intro": "toolbox はインストールされていません。Helm でインストールします（cluster-admin が必要）:",
+      "copy": "コマンドをコピー",
+      "copied": "コピーしました",
+      "audit": "送信元 IP とユーザーエージェントを記録するには、Audit Webhook を kube-apiserver にも接続します: --set audit.service.clusterIP=<Service CIDR 内の空き IP> を追加し、`helm get notes toolbox -n toolbox` が表示する手順に従ってください。",
+      "managed": "マネージドクラスター（EKS、GKE、AKS）では API サーバーを設定できませんが、ユーザーとグループは Admission Webhook で記録されます。",
+      "guide": "インストールガイド全文"
     }
   },
   "clusterHistory": {
@@ -879,6 +918,7 @@
     "viewAria": "履歴ビュー",
     "refresh": "更新",
     "view": {
+      "overview": "概要",
       "changes": "変更",
       "attempts": "拒否",
       "users": "ユーザー"
@@ -889,14 +929,20 @@
       "resource": "リソース",
       "user": "ユーザー",
       "anyVerb": "すべての操作",
-      "sinceAria": "期間"
+      "sinceAria": "期間",
+      "kind": "種類",
+      "name": "名前",
+      "path": "パス（例: /spec/replicas）",
+      "anySource": "すべてのソース",
+      "range": "期間を選択"
     },
     "since": {
       "1h": "1 時間",
       "24h": "24 時間",
       "168h": "7 日",
       "720h": "30 日",
-      "all": "全期間"
+      "all": "全期間",
+      "custom": "期間を指定…"
     },
     "col": {
       "time": "時刻",
@@ -904,7 +950,6 @@
       "object": "オブジェクト",
       "namespace": "Namespace",
       "user": "ユーザー",
-      "sourceIp": "送信元 IP",
       "via": "特定方法",
       "changed": "変更箇所",
       "response": "応答",
@@ -970,7 +1015,103 @@
       "blocked": {
         "secretRedacted": "Secret はロールバックできません。toolbox は値を保存しません。",
         "noVersion": "左側に復元できるバージョンがありません。"
+      },
+      "dryRun": {
+        "running": "API サーバーで確認しています…",
+        "ok": "API サーバーはこの変更を受け入れます（ドライラン）。",
+        "failed": "API サーバーはこの変更を拒否します:"
       }
+    },
+    "pivot": {
+      "namespace": "この Namespace で絞り込む",
+      "object": "このオブジェクトで絞り込む",
+      "user": "このユーザーで絞り込む"
+    },
+    "via": {
+      "audit": "Audit",
+      "admission": "Admission",
+      "managedFields": "Field manager",
+      "none": "不明"
+    },
+    "viaHint": {
+      "audit": "監査ログ: ユーザー、グループ、送信元 IP、ユーザーエージェント。",
+      "admission": "Admission Webhook: ユーザーとグループのみ（ネットワーク情報なし）。",
+      "managedFields": "書き込んだクライアント名のみ。ユーザーは不明です。",
+      "none": "この変更を行った人を特定できるソースがありません。"
+    },
+    "gap": {
+      "closed": "未記録 {{from}} – {{to}}（{{duration}}）: この間の変更は欠落しています。",
+      "open": "{{from}} から記録なし（{{duration}}）: toolbox のリーダーが動いていません。"
+    },
+    "overview": {
+      "total_other": "{{count}} 件の変更",
+      "same": "前の期間と同じ",
+      "newSince": "前の期間には 0 件",
+      "up": "▲ 前の期間比 {{pct}}%",
+      "down": "▼ 前の期間比 {{pct}}%",
+      "points": "前の期間は {{before}}%",
+      "noTotals": "集計値を表示するには toolbox を更新してください。下のグラフとランキングはそのまま使えます。",
+      "activity": "アクティビティ",
+      "legend": "操作",
+      "gapKey": "未記録",
+      "bucket": "列の幅",
+      "per": "{{width}} ごと",
+      "modeAria": "表示形式",
+      "chart": "グラフ",
+      "table": "表",
+      "totalCol": "合計",
+      "none": "この期間には何もありません。",
+      "clusterScoped": "（クラスター全体）",
+      "showChanges": "{{name}} の変更を表示",
+      "tile": {
+        "changes": "変更",
+        "deletes": "削除",
+        "attempts": "拒否されたリクエスト",
+        "unattributed": "特定不能"
+      },
+      "top": {
+        "resources": "変更の多いリソース",
+        "users": "活動の多いユーザー",
+        "namespaces": "変更の多い Namespace"
+      }
+    },
+    "export": {
+      "button": "エクスポート",
+      "csv": "CSV（表計算）",
+      "json": "JSON（パッチ付き）",
+      "done_other": "{{count}} 行をエクスポートしました",
+      "truncated_other": "最新の {{count}} 行のみエクスポートしました",
+      "truncatedDetail": "フィルターが {{limit}} 行を超えて一致しました。残りをエクスポートするには絞り込んでください。保存先: {{path}}",
+      "failed": "エクスポートに失敗しました"
+    },
+    "attempt": {
+      "requestUri": "リクエスト",
+      "message": "サーバーの応答"
+    },
+    "live": "ライブ",
+    "liveHint": "新しい変更は toolbox が記録するとすぐ表示されます。"
+  },
+  "objectHistory": {
+    "open": "履歴",
+    "live": "現在の状態",
+    "liveGone": "削除済み — 現在クラスターに存在しません",
+    "after": "{{time}} の {{user}} による {{verb}} 後",
+    "pickA": "比較元: {{version}}",
+    "pickB": "比較先: {{version}}",
+    "timelineAria": "記録された変更（新しい順）",
+    "recreated": "再作成: uid {{from}}… → {{to}}…",
+    "empty": "このオブジェクトの変更は toolbox に記録されていません。",
+    "compareLive": "現在の状態と比較",
+    "waiting": "toolbox がロールバックを記録するのを待っています…",
+    "restore": {
+      "button": "この状態に戻す",
+      "message": "{{kind}} {{name}} を {{time}} の変更後に記録された状態で置き換えます。その後に追加されたフィールドは削除されます。",
+      "recreate": "{{kind}} {{name}} は存在しないため、{{time}} の変更後の状態で再作成します。"
+    },
+    "unavailable": {
+      "notInstalled": "このクラスターには toolbox がインストールされていません。",
+      "forbidden": "このクラスターで toolbox を読み取る権限がありません。",
+      "unreachable": "このクラスターの toolbox が応答しませんでした。"
     }
   }
 }

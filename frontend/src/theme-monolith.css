@@ -868,6 +868,45 @@ html :is(button, a[href], summary, input, textarea, select, [role="button"], [ta
 .p-dialog .p-dialog-content { background: var(--bezel-raised); color: var(--ink); padding: 20px; font-size: 13px; }
 .p-dialog .p-dialog-footer { background: var(--bezel); border-top: 1px solid var(--line); padding: 12px 20px; border-radius: 0; }
 
+/* Calendar (date-time range). lara's picker is sized for a 14px form: 2.5rem
+   round day cells and 1rem text. Here it is the dropdown panel's surface with
+   the app's control density; the open/close motion comes from the
+   p-connected-overlay rules below like every other overlay. */
+.p-calendar .p-inputtext { font-size: 12.5px; }
+.p-datepicker, .p-datepicker:not(.p-datepicker-inline) {
+  padding: 6px; color: var(--ink); background: var(--bezel-raised);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-pop); box-shadow: var(--shadow-2);
+}
+.p-datepicker .p-datepicker-header, .p-datepicker:not(.p-datepicker-inline) .p-datepicker-header {
+  padding: 2px 4px 6px; color: var(--ink); background: transparent; border-bottom: 1px solid var(--line-strong); font-weight: 600;
+}
+.p-datepicker .p-datepicker-header .p-datepicker-title { line-height: 26px; font-size: 12.5px; }
+.p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-month,
+.p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-year { color: var(--ink); font-weight: 600; padding: 2px 4px; }
+.p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-month:enabled:hover,
+.p-datepicker .p-datepicker-header .p-datepicker-title .p-datepicker-year:enabled:hover { color: var(--ink); background: var(--bezel-high); border-radius: var(--radius-ctl); }
+.p-datepicker .p-datepicker-header .p-datepicker-prev, .p-datepicker .p-datepicker-header .p-datepicker-next,
+.p-datepicker .p-timepicker button {
+  width: 26px; height: 26px; color: var(--ink-2); border-radius: var(--radius-ctl);
+}
+.p-datepicker .p-datepicker-header .p-datepicker-prev:enabled:hover, .p-datepicker .p-datepicker-header .p-datepicker-next:enabled:hover,
+.p-datepicker .p-timepicker button:enabled:hover { color: var(--ink); background: var(--bezel-high); }
+.p-datepicker table { font-size: 12.5px; margin: 4px 0; }
+.p-datepicker table th { padding: 2px; color: var(--ink-3); font-weight: 500; }
+.p-datepicker table th > span, .p-datepicker table td > span { width: 28px; height: 28px; }
+.p-datepicker table td { padding: 1px; }
+.p-datepicker table td > span { border-radius: var(--radius-ctl); color: var(--ink); }
+.p-datepicker table td > span:not(.p-highlight):not(.p-disabled):hover { background: var(--bezel-high); }
+.p-datepicker table td > span.p-disabled { color: var(--ink-3); }
+.p-datepicker table td > span.p-highlight,
+.p-datepicker table td.p-datepicker-today > span.p-highlight { color: var(--ink); background: color-mix(in srgb, var(--accent) 22%, transparent); }
+/* Today is an accent ring, not accent text: the accent is below 4.5:1 on
+   --bezel-raised in some themes. */
+.p-datepicker table td.p-datepicker-today > span { color: var(--ink); background: transparent; box-shadow: inset 0 0 0 1px var(--accent); }
+.p-datepicker .p-timepicker { padding: 4px; border-top: 1px solid var(--line-strong); font-size: 12.5px; }
+.p-datepicker .p-timepicker span { font-size: 13px; font-variant-numeric: tabular-nums; }
+.p-datepicker .p-datepicker-buttonbar { padding: 6px 0 0; border-top: 1px solid var(--line-strong); }
+
 /* ── Opening and closing ─────────────────────────────────────*/
 /* PrimeReact shipped four different motions: dropdowns grew from 80% of their
    height, dialogs zoomed in from 70% of their size, the context menu took a
@@ -2701,9 +2740,32 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .tool-row__desc { color: var(--ink-2); line-height: 1.5; max-width: 72ch; }
 .tool-row__state { display: flex; align-items: baseline; flex-wrap: wrap; gap: 10px; margin-top: 2px; font-size: 12.5px; }
 .tool-row__hint { color: var(--ink-3); font-family: var(--font-family-mono); font-size: 12px; overflow-wrap: anywhere; }
-.tool-row__action { flex: 0 0 auto; align-self: center; }
+/* Top-aligned: the row grows when its health section or install guide opens. */
+.tool-row__action { flex: 0 0 auto; align-self: flex-start; margin-top: 2px; }
 .tool-row[aria-disabled="true"] .tool-row__icon { color: var(--ink-3); }
 .tool-row[aria-disabled="true"] .tool-row__title { color: var(--ink-2); }
+/* Recording health, folded under the history tool's row. */
+.tool-health { margin-top: 8px; }
+.tool-health__toggle {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 0; font: inherit; font-size: 12.5px; font-weight: 600;
+  color: var(--ink); background: none; border: none; border-radius: var(--radius-ctl); cursor: pointer;
+}
+.tool-health__toggle:hover { color: var(--ink); background: var(--bezel-high); }
+.tool-health__toggle .lamp { font-weight: 400; margin-left: 6px; }
+.tool-health__facts { margin: 6px 0 0; grid-template-columns: 11rem minmax(0, 1fr); font-size: 12.5px; max-width: 920px; }
+.tool-health__facts dt, .tool-health__facts dd { padding: 5px 0; border-bottom-color: var(--line-strong); }
+.tool-health__facts dd { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; min-width: 0; }
+.tool-health__note { color: var(--ink-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.tool-health__msg { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); }
+/* The install guide, in place of a tool that is not on the cluster. */
+.tool-install { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
+.tool-install__step { margin: 0; color: var(--ink); line-height: 1.5; }
+.tool-install__note { margin: 0; color: var(--ink-2); line-height: 1.5; font-size: 12.5px; }
+.tool-install__cmd { display: flex; align-items: flex-start; gap: 6px; }
+.tool-install__cmd pre {
+  flex: 1; min-width: 0; margin: 0; padding: 8px 10px; overflow-x: auto; font: 12px/1.6 var(--font-family-mono);
+  color: var(--ink); background: var(--screen-dark); border: 1px solid var(--line); border-radius: var(--radius-ctl);
+}
 
 /* Cluster history: filters over a change list, and the selected change as a
    YAML diff in the split's side pane. */
@@ -2729,6 +2791,117 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .history-detail__note { flex-shrink: 0; padding: 0 12px 6px; font-size: 12.5px; color: var(--ink-2); }
 .history-diff__labels { display: grid; grid-template-columns: 1fr 1fr; flex-shrink: 0; padding: 4px 12px; font-size: 12px; color: var(--ink-3); background: var(--bezel); border-top: 1px solid var(--line); }
 .history-diff { flex: 1; min-height: 0; background: var(--screen-dark); }
+/* A refused write: its facts, then the server's message in full. */
+.history-attempt { flex: 1; min-height: 0; overflow: auto; padding-bottom: 12px; }
+.history-attempt__facts { max-height: none; overflow: visible; }
+.history-attempt__uri { overflow-wrap: anywhere; }
+.history-attempt__heading { margin: 12px 12px 6px; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.history-attempt__message {
+  margin: 0 12px; padding: 8px 10px; white-space: pre-wrap; overflow-wrap: anywhere; font: 12px/1.55 var(--font-family-mono);
+  color: var(--ink); background: var(--screen-dark); border: 1px solid var(--line); border-radius: var(--radius-ctl);
+}
+.history-filters__path { flex-basis: 190px; }
+.history-filters__range { flex: 0 1 300px; min-width: 260px; }
+/* A cell value with a "filter by this" key that appears on row hover or when
+   it takes focus, so a table of filterable values does not read as a wall of
+   buttons. opacity, not display, so the key stays a Tab stop. */
+.history-cell { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; min-width: 0; }
+.history-cell__value { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.history-cell__pivot { flex-shrink: 0; opacity: 0; transition: opacity var(--dur-in) var(--ease-out); }
+.history-cell__pivot .p-button.p-button-icon-only { width: 20px; height: 20px; padding: 0; }
+.p-datatable .p-datatable-tbody > tr:hover .history-cell__pivot,
+.history-cell:focus-within .history-cell__pivot { opacity: 1; }
+/* The attribution mark: three steps of shape, decorative (the label says it). */
+.history-via { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.history-via__mark { font-size: 10px; letter-spacing: 1px; color: var(--ink-2); }
+/* History overview: headline tiles, the activity chart, three top lists. */
+.ov { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: 12px; padding: 12px; }
+.ov-note { margin: 0; font-size: 12.5px; color: var(--ink-2); }
+.ov-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.ov-tile, .ov-card { background: var(--bezel); border: 1px solid var(--line); border-radius: var(--radius-pop); }
+.ov-tile { padding: 10px 14px; }
+.ov-tile__label { font-size: 12px; color: var(--ink-2); }
+/* Proportional figures at display size; tabular only where columns align. */
+.ov-tile__value { margin-top: 2px; font-size: 26px; font-weight: 600; line-height: 1.2; color: var(--ink); font-variant-numeric: proportional-nums; }
+.ov-tile__delta { margin-top: 2px; font-size: 12px; color: var(--ink-2); }
+.ov-card { padding: 10px 14px 12px; min-width: 0; }
+.ov-card__head { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin-bottom: 8px; }
+.ov-card__title { margin: 0 0 6px; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.ov-card__head .ov-card__title { margin: 0; }
+.ov-legend { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; font-size: 12px; color: var(--ink-2); }
+.ov-legend li { display: inline-flex; align-items: center; gap: 5px; }
+.ov-key { width: 10px; height: 10px; border-radius: 2px; }
+.ov-key--create { background: var(--cat-6); }
+.ov-key--update { background: var(--cat-2); }
+.ov-key--delete { background: var(--cat-4); }
+.ov-key--finalized { background: var(--cat-1); }
+.ov-key--gap { background: repeating-linear-gradient(135deg, color-mix(in srgb, var(--warn) 55%, transparent) 0 1.5px, transparent 1.5px 4px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--warn) 40%, transparent); }
+.ov-bucket { min-width: 110px; }
+.ov-table-wrap { max-height: 260px; overflow: auto; }
+.ov-table { width: 100%; }
+.ov-table__row { cursor: pointer; }
+.ov-table__row:hover { background: var(--bezel-high); }
+.ov-tops { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.ov-top { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+/* A row is the key, its count, and a magnitude bar along its bottom edge. */
+.ov-top__row {
+  position: relative; display: flex; align-items: baseline; gap: 8px; width: 100%; padding: 5px 6px 7px; font: inherit; font-size: 12.5px;
+  color: var(--ink); text-align: left; background: none; border: none; border-radius: var(--radius-ctl);
+}
+button.ov-top__row { cursor: pointer; }
+button.ov-top__row:hover { background: var(--bezel-high); }
+.ov-top__key { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-top__row--static .ov-top__key { color: var(--ink-2); }
+.ov-top__count { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.ov-top__bar { position: absolute; left: 6px; bottom: 2px; max-width: calc(100% - 12px); height: 3px; border-radius: 0 2px 2px 0; background: color-mix(in srgb, var(--accent) 55%, transparent); }
+
+/* The rollback's own recorded change, once it shows up after a rollback. */
+.p-datatable .p-datatable-tbody > tr.history-row--rolled,
+.p-datatable .p-datatable-tbody > tr.history-row--rolled:hover { background: color-mix(in srgb, var(--ok) 10%, var(--screen)); }
+.p-datatable .p-datatable-tbody > tr.history-row--rolled > td:first-child { box-shadow: inset 2px 0 0 var(--ok); }
+/* A "History" entry point; the wrapper carries the disabled reason. */
+.history-entry { display: inline-flex; }
+
+/* Object history: the timeline above, the diff of two picked points below. */
+.obj-history__split { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.obj-history__timeline { flex: 1; min-height: 0; overflow: auto; }
+.obj-history__handle { flex-shrink: 0; height: 5px; cursor: row-resize; background: var(--bezel); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.obj-history__handle:hover { background: var(--bezel-high); }
+.obj-history__diff { flex-shrink: 0; min-height: 140px; display: flex; flex-direction: column; background: var(--screen); }
+.obj-history__diff .history-detail__controls { border-top: none; }
+.obj-history__labels { display: flex; flex-wrap: wrap; gap: 4px 16px; min-width: 0; font-size: 12px; color: var(--ink-2); }
+.obj-history__labels b { color: var(--ink); font-weight: 600; font-family: var(--font-family-mono); }
+.obj-history__waiting { font-size: 12px; color: var(--ink-2); }
+.obj-history__same { padding: 12px; }
+.obj-tl { list-style: none; margin: 0; padding: 0; font-size: 12.5px; }
+.obj-tl__row {
+  display: grid; grid-template-columns: 26px 26px 4.5rem 7rem minmax(8rem, 18rem) minmax(0, 1fr) auto;
+  align-items: center; gap: 8px; min-height: var(--row-h); padding: 0 12px; border-bottom: 1px solid var(--line); color: var(--ink);
+}
+.obj-tl__row--head { position: sticky; top: 0; z-index: 1; min-height: 30px; font-size: 12px; color: var(--ink-3); background: var(--bezel); }
+.obj-tl__row--head > span:nth-child(-n+2) { text-align: center; font-family: var(--font-family-mono); }
+.obj-tl__row--rolled { background: color-mix(in srgb, var(--ok) 10%, var(--screen)); box-shadow: inset 2px 0 0 var(--ok); }
+.obj-tl__live { grid-column: 3 / -1; color: var(--ink-2); }
+.obj-tl__clip { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.obj-tl__action { justify-self: end; }
+.obj-tl__divider { padding: 4px 12px 4px 80px; font-size: 12px; color: var(--ink-2); background: var(--well); border-bottom: 1px solid var(--line); }
+/* A recording gap: a band across the list where nothing was recorded. */
+.obj-tl__divider--gap { color: var(--ink); box-shadow: inset 2px 0 0 var(--warn); }
+.p-datatable .p-datatable-tbody > tr.history-row--gap,
+.p-datatable .p-datatable-tbody > tr.history-row--gap:hover { background: var(--well); cursor: default; }
+.p-datatable .p-datatable-tbody > tr.history-row--gap > td { overflow: visible; color: var(--ink-2); }
+.p-datatable .p-datatable-tbody > tr.history-row--gap > td:first-child { box-shadow: inset 2px 0 0 var(--warn); }
+/* Zero width, so the band's long text spills across the empty cells after it
+   instead of widening the Object column for every row. */
+.history-gap { display: inline-block; width: 0; overflow: visible; white-space: nowrap; color: var(--ink); }
+/* The A / B keys: which two recorded points the diff below compares. */
+.obj-tl__pick {
+  width: 22px; height: 22px; padding: 0; font: 600 11px var(--font-family-mono); color: var(--ink-2);
+  background: transparent; border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); cursor: pointer;
+  transition: background var(--dur-in) var(--ease-out), border-color var(--dur-in) var(--ease-out);
+}
+.obj-tl__pick:hover { color: var(--ink); background: var(--bezel-high); }
+.obj-tl__pick[aria-pressed="true"] { color: var(--ink); background: color-mix(in srgb, var(--accent) 18%, transparent); border-color: var(--accent); }
 .row-actions { display: flex; gap: 2px; }
 .row-actions--end { justify-content: flex-end; }
 /* CLI Mode: the TUI on the terminal screen, under a panel toolbar. */

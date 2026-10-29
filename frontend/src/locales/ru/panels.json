@@ -12,7 +12,8 @@
     "resourceGraph": "Граф ресурсов",
     "describe": "Describe: {{name}}",
     "toolbox": "Toolbox",
-    "clusterHistory": "История кластера"
+    "clusterHistory": "История кластера",
+    "objectHistory": "История {{name}}"
   },
   "portForward": {
     "startedSummary": "Проброс порта запущен",
@@ -917,6 +918,50 @@
       "notInstalled": "Установите Helm-чарт toolbox в этот кластер, чтобы записывать изменения.",
       "forbidden": "Ваши права не позволяют прочитать API-токен toolbox или обратиться к нему через API-сервер.",
       "unreachable": "toolbox найден, но не ответил."
+    },
+    "health": {
+      "title": "Состояние записи",
+      "attention": "Требует внимания",
+      "unsupported": "Эта версия toolbox не сообщает о своём состоянии. Обновите toolbox, чтобы его увидеть.",
+      "ago": "{{age}} назад",
+      "off": "Выключено",
+      "quiet": "Ничего за последние 24 часа",
+      "noAdmission": "Пользователи и группы не записываются.",
+      "noAudit": "IP-адреса и user agent не записываются.",
+      "admission": "Admission webhook",
+      "audit": "Audit webhook",
+      "leader": "Лидер",
+      "noLeader": "Нет лидера — изменения не записываются",
+      "leaderSince": "лидер уже {{age}}",
+      "watching_one": "{{count}} ресурс",
+      "watching_few": "{{count}} ресурса",
+      "watching_many": "{{count}} ресурсов",
+      "watching_other": "{{count}} ресурса",
+      "staleBeat": "Последний heartbeat был {{age}} назад.",
+      "coverage": "Покрытие (7 дней)",
+      "noCoverage": "Пока нет данных",
+      "coverageRatio": "записано {{ratio}}%",
+      "lastGap": "последний пропуск {{age}} назад, {{duration}}",
+      "noGaps": "пропусков нет",
+      "coverageSince": "Считается с {{since}}, когда этот toolbox начал сообщать.",
+      "attribution": "Источник (24 ч)",
+      "noChanges": "Нет изменений",
+      "config": "Настройки",
+      "retention": "хранится {{days}} дн.",
+      "statusOn": "изменения status записываются",
+      "statusOff": "изменения status не записываются",
+      "excluded_one": "{{count}} исключение",
+      "excluded_few": "{{count}} исключения",
+      "excluded_many": "{{count}} исключений",
+      "excluded_other": "{{count}} исключения"
+    },
+    "install": {
+      "intro": "toolbox не установлен. Установите его через Helm (нужен cluster-admin):",
+      "copy": "Скопировать команду",
+      "copied": "Скопировано",
+      "audit": "Чтобы записывать IP-адреса и user agent, подключите audit webhook к kube-apiserver: добавьте --set audit.service.clusterIP=<свободный IP в service CIDR>, затем выполните шаги из вывода `helm get notes toolbox -n toolbox`.",
+      "managed": "В управляемых кластерах (EKS, GKE, AKS) API-сервер не настраивается, но пользователи и группы всё равно записываются через admission webhook.",
+      "guide": "Полное руководство по установке"
     }
   },
   "clusterHistory": {
@@ -924,6 +969,7 @@
     "viewAria": "Вид истории",
     "refresh": "Обновить",
     "view": {
+      "overview": "Обзор",
       "changes": "Изменения",
       "attempts": "Отклонённые",
       "users": "Пользователи"
@@ -934,14 +980,20 @@
       "resource": "Ресурс",
       "user": "Пользователь",
       "anyVerb": "Любое действие",
-      "sinceAria": "Период"
+      "sinceAria": "Период",
+      "kind": "Тип",
+      "name": "Имя",
+      "path": "Путь, напр. /spec/replicas",
+      "anySource": "Любой источник",
+      "range": "Выберите период"
     },
     "since": {
       "1h": "1 час",
       "24h": "24 часа",
       "168h": "7 дней",
       "720h": "30 дней",
-      "all": "За всё время"
+      "all": "За всё время",
+      "custom": "Свой период…"
     },
     "col": {
       "time": "Время",
@@ -949,7 +1001,6 @@
       "object": "Объект",
       "namespace": "Namespace",
       "user": "Пользователь",
-      "sourceIp": "IP-источник",
       "via": "Источник",
       "changed": "Изменено",
       "response": "Ответ",
@@ -1015,7 +1066,112 @@
       "blocked": {
         "secretRedacted": "Secret нельзя откатить: toolbox не хранит их значения.",
         "noVersion": "Слева нет версии для восстановления."
+      },
+      "dryRun": {
+        "running": "Проверка на API-сервере…",
+        "ok": "API-сервер принимает это изменение (dry run).",
+        "failed": "API-сервер отклонит это изменение:"
       }
+    },
+    "pivot": {
+      "namespace": "Фильтровать по этому Namespace",
+      "object": "Фильтровать по этому объекту",
+      "user": "Фильтровать по этому пользователю"
+    },
+    "via": {
+      "audit": "Audit",
+      "admission": "Admission",
+      "managedFields": "Field manager",
+      "none": "Неизвестно"
+    },
+    "viaHint": {
+      "audit": "Журнал аудита: пользователь, группы, IP-адрес и user agent.",
+      "admission": "Admission webhook: пользователь и группы, без сетевых данных.",
+      "managedFields": "Только имя клиента, сделавшего запись; пользователь неизвестен.",
+      "none": "Ни один источник не указал, кто внёс это изменение."
+    },
+    "gap": {
+      "closed": "Не записано {{from}} – {{to}} ({{duration}}): изменений за это время нет.",
+      "open": "Запись не ведётся с {{from}} ({{duration}}): лидер toolbox не запущен."
+    },
+    "overview": {
+      "total_one": "{{count}} изменение",
+      "total_few": "{{count}} изменения",
+      "total_many": "{{count}} изменений",
+      "total_other": "{{count}} изменения",
+      "same": "Как в предыдущем периоде",
+      "newSince": "В предыдущем периоде не было",
+      "up": "▲ на {{pct}}% к предыдущему периоду",
+      "down": "▼ на {{pct}}% к предыдущему периоду",
+      "points": "{{before}}% в предыдущем периоде",
+      "noTotals": "Обновите toolbox, чтобы видеть итоговые числа; график и списки ниже уже работают.",
+      "activity": "Активность",
+      "legend": "Действия",
+      "gapKey": "Не записано",
+      "bucket": "Ширина столбца",
+      "per": "за {{width}}",
+      "modeAria": "Показать как",
+      "chart": "График",
+      "table": "Таблица",
+      "totalCol": "Всего",
+      "none": "За этот период ничего нет.",
+      "clusterScoped": "(на уровне кластера)",
+      "showChanges": "Показать изменения {{name}}",
+      "tile": {
+        "changes": "Изменения",
+        "deletes": "Удаления",
+        "attempts": "Отклонённые запросы",
+        "unattributed": "Без источника"
+      },
+      "top": {
+        "resources": "Чаще всего меняемые ресурсы",
+        "users": "Самые активные пользователи",
+        "namespaces": "Самые активные Namespace"
+      }
+    },
+    "export": {
+      "button": "Экспорт",
+      "csv": "CSV (таблица)",
+      "json": "JSON (с патчами)",
+      "done_one": "Экспортирована {{count}} строка",
+      "done_few": "Экспортировано {{count}} строки",
+      "done_many": "Экспортировано {{count}} строк",
+      "done_other": "Экспортировано {{count}} строки",
+      "truncated_one": "Экспортирована только последняя {{count}} строка",
+      "truncated_few": "Экспортированы только последние {{count}} строки",
+      "truncated_many": "Экспортированы только последние {{count}} строк",
+      "truncated_other": "Экспортированы только последние {{count}} строки",
+      "truncatedDetail": "Фильтру соответствует больше {{limit}} строк; сузьте его, чтобы экспортировать остальные. Сохранено: {{path}}",
+      "failed": "Экспорт не удался"
+    },
+    "attempt": {
+      "requestUri": "Запрос",
+      "message": "Ответ сервера"
+    },
+    "live": "В реальном времени",
+    "liveHint": "Новые изменения появляются, как только toolbox их записывает."
+  },
+  "objectHistory": {
+    "open": "История",
+    "live": "Текущее состояние",
+    "liveGone": "Удалён — сейчас его нет в кластере",
+    "after": "после {{verb}} ({{user}}) в {{time}}",
+    "pickA": "Сравнить от: {{version}}",
+    "pickB": "Сравнить с: {{version}}",
+    "timelineAria": "Записанные изменения, новые сверху",
+    "recreated": "Создан заново: uid {{from}}… → {{to}}…",
+    "empty": "toolbox не записал изменений этого объекта.",
+    "compareLive": "Сравнить с текущим",
+    "waiting": "Ожидание, пока toolbox запишет откат…",
+    "restore": {
+      "button": "Восстановить",
+      "message": "{{kind}} {{name}} будет заменён версией, записанной после изменения в {{time}}. Поля, добавленные позже, будут удалены.",
+      "recreate": "{{kind}} {{name}} больше не существует и будет создан заново в том виде, в каком был после изменения в {{time}}."
+    },
+    "unavailable": {
+      "notInstalled": "В этом кластере toolbox не установлен.",
+      "forbidden": "Ваши права не позволяют читать toolbox в этом кластере.",
+      "unreachable": "toolbox в этом кластере не ответил."
     }
   }
 }

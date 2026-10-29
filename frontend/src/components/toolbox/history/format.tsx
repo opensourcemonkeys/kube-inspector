@@ -1,3 +1,4 @@
+import { humanAge } from '../../../lib/time';
 import StatusLamp, { type LampTone } from '../../shared/StatusLamp';
 
 // toolbox verbs are data (the API verb class that happened), so they are shown
@@ -14,4 +15,9 @@ export function formatTime(iso: string): string {
     if (Number.isNaN(d.getTime())) return iso;
     const p = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+
+/** A list cell's time: kubectl-style age, the exact time on hover. */
+export function AgeCell({ iso }: { iso: string }) {
+    return <span title={formatTime(iso)}>{humanAge(iso)}</span>;
 }

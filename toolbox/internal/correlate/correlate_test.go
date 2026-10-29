@@ -140,6 +140,11 @@ func TestMetadataLevelAuditByTimeAndHintsAreSpentOnce(t *testing.T) {
 		{ID: "only", Source: model.HintAudit, Time: h.now.Add(-200 * time.Millisecond), Verb: model.VerbUpdate, Key: key(), Actor: model.Actor{Username: "alice"}},
 	}
 	h.advance(15 * time.Second)
+	// The change without a hint waits for its retry before it is written.
+	if len(h.written) != 1 {
+		t.Fatalf("written = %d", len(h.written))
+	}
+	h.advance(90 * time.Second)
 	if len(h.written) != 2 {
 		t.Fatalf("written = %d", len(h.written))
 	}
@@ -172,47 +177,66 @@ func TestTimeMatchWaitsForLaterChangesStillPending(t *testing.T) {
 		Time: h.now.Add(-7 * time.Millisecond), Verb: model.VerbUpdate, Key: key(), Actor: model.Actor{Username: "alice"}}}
 
 	h.advance(12700 * time.Millisecond) // only the controller's change is due
-	if len(h.written) != 1 || h.written[0].Actor.Username != "" {
+	// It found no hint of its own and waits for its retry; had it taken the
+	// scale's hint it would have been written now.
+	if len(h.written) != 0 {
 		t.Fatalf("earlier change took the later change's hint: %+v", h.written)
 	}
 	h.advance(3 * time.Second)
-	if len(h.written) != 2 || h.written[1].ResourceVersion != "3" || h.written[1].Actor.Username != "alice" {
+	if len(h.written) != 1 || h.written[0].ResourceVersion != "3" || h.written[0].Actor.Username != "alice" {
 		t.Fatalf("scale not attributed: %+v", h.written)
+	}
+	h.advance(90 * time.Second)
+	if len(h.written) != 2 || h.written[1].ResourceVersion != "2" || h.written[1].Actor.Username != "" {
+		t.Fatalf("controller change not written unattributed after its retry: %+v", h.written)
 	}
 }
 
-func TestFallbackThenLateHintRewrites(t *testing.T) {
+func TestUnmatchedWaitsForRetryAndIsWrittenOnce(t *testing.T) {
 	h := newHarness()
 	h.update(deploy("1", 1), deploy("2", 3))
 	h.advance(15 * time.Second)
-	if ch := h.written[0]; ch.Attribution != model.AttrManagedFields || ch.Version != 1 || ch.Actor.Username != "" {
-		t.Fatalf("first write = %+v", ch)
+	// No hint yet: held for the retry, not written unattributed.
+	if len(h.written) != 0 {
+		t.Fatalf("written before the retry: %+v", h.written)
 	}
-	first := h.written[0]
+	observed := h.now.Add(-15 * time.Second)
 
-	h.hints.hints = []model.Hint{{ID: "late", Source: model.HintAudit, Time: first.Time.Add(-time.Second),
+	h.hints.hints = []model.Hint{{ID: "late", Source: model.HintAudit, Time: observed.Add(-time.Second),
 		Verb: model.VerbUpdate, Key: key(), ResourceVersion: "2", Actor: model.Actor{Username: "alice"}}}
 	h.advance(80 * time.Second)
-	if len(h.written) != 2 {
+	if len(h.written) != 1 {
 		t.Fatalf("written = %d", len(h.written))
 	}
-	re := h.written[1]
-	if re.EventID != first.EventID || re.Time != first.Time || re.Version != 2 || re.Actor.Username != "alice" {
-		t.Fatalf("rewrite must keep the row key and bump the version: %+v", re)
+	if ch := h.written[0]; ch.Version != 1 || ch.Actor.Username != "alice" || ch.Attribution != model.AttrAudit {
+		t.Fatalf("a late hint must still attribute the one write: %+v", ch)
 	}
 	h.advance(5 * time.Minute)
-	if len(h.written) != 2 {
-		t.Fatal("retried more than once")
+	if len(h.written) != 1 {
+		t.Fatal("written more than once")
 	}
 }
 
-func TestNoRetryRewriteWhenStillUnattributed(t *testing.T) {
+func TestStillUnattributedIsWrittenWithFallback(t *testing.T) {
 	h := newHarness()
 	h.update(deploy("1", 1), deploy("2", 3))
 	h.advance(15 * time.Second)
 	h.advance(2 * time.Minute)
 	if len(h.written) != 1 {
 		t.Fatalf("written = %d", len(h.written))
+	}
+	if ch := h.written[0]; ch.Attribution != model.AttrManagedFields || ch.Version != 1 || ch.Actor.Username != "" {
+		t.Fatalf("fallback write = %+v", ch)
+	}
+}
+
+func TestShutdownFlushesHeldRetries(t *testing.T) {
+	h := newHarness()
+	h.update(deploy("1", 1), deploy("2", 3))
+	h.advance(15 * time.Second) // now held for the retry
+	h.c.Step(context.Background(), true)
+	if len(h.written) != 1 || h.written[0].Attribution != model.AttrManagedFields {
+		t.Fatalf("held change lost on shutdown: %+v", h.written)
 	}
 }
 

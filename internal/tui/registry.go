@@ -40,6 +40,11 @@ type rowAction struct {
 	// first and pass it to runArg instead of calling run.
 	promptLabel string
 	runArg      func(cluster, name, namespace, arg string) error
+	// custom, when set, takes the key over entirely: it runs even with no row
+	// selected (row is nil then) and does its own confirming and reporting,
+	// calling reload when the list should be read again. For flows the
+	// run/confirm pair cannot express, like a dry run before the confirmation.
+	custom func(a *App, row *rowData, reload func())
 }
 
 // resourceDef binds a menu view to the business functions that back it. The
@@ -62,6 +67,11 @@ type resourceDef struct {
 	// parent names the registry view Esc/q returns to on a drilled-into child
 	// list; empty on top-level views (where back just refocuses the menu).
 	parent string
+	// noDescribe turns Enter's describe pane off, for rows that are not
+	// Kubernetes objects (recorded changes).
+	noDescribe bool
+	// hints replaces the list screen's standard key hints when set.
+	hints string
 }
 
 type menuItem struct {
@@ -631,6 +641,7 @@ func buildRegistry() ([]menuGroup, map[string]*resourceDef) {
 				run: func(_, name, _ string) error { return business.StopPortForward(name) },
 			}},
 		},
+		historyDef(),
 		{
 			view: "crds", title: "CRDs", namespaced: false,
 			headers: []string{"NAME", "GROUP", "KIND", "SCOPE", "VERSION", "AGE"},
@@ -670,7 +681,7 @@ func buildRegistry() ([]menuGroup, map[string]*resourceDef) {
 		{"CONFIG & SECRETS", []menuItem{{"ConfigMaps", "configmaps"}, {"Secrets", "secrets"}}},
 		{"SECURITY", []menuItem{{"Service Accounts", "serviceaccounts"}, {"Roles", "roles"}, {"Role Bindings", "rolebindings"}}},
 		{"STORAGE", []menuItem{{"Persistent Volumes", "persistentvolumes"}, {"Volume Claims", "persistentvolumeclaims"}, {"Storage Classes", "storageclasses"}}},
-		{"CLUSTER", []menuItem{{"Monitoring", "monitoring"}, {"Nodes", "nodes"}, {"Namespaces", "namespaces"}, {"Events", "events"}, {"Resource Quotas", "resourcequotas"}, {"Limit Ranges", "limitranges"}, {"CRDs", "crds"}, {"Port Forwards", "portforwards"}, {"Apply YAML", "applyyaml"}}},
+		{"CLUSTER", []menuItem{{"Monitoring", "monitoring"}, {"Nodes", "nodes"}, {"Namespaces", "namespaces"}, {"Events", "events"}, {"Resource Quotas", "resourcequotas"}, {"Limit Ranges", "limitranges"}, {"CRDs", "crds"}, {"Port Forwards", "portforwards"}, {"Cluster History", "history"}, {"Apply YAML", "applyyaml"}}},
 	}
 
 	return groups, reg

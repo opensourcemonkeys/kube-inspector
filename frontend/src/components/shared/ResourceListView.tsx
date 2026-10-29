@@ -8,10 +8,12 @@ import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
 import { Menu } from 'primereact/menu';
 import type { MenuItem } from 'primereact/menuitem';
-import { VscInfo, VscArrowSwap, VscKebabVertical } from 'react-icons/vsc';
+import { VscInfo, VscArrowSwap, VscKebabVertical, VscHistory } from 'react-icons/vsc';
 import { useResourceList, ResourceRow } from '../../lib/useResourceList';
 import { useT } from '../../i18n/useT';
 import { useTabContext } from '../../contexts/TabContext';
+import { useToolboxStatus, useToolboxStatusStore } from '../../stores/toolboxStatusStore';
+import { historyUnavailable } from '../toolbox/history/HistoryButton';
 import ErrorBanner from './ErrorBanner';
 import { ListSkeleton } from './PanelSkeleton';
 import { ROW_HEIGHT } from '../../lib/tableMetrics';
@@ -257,7 +259,12 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
     });
 
     const deletable = !!deleter;
-    const { openDescribePanel } = useTabContext();
+    const { openDescribePanel, openObjectHistory } = useTabContext();
+    const toolboxStatus = useToolboxStatus(clusterName);
+    const ensureToolboxStatus = useToolboxStatusStore((st) => st.ensure);
+    // One shared, cached check per cluster, so the History item in the row
+    // menu already knows whether toolbox answers when the menu opens.
+    useEffect(() => { if (describeResource) ensureToolboxStatus(clusterName); }, [describeResource, clusterName, ensureToolboxStatus]);
     const filtersActive = useMemo(() => hasFilterValue(filters), [filters]);
     // How many rows survive the filters, for the toolbar count. DataTable
     // reports it through onValueChange; null until it has.
@@ -344,6 +351,25 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                 icon: <VscInfo size={13} />,
                 command: () =>
                     openDescribePanel({
+                        clusterName,
+                        resource: describeResource,
+                        name: row.name,
+                        namespace: row.namespace ?? '',
+                        referencePanel: `${describeResource}:${clusterName}`,
+                    }),
+            });
+        }
+        if (describeResource) {
+            // Held off where toolbox cannot answer; while the check is still
+            // running it stays on and the panel itself says what is wrong.
+            const reason = historyUnavailable(t, toolboxStatus);
+            items.push({
+                label: t('panels:objectHistory.open'),
+                icon: <VscHistory size={13} />,
+                disabled: !!reason,
+                template: reason ? (_item, options) => <div title={reason}>{options.element}</div> : undefined,
+                command: () =>
+                    openObjectHistory({
                         clusterName,
                         resource: describeResource,
                         name: row.name,

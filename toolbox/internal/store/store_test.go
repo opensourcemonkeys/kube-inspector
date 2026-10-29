@@ -142,17 +142,108 @@ func TestWriteAndQuery(t *testing.T) {
 		t.Fatalf("HintsFor = %+v, %v", hints, err)
 	}
 
-	att, err := s.ListAttempts(qctx, AttemptFilter{Cluster: "c1", MinCode: 400})
-	if err != nil || len(att) != 1 || att[0].Username != "eve" {
-		t.Fatalf("ListAttempts = %+v, %v", att, err)
+	att, next, err := s.ListAttempts(qctx, AttemptFilter{Cluster: "c1", MinCode: 400})
+	if err != nil || len(att) != 1 || att[0].Username != "eve" || next != "" {
+		t.Fatalf("ListAttempts = %+v, %q, %v", att, next, err)
+	}
+	if _, _, err := s.ListAttempts(qctx, AttemptFilter{Cluster: "c1", Cursor: "!!"}); err != ErrBadCursor {
+		t.Fatalf("bad cursor: %v", err)
 	}
 
-	st, err := s.Stats(qctx, "c1", base.Add(-time.Hour), time.Hour)
+	st, err := s.Stats(qctx, StatsFilter{Cluster: "c1", Since: base.Add(-time.Hour), Until: base.Add(time.Minute), Bucket: time.Hour})
 	if err != nil || len(st.Buckets) == 0 || len(st.ByUser) != 2 {
 		t.Fatalf("Stats = %+v, %v", st, err)
+	}
+	// Two changes (the re-attributed one counted once), one refused write;
+	// nothing in the hour before.
+	if st.Totals != (Totals{Changes: 2, Attempts: 1}) || st.Previous != (Totals{}) {
+		t.Fatalf("totals = %+v previous = %+v", st.Totals, st.Previous)
+	}
+	if st, err := s.Stats(qctx, StatsFilter{Cluster: "c1", Namespace: "other", Since: base.Add(-time.Hour), Bucket: time.Hour}); err != nil || st.Totals.Changes != 0 {
+		t.Fatalf("namespace filter: %+v %v", st, err)
 	}
 	users, err := s.Users(qctx, "c1", base.Add(-time.Hour), 10)
 	if err != nil || len(users) != 2 {
 		t.Fatalf("Users = %+v, %v", users, err)
+	}
+	for _, u := range users {
+		if u.Creates+u.Updates+u.Deletes+u.Finalized != u.Changes {
+			t.Fatalf("verb counts do not add up: %+v", u)
+		}
+		if u.Username == "alice" && u.Creates != 1 || u.Username == "bob" && u.Updates != 1 {
+			t.Fatalf("verb counts: %+v", u)
+		}
+	}
+}
+
+func TestAttemptsCursor(t *testing.T) {
+	s := testStore(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	aw := s.AuditWriter()
+	go aw.Run(ctx)
+	at := time.Now().UTC().Truncate(time.Millisecond)
+	// Two share a timestamp: the audit ID breaks the tie, or a page boundary
+	// between them would repeat or skip one.
+	for i, id := range []string{"a1", "a2", "a3"} {
+		ts := at
+		if i == 2 {
+			ts = at.Add(-time.Second)
+		}
+		aw.Put(model.AuditRecord{Time: ts, Cluster: "c1", AuditID: id, Verb: "update", Resource: "pods", Namespace: "ns",
+			Name: "p", Username: "eve", ResponseCode: 409})
+	}
+	cancel()
+	<-aw.Done()
+
+	var seen []string
+	cursor := ""
+	for page := 0; page < 5; page++ {
+		items, next, err := s.ListAttempts(context.Background(), AttemptFilter{Cluster: "c1", MinCode: 400, Limit: 1, Cursor: cursor})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, a := range items {
+			seen = append(seen, a.AuditID)
+		}
+		if next == "" {
+			break
+		}
+		cursor = next
+	}
+	if strings.Join(seen, ",") != "a2,a1,a3" {
+		t.Fatalf("pages = %v", seen)
+	}
+}
+
+func TestRecentChanges(t *testing.T) {
+	s := testStore(t)
+	ctx, cancel := context.WithCancel(context.Background())
+	cw := s.ChangeWriter()
+	go cw.Run(ctx)
+	now := time.Now().UTC().Truncate(time.Millisecond)
+	mk := func(at time.Time, ns string, ver uint32) model.Change {
+		return model.Change{EventID: uuid.New(), Version: ver, Time: at, Cluster: "c1", Verb: model.VerbUpdate,
+			Resource: "configmaps", Kind: "ConfigMap", Namespace: ns, Name: "cm", Attribution: model.AttrAdmission}
+	}
+	recent, late, other, old := mk(now.Add(-10*time.Second), "a", 1), mk(now.Add(-100*time.Second), "a", 1), mk(now, "b", 1), mk(now.Add(-time.Hour), "a", 1)
+	rewrite := mk(now, "a", 2) // a second version: an older toolbox's re-write, not news
+	for _, c := range []model.Change{recent, late, other, old, rewrite} {
+		cw.Put(c)
+	}
+	cancel()
+	<-cw.Done()
+
+	f := ChangeFilter{Cluster: "c1", Namespace: "a"}
+	got, err := s.RecentChanges(context.Background(), f, now.Add(-3*time.Minute), map[uuid.UUID]time.Time{}, 100)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// Oldest first; the change written late (event time 100s ago) is caught.
+	if len(got) != 2 || got[0].EventID != late.EventID || got[1].EventID != recent.EventID {
+		t.Fatalf("got = %+v", got)
+	}
+	seen := map[uuid.UUID]time.Time{late.EventID: now}
+	if got, _ := s.RecentChanges(context.Background(), f, now.Add(-3*time.Minute), seen, 100); len(got) != 1 || got[0].EventID != recent.EventID {
+		t.Fatalf("seen not skipped: %+v", got)
 	}
 }

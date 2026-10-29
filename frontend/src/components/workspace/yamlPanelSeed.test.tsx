@@ -31,6 +31,9 @@ vi.mock('@monaco-editor/react', async () => {
 
 // Both pull real Monaco in for its side effects; neither is what is under test.
 vi.mock('../../lib/monacoBootstrap', () => ({}));
+// The History entry point needs TabContext and a toolbox check; neither is
+// what this file is about.
+vi.mock('../toolbox/history/HistoryButton', () => ({ default: () => null }));
 vi.mock('../../lib/k8sYamlIntellisense', () => ({
     ensureK8sYamlIntellisense: () => Promise.resolve(),
     k8sYamlSuggestOptions: {},
@@ -53,10 +56,11 @@ beforeEach(() => { rec.values = []; });
 
 describe('YAML panels never seed Monaco with a placeholder', () => {
     it('YamlEditorPanel mounts the editor with the fetched document', async () => {
-        // The panels read `params` and nothing else off dockview's panel
-        // props, so the cast is what keeps this test from faking a dockview.
+        // The panels read `params` and `api.id` (History's tab placement) off
+        // dockview's panel props, so the cast keeps this test from faking a dockview.
         const props = {
             params: { clusterName: 'c', resourceKind: 'deployment', name: 'api', namespace: 'default' },
+            api: { id: 'test-panel' },
         } as unknown as ComponentProps<typeof YamlEditorPanel>;
         const { queryByTestId } = render(<YamlEditorPanel {...props} />);
 
@@ -74,6 +78,7 @@ describe('YAML panels never seed Monaco with a placeholder', () => {
                 clusterName: 'c', kind: 'Widget', group: 'example.com',
                 resource: 'widgets', name: 'w1', namespace: 'default',
             },
+            api: { id: 'test-panel' },
         } as unknown as ComponentProps<typeof ObjectYamlPanel>;
         const { queryByTestId } = render(<ObjectYamlPanel {...props} />);
 

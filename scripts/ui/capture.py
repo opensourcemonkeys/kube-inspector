@@ -381,6 +381,88 @@ def cluster_error(d, shot):
         time.sleep(2)
 
 
+def open_toolbox(d):
+    need(d.execute_script(
+        "const b = document.querySelector('.cluster-header__icon-btn[title=\"Toolbox\"]'); if (b) { b.click(); return true; } return false;"
+    ), "no Toolbox button")
+    time.sleep(3)
+
+
+def toolbox(d, shot):
+    open_toolbox(d)
+    shot(1)
+
+
+def open_history(d):
+    open_toolbox(d)
+    # The history row's Open button is disabled until toolbox answers.
+    need(d.execute_script(
+        "const b = document.querySelector('.tool-row:not([aria-disabled=\"true\"]) .tool-row__action');"
+        "if (b && !b.disabled) { b.click(); return true; } return false;"
+    ), "toolbox not usable on this cluster")
+    time.sleep(4)
+
+
+def history_since(d, label):
+    """Pick a time range preset (or "Custom range…") in the history filters."""
+    need(d.execute_script(
+        "const dd = document.querySelector('.history-filters .p-dropdown[aria-label=\"Time range\"], .history-filters .p-dropdown:last-of-type');"
+        "if (dd) { dd.click(); return true; } return false;"
+    ), "no time range dropdown")
+    time.sleep(0.6)
+    need(js_click_text(d, ".p-dropdown-item", label, exact=False), f"no {label!r} option")
+    time.sleep(2)
+
+
+def history_view(d, label):
+    """Switch the history panel to one of its views (it opens on Overview)."""
+    need(js_click_text(d, ".history-panel .panel-toolbar button", label), f"no {label!r} view")
+    time.sleep(2)
+
+
+def history_overview(d, shot):
+    open_history(d)
+    history_since(d, "7 days")
+    shot(4)
+
+
+def cluster_history(d, shot):
+    open_history(d)
+    history_view(d, "Changes")
+    # A quiet test cluster may have nothing in the default 24 hours.
+    history_since(d, "30 days")
+    # Hover a row so the pivot keys show, and open the first change's diff.
+    row = first_row(d)
+    need(row, "no recorded changes")
+    ActionChains(d).move_to_element(row).perform()
+    d.execute_script("arguments[0].querySelector('td')?.click()", row)
+    shot(4)
+
+
+def history_range(d, shot):
+    open_history(d)
+    history_view(d, "Changes")
+    history_since(d, "Custom range")
+    need(d.execute_script(
+        "const i = document.querySelector('.history-filters__range input'); if (i) { i.click(); i.focus(); return true; } return false;"
+    ), "no range input")
+    shot(1)
+
+
+def object_history(d, shot):
+    need(nav(d, "Deployments"), "no Deployments item")
+    time.sleep(3)
+    row = first_row(d)
+    need(row, "no deployments")
+    need(d.execute_script(
+        "const b = arguments[0].querySelector('button[aria-label=\"More actions\"]'); if (b) { b.click(); return true; } return false;",
+        row,
+    ), "no More actions button")
+    time.sleep(0.5)
+    need(js_click_text(d, ".p-menuitem-link", "History", exact=False), "no History item")
+    shot(6)
+
+
 SCENARIOS = [(name, list_scenario(item, s)) for name, item, s in LISTS] + [
     ("pod-detail", pod_detail),
     ("pod-yaml", pod_yaml),
@@ -408,6 +490,11 @@ SCENARIOS = [(name, list_scenario(item, s)) for name, item, s in LISTS] + [
     ("focus-keyboard", focus_keyboard),
     ("sidebar-collapsed", sidebar_collapsed),
     ("cluster-error", cluster_error),
+    ("toolbox", toolbox),
+    ("history-overview", history_overview),
+    ("cluster-history", cluster_history),
+    ("history-range", history_range),
+    ("object-history", object_history),
 ]
 
 NARROW = [

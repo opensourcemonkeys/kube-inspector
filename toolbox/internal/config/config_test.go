@@ -71,3 +71,28 @@ retention:
 		t.Fatal("delay >= retryAfter accepted")
 	}
 }
+
+func TestRecorderConfig(t *testing.T) {
+	p := filepath.Join(t.TempDir(), "config.yaml")
+	if err := os.WriteFile(p, []byte("recorder:\n  heartbeatInterval: 10s\n  gapThreshold: 30s\nsources:\n  auditWebhook: false\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	c, err := Load(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.Recorder.HeartbeatInterval.Duration != 10*time.Second || c.Recorder.GapThreshold.Duration != 30*time.Second {
+		t.Fatalf("recorder = %+v", c.Recorder)
+	}
+	// A key left out keeps its default.
+	if c.Sources.AuditWebhook || !c.Sources.AdmissionWebhook {
+		t.Fatalf("sources = %+v", c.Sources)
+	}
+	// A threshold no longer than the interval would report every beat as a gap.
+	if err := os.WriteFile(p, []byte("recorder:\n  heartbeatInterval: 30s\n  gapThreshold: 30s\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Load(p); err == nil {
+		t.Fatal("threshold == interval accepted")
+	}
+}

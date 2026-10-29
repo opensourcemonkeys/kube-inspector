@@ -43,6 +43,7 @@ const rawComponents = {
     clusterResource: lazy(() => import('../clusterresource/ClusterResourcePanel')),
     toolbox: lazy(() => import('../toolbox/ToolboxPanel')),
     clusterHistory: lazy(() => import('../toolbox/history/ClusterHistoryPanel')),
+    objectHistory: lazy(() => import('../toolbox/history/ObjectHistoryPanel')),
     configMapEditor: lazy(() => import('../configmap/ConfigMapEditorPanel')),
     secretEditor: lazy(() => import('../secret/SecretEditorPanel')),
     podExec: lazy(() => import('../pod/PodExecPanel')),

@@ -26,6 +26,9 @@ var migrations embed.FS
 type Store struct {
 	conn driver.Conn
 	db   string
+	// rollupSince is when changes_hourly started filling; zero when it has
+	// not (the Stats queries then read changes alone).
+	rollupSince time.Time
 }
 
 // Open connects, creates the database if needed and applies migrations.
@@ -42,6 +45,9 @@ func Open(ctx context.Context, c config.ClickHouse) (*Store, error) {
 	}
 	s := &Store{conn: conn, db: c.Database}
 	if err := s.migrate(ctx); err != nil {
+		return nil, err
+	}
+	if err := s.loadRollupSince(ctx); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -163,6 +169,8 @@ func (s *Store) EnsureRetention(ctx context.Context, r config.Retention) error {
 	}{
 		"changes":   {"event_time", r.ChangesDays},
 		"audit_raw": {"ts", r.AuditRawDays},
+		// The rollup answers for the same period changes does.
+		"changes_hourly": {"hour", r.ChangesDays},
 	}
 	for table, w := range want {
 		var engine string
@@ -182,4 +190,18 @@ func (s *Store) EnsureRetention(ctx context.Context, r config.Retention) error {
 		slog.Info("retention updated", "table", table, "days", w.days)
 	}
 	return nil
+}
+
+func (s *Store) loadRollupSince(ctx context.Context) error {
+	rows, err := s.conn.Query(ctx, "SELECT since FROM rollup_state FINAL WHERE name = 'changes_hourly'")
+	if err != nil {
+		return fmt.Errorf("read rollup state: %w", err)
+	}
+	defer rows.Close()
+	if rows.Next() {
+		if err := rows.Scan(&s.rollupSince); err != nil {
+			return err
+		}
+	}
+	return rows.Err()
 }

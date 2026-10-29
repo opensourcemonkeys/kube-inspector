@@ -12,6 +12,7 @@ import { Toast } from 'primereact/toast';
 import { GetObjectYaml, UpdateObjectYaml } from '../../../wailsjs/go/controller_app/App';
 import { useT } from '../../i18n/useT';
 import PanelLoading from '../shared/PanelLoading';
+import HistoryButton from '../toolbox/history/HistoryButton';
 
 interface ObjectYamlPanelParams {
     clusterName: string;
@@ -25,7 +26,7 @@ interface ObjectYamlPanelParams {
 // Generic YAML view/edit panel for any Kubernetes object identified by
 // (group, resource, namespace, name). Backed by the dynamic-client
 // GetObjectYaml / UpdateObjectYaml RPCs.
-export default function ObjectYamlPanel({ params }: IDockviewPanelProps<ObjectYamlPanelParams>) {
+export default function ObjectYamlPanel({ params, api }: IDockviewPanelProps<ObjectYamlPanelParams>) {
     useMonacoTheme();
     const t = useT();
     const { clusterName, kind, group, resource, name, namespace } = params;
@@ -94,6 +95,7 @@ export default function ObjectYamlPanel({ params }: IDockviewPanelProps<ObjectYa
                     {kind ? kind + ' · ' : ''}{titleLabel}
                 </span>
                 <div className="flex align-items-center gap-1 flex-shrink-0">
+                    {resource && <HistoryButton def={{ clusterName, resource, group: group || 'core', name, namespace, referencePanel: api.id }} />}
                     <Button label={t('panels:yaml.revert')} icon={<VscDiscard size={16} />} text size="small" disabled={!dirty || saving} onClick={handleRevert} />
                     <Button label={t('panels:yaml.save')} icon={<VscCheck size={16} />} size="small" loading={saving} disabled={!dirty} onClick={handleSave} />
                 </div>

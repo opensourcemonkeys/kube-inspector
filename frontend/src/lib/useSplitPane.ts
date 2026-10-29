@@ -6,8 +6,11 @@ import type React from 'react';
  * layout): the pod list's detail panel, the resource graph's impact summary.
  * The width is a per-user preference, so it lives in localStorage under
  * `storageKey` and survives restarts; both sides keep at least `minPane`.
+ *
+ * With `axis: 'y'` the pane is below the main area instead and `width` is
+ * its height (the object history's diff under its timeline).
  */
-export function useSplitPane(storageKey: string, defaultWidth: number, minPane: number) {
+export function useSplitPane(storageKey: string, defaultWidth: number, minPane: number, axis: 'x' | 'y' = 'x') {
     const splitRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState<number>(() => {
         try {
@@ -25,7 +28,8 @@ export function useSplitPane(storageKey: string, defaultWidth: number, minPane: 
         handle.setPointerCapture(e.pointerId);
         let next = width;
         const move = (ev: PointerEvent) => {
-            next = Math.round(Math.min(Math.max(box.right - ev.clientX, minPane), box.width - minPane));
+            const [far, pos, span] = axis === 'x' ? [box.right, ev.clientX, box.width] : [box.bottom, ev.clientY, box.height];
+            next = Math.round(Math.min(Math.max(far - pos, minPane), span - minPane));
             setWidth(next);
         };
         const up = () => {

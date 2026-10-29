@@ -12,7 +12,8 @@
     "resourceGraph": "Kaynak Grafiği",
     "describe": "{{name}} Describe",
     "toolbox": "Toolbox",
-    "clusterHistory": "Cluster Geçmişi"
+    "clusterHistory": "Cluster Geçmişi",
+    "objectHistory": "Geçmiş {{name}}"
   },
   "portForward": {
     "startedSummary": "Port yönlendirme başlatıldı",
@@ -887,6 +888,46 @@
       "notInstalled": "Değişiklikleri kaydetmek için bu cluster'a toolbox Helm chart'ını kurun.",
       "forbidden": "Yetkileriniz toolbox API token'ını okumaya veya ona API server üzerinden erişmeye izin vermiyor.",
       "unreachable": "toolbox bulundu ama yanıt vermedi."
+    },
+    "health": {
+      "title": "Kayıt sağlığı",
+      "attention": "Dikkat gerekiyor",
+      "unsupported": "Bu toolbox sürümü sağlık bilgisi vermiyor. Görmek için toolbox'ı güncelleyin.",
+      "ago": "{{age}} önce",
+      "off": "Kapalı",
+      "quiet": "Son 24 saatte hiç gelmedi",
+      "noAdmission": "Kullanıcı ve gruplar kaydedilmiyor.",
+      "noAudit": "Kaynak IP ve user agent kaydedilmiyor.",
+      "admission": "Admission webhook",
+      "audit": "Audit webhook",
+      "leader": "Leader",
+      "noLeader": "Leader yok — değişiklikler kaydedilmiyor",
+      "leaderSince": "{{age}} süredir leader",
+      "watching_one": "{{count}} resource",
+      "watching_other": "{{count}} resource",
+      "staleBeat": "Son heartbeat {{age}} önce.",
+      "coverage": "Kapsama (7 gün)",
+      "noCoverage": "Henüz raporlanmadı",
+      "coverageRatio": "%{{ratio}} kaydedildi",
+      "lastGap": "son boşluk {{age}} önce, {{duration}}",
+      "noGaps": "boşluk yok",
+      "coverageSince": "Bu toolbox'ın raporlamaya başladığı {{since}} tarihinden itibaren sayıldı.",
+      "attribution": "Atama kaynağı (24 sa)",
+      "noChanges": "Değişiklik yok",
+      "config": "Ayarlar",
+      "retention": "{{days}} gün saklanıyor",
+      "statusOn": "status değişiklikleri kaydediliyor",
+      "statusOff": "status değişiklikleri kaydedilmiyor",
+      "excluded_one": "{{count}} dışlama",
+      "excluded_other": "{{count}} dışlama"
+    },
+    "install": {
+      "intro": "toolbox kurulu değil. Helm ile kurun (cluster-admin gerekir):",
+      "copy": "Komutu kopyala",
+      "copied": "Kopyalandı",
+      "audit": "Kaynak IP ve user agent için audit webhook'u da kube-apiserver'a bağlayın: --set audit.service.clusterIP=<service CIDR'da boş bir IP> ekleyin, ardından `helm get notes toolbox -n toolbox` çıktısındaki adımları izleyin.",
+      "managed": "Managed cluster'larda (EKS, GKE, AKS) API server yapılandırması size ait değildir; kullanıcı ve gruplar admission webhook ile yine kaydedilir.",
+      "guide": "Kurulum rehberinin tamamı"
     }
   },
   "clusterHistory": {
@@ -894,6 +935,7 @@
     "viewAria": "Geçmiş görünümü",
     "refresh": "Yenile",
     "view": {
+      "overview": "Genel bakış",
       "changes": "Değişiklikler",
       "attempts": "Reddedilenler",
       "users": "Kullanıcılar"
@@ -904,14 +946,20 @@
       "resource": "Kaynak",
       "user": "Kullanıcı",
       "anyVerb": "Tüm işlemler",
-      "sinceAria": "Zaman aralığı"
+      "sinceAria": "Zaman aralığı",
+      "kind": "Tür",
+      "name": "Ad",
+      "path": "Path, ör. /spec/replicas",
+      "anySource": "Tüm kaynaklar",
+      "range": "Zaman aralığı seçin"
     },
     "since": {
       "1h": "1 saat",
       "24h": "24 saat",
       "168h": "7 gün",
       "720h": "30 gün",
-      "all": "Tümü"
+      "all": "Tümü",
+      "custom": "Özel aralık…"
     },
     "col": {
       "time": "Zaman",
@@ -919,7 +967,6 @@
       "object": "Obje",
       "namespace": "Namespace",
       "user": "Kullanıcı",
-      "sourceIp": "Kaynak IP",
       "via": "Kaynak",
       "changed": "Değişen",
       "response": "Yanıt",
@@ -985,7 +1032,106 @@
       "blocked": {
         "secretRedacted": "Secret'lar geri alınamaz: toolbox değerlerini saklamaz.",
         "noVersion": "Solda geri yüklenecek bir sürüm yok."
+      },
+      "dryRun": {
+        "running": "API server ile kontrol ediliyor…",
+        "ok": "API server bu değişikliği kabul ediyor (dry run).",
+        "failed": "API server bu değişikliği reddeder:"
       }
+    },
+    "pivot": {
+      "namespace": "Bu namespace ile filtrele",
+      "object": "Bu obje ile filtrele",
+      "user": "Bu kullanıcı ile filtrele"
+    },
+    "via": {
+      "audit": "Audit",
+      "admission": "Admission",
+      "managedFields": "Field manager",
+      "none": "Bilinmiyor"
+    },
+    "viaHint": {
+      "audit": "Audit kaydı: kullanıcı, gruplar, kaynak IP ve user agent.",
+      "admission": "Admission webhook: kullanıcı ve gruplar, ağ bilgisi yok.",
+      "managedFields": "Yalnızca yazan istemcinin adı; kullanıcı bilinmiyor.",
+      "none": "Bu değişikliği kimin yaptığını hiçbir kaynak söylemedi."
+    },
+    "gap": {
+      "closed": "Kayıt yok {{from}} – {{to}} ({{duration}}): bu aralıktaki değişiklikler eksik.",
+      "open": "{{from}} tarihinden beri kayıt yok ({{duration}}): çalışan bir toolbox leader'ı yok."
+    },
+    "overview": {
+      "total_one": "{{count}} değişiklik",
+      "total_other": "{{count}} değişiklik",
+      "same": "Önceki dönemle aynı",
+      "newSince": "Önceki dönemde hiç yok",
+      "up": "▲ önceki döneme göre %{{pct}}",
+      "down": "▼ önceki döneme göre %{{pct}}",
+      "points": "Önceki dönemde %{{before}}",
+      "noTotals": "Özet sayılar için toolbox'ı güncelleyin; aşağıdaki grafik ve listeler olduğu gibi çalışır.",
+      "activity": "Aktivite",
+      "legend": "İşlemler",
+      "gapKey": "Kayıt yok",
+      "bucket": "Sütun genişliği",
+      "per": "{{width}} başına",
+      "modeAria": "Gösterim",
+      "chart": "Grafik",
+      "table": "Tablo",
+      "totalCol": "Toplam",
+      "none": "Bu dönemde hiçbir şey yok.",
+      "clusterScoped": "(cluster geneli)",
+      "showChanges": "{{name}} değişikliklerini göster",
+      "tile": {
+        "changes": "Değişiklik",
+        "deletes": "Silme",
+        "attempts": "Reddedilen istek",
+        "unattributed": "Atanamayan"
+      },
+      "top": {
+        "resources": "En çok değişen resource'lar",
+        "users": "En aktif kullanıcılar",
+        "namespaces": "En yoğun namespace'ler"
+      }
+    },
+    "export": {
+      "button": "Dışa aktar",
+      "csv": "CSV (tablo)",
+      "json": "JSON (patch'lerle)",
+      "done_one": "{{count}} satır dışa aktarıldı",
+      "done_other": "{{count}} satır dışa aktarıldı",
+      "truncated_one": "Yalnız en yeni {{count}} satır dışa aktarıldı",
+      "truncated_other": "Yalnız en yeni {{count}} satır dışa aktarıldı",
+      "truncatedDetail": "Filtre {{limit}} satırdan fazlasıyla eşleşti; kalanı için filtreyi daraltın. Kaydedildi: {{path}}",
+      "failed": "Dışa aktarma başarısız"
+    },
+    "attempt": {
+      "requestUri": "İstek",
+      "message": "Sunucu yanıtı"
+    },
+    "live": "Canlı",
+    "liveHint": "Yeni değişiklikler toolbox kaydettikçe görünür."
+  },
+  "objectHistory": {
+    "open": "Geçmiş",
+    "live": "Şu anki hali",
+    "liveGone": "Silinmiş — cluster'da şu an yok",
+    "after": "{{time}} {{user}} {{verb}} sonrası",
+    "pickA": "Karşılaştırma başı: {{version}}",
+    "pickB": "Karşılaştırma sonu: {{version}}",
+    "timelineAria": "Kaydedilen değişiklikler, en yeni üstte",
+    "recreated": "Yeniden oluşturuldu: uid {{from}}… → {{to}}…",
+    "empty": "toolbox bu obje için hiç değişiklik kaydetmemiş.",
+    "compareLive": "Şu anki haliyle karşılaştır",
+    "waiting": "toolbox'ın geri almayı kaydetmesi bekleniyor…",
+    "restore": {
+      "button": "Bu hale dön",
+      "message": "{{kind}} {{name}}, {{time}} değişikliğinden sonraki kayıtlı haliyle değiştirilir. Sonradan eklenen alanlar kaldırılır.",
+      "recreate": "{{kind}} {{name}} artık yok; {{time}} değişikliğinden sonraki haliyle yeniden oluşturulur."
+    },
+    "unavailable": {
+      "notInstalled": "Bu cluster'da toolbox kurulu değil.",
+      "forbidden": "Erişim yetkin bu cluster'da toolbox'ı okumaya izin vermiyor.",
+      "unreachable": "toolbox bu cluster'da yanıt vermedi."
     }
   }
 }

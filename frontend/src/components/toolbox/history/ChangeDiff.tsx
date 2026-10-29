@@ -1,56 +1,22 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import { DiffEditor, type DiffOnMount } from '@monaco-editor/react';
-// Side-effect import: configures @monaco-editor/react to use the bundled
-// Monaco, and lets its diff run on the main thread (see there).
-import '../../../lib/monacoBootstrap';
-import type { editor } from 'monaco-editor';
 import { Button } from 'primereact/button';
 import { VscClose, VscHistory } from 'react-icons/vsc';
-import { GetToolboxChangeDetail, GetToolboxLiveObject, RollbackToolboxChange } from '../../../../wailsjs/go/controller_app/App';
+import { GetToolboxChangeDetail, GetToolboxLiveObject } from '../../../../wailsjs/go/controller_app/App';
 import { models } from '../../../../wailsjs/go/models';
-import { MONACO_BASE_OPTIONS, MONACO_THEME, defineMonacoTheme, useMonacoTheme } from '../../../lib/monacoTheme';
 import { errText } from '../../../lib/errText';
 import { useT } from '../../../i18n/useT';
 import Segmented from '../../shared/Segmented';
 import RowAction from '../../shared/RowAction';
 import PanelLoading from '../../shared/PanelLoading';
 import ErrorBanner from '../../shared/ErrorBanner';
-import ConfirmActionDialog from '../../shared/ConfirmActionDialog';
 import { formatTime, verbLamp } from './format';
+import Attribution from './Attribution';
+import YamlDiff from './YamlDiff';
+import RollbackDialog from './RollbackDialog';
 
 type Mode = 'change' | 'live';
 type Side = 'before' | 'after';
 type Layout = 'side' | 'inline';
-
-const DIFF_OPTIONS: editor.IDiffEditorConstructionOptions = {
-    ...MONACO_BASE_OPTIONS,
-    readOnly: true,
-    originalEditable: false,
-    // A narrow detail pane would squeeze two columns into unreadable slivers;
-    // Monaco switches to inline by itself below the breakpoint.
-    useInlineViewWhenSpaceIsLimited: true,
-    renderSideBySideInlineBreakpoint: 560,
-    // Long objects collapse to the changed hunks; the folds open on click.
-    hideUnchangedRegions: { enabled: true, contextLineCount: 3, minimumLineCount: 4, revealLineCount: 20 },
-    ignoreTrimWhitespace: false,
-    automaticLayout: true,
-    minimap: { enabled: false },
-    scrollBeyondLastLine: false,
-    renderValidationDecorations: 'off',
-    folding: false,
-};
-
-// @monaco-editor/react disposes a diff editor's models before the editor
-// itself, which Monaco 0.5x rejects ("TextModel got disposed before
-// DiffEditorWidget model got reset"). It is told to keep them, and they go
-// once the editor has.
-const disposeModelsAfterEditor: DiffOnMount = (editor) => {
-    const models = editor.getModel();
-    editor.onDidDispose(() => {
-        models?.original.dispose();
-        models?.modified.dispose();
-    });
-};
 
 /**
  * One recorded change: who made it, and its YAML in a Monaco diff.
@@ -71,9 +37,8 @@ export default function ChangeDiff({ clusterName, eventId, onClose, onRolledBack
     clusterName: string;
     eventId: string;
     onClose: () => void;
-    onRolledBack: (message: string) => void;
+    onRolledBack: (message: string, at: number) => void;
 }) {
-    useMonacoTheme();
     const t = useT();
     const [detail, setDetail] = useState<models.ToolboxChangeDetail | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -161,7 +126,7 @@ export default function ChangeDiff({ clusterName, eventId, onClose, onRolledBack
     if (a?.sourceIPs?.length) facts.push([t('panels:clusterHistory.detail.sourceIps'), a.sourceIPs.join(', ')]);
     if (a?.userAgent) facts.push([t('panels:clusterHistory.detail.userAgent'), a.userAgent]);
     if (ch.fieldManager) facts.push([t('panels:clusterHistory.detail.fieldManager'), ch.fieldManager]);
-    facts.push([t('panels:clusterHistory.detail.attribution'), ch.attribution]);
+    facts.push([t('panels:clusterHistory.detail.attribution'), <Attribution value={ch.attribution} />]);
     if (ch.resourceVersion) facts.push([t('panels:clusterHistory.detail.resourceVersion'), ch.resourceVersion]);
     if (a?.auditId) facts.push([t('panels:clusterHistory.detail.auditId'), a.auditId]);
 
@@ -180,14 +145,13 @@ export default function ChangeDiff({ clusterName, eventId, onClose, onRolledBack
         { value: 'inline', label: t('panels:clusterHistory.compare.inline') },
     ];
 
-    const rollback = async () => {
-        const out = await RollbackToolboxChange(clusterName, eventId, side);
+    const rolledBack = (out: string, at: number) => {
         // Show the result: the live object should now match the version
         // that was restored.
         setVersion(side);
         setMode('live');
         setLiveTick((n) => n + 1);
-        onRolledBack(out);
+        onRolledBack(out, at);
     };
 
     return (
@@ -237,32 +201,21 @@ export default function ChangeDiff({ clusterName, eventId, onClose, onRolledBack
                 ) : mode === 'live' && live === null ? (
                     <PanelLoading />
                 ) : (
-                    <DiffEditor
-                        height="100%"
-                        language="yaml"
-                        original={original}
-                        modified={modified}
-                        theme={MONACO_THEME}
-                        beforeMount={defineMonacoTheme}
-                        onMount={disposeModelsAfterEditor}
-                        keepCurrentOriginalModel
-                        keepCurrentModifiedModel
-                        options={{ ...DIFF_OPTIONS, renderSideBySide: layout === 'side' }}
-                    />
+                    <YamlDiff original={original} modified={modified} sideBySide={layout === 'side'} />
                 )}
             </div>
 
-            <ConfirmActionDialog
+            <RollbackDialog
                 visible={confirming}
+                clusterName={clusterName}
+                eventId={eventId}
+                side={side}
                 header={t('panels:clusterHistory.rollback.header', { name: ch.name })}
                 message={t(willRecreate ? 'panels:clusterHistory.rollback.recreate' : 'panels:clusterHistory.rollback.message', {
                     kind: ch.kind, name: objectName, version: versionLabel(side),
                 })}
-                warning={t('panels:clusterHistory.rollback.warning')}
-                confirmLabel={t('panels:clusterHistory.rollback.confirm')}
-                severity="danger"
                 onHide={() => setConfirming(false)}
-                onConfirm={rollback}
+                onDone={rolledBack}
             />
         </div>
     );

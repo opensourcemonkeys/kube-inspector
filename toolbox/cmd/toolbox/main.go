@@ -1,6 +1,6 @@
 // Command toolbox records every create, update and delete in a Kubernetes
 // cluster — what changed, when, and who did it from where — into ClickHouse,
-// and serves that history over a REST API and a small web UI.
+// and serves that history over a REST API (Kube Inspector is its UI).
 package main
 
 import (
@@ -34,7 +34,6 @@ import (
 	"github.com/kubeinspector/toolbox/internal/safego"
 	"github.com/kubeinspector/toolbox/internal/store"
 	"github.com/kubeinspector/toolbox/internal/watcher"
-	"github.com/kubeinspector/toolbox/internal/web"
 )
 
 // version is set at build time with -ldflags "-X main.version=...".
@@ -111,7 +110,20 @@ func run(configPath string) error {
 	}
 
 	mux := http.NewServeMux()
-	(&api.Server{Store: st, Cluster: cfg.ClusterName, Token: cfg.APIToken, Version: version}).Routes(mux)
+	apiSrv := &api.Server{Store: st, Cluster: cfg.ClusterName, Token: cfg.APIToken, Version: version, Recording: api.Recording{
+		AdmissionWebhook: cfg.Sources.AdmissionWebhook, AuditWebhook: cfg.Sources.AuditWebhook,
+		RecordStatusChanges: cfg.Watch.RecordStatusChanges, Include: cfg.Watch.Include, Exclude: cfg.Watch.Exclude,
+		ExcludeNamespaces: cfg.Watch.ExcludeNamespaces, ChangesDays: cfg.Retention.ChangesDays, AuditRawDays: cfg.Retention.AuditRawDays,
+		HeartbeatInterval: cfg.Recorder.HeartbeatInterval.String(), GapThreshold: cfg.Recorder.GapThreshold.Duration,
+	},
+		// The longest a change takes to be written: its delay, its retry,
+		// and a minute for the writer's flush and a slow ClickHouse.
+		StreamLookback: cfg.Enrich.Delay.Duration + cfg.Enrich.RetryAfter.Duration + time.Minute,
+	}
+	if cfg.LeaderElection.Enabled {
+		apiSrv.Leader = leaseReader(kube, cfg)
+	}
+	apiSrv.Routes(mux)
 	mux.Handle("GET /metrics", promhttp.Handler())
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusOK) })
 	mux.HandleFunc("GET /readyz", func(w http.ResponseWriter, r *http.Request) {
@@ -123,7 +135,6 @@ func run(configPath string) error {
 		}
 		w.WriteHeader(http.StatusOK)
 	})
-	mux.Handle("GET /", web.Handler())
 	httpSrv := &http.Server{Addr: cfg.HTTPAddr, Handler: mux, ReadHeaderTimeout: 10 * time.Second}
 
 	if cfg.APIToken == "" {
@@ -149,11 +160,14 @@ func run(configPath string) error {
 	dyn := dynamic.NewForConfigOrDie(restCfg)
 	disc := discovery.NewDiscoveryClientForConfigOrDie(restCfg)
 	corr := correlate.New(cfg.ClusterName, st, changes.Put, cfg.Enrich, cfg.Watch.RecordStatusChanges)
+	identity, _ := os.Hostname()
 	lead := func(lctx context.Context) {
 		var wg sync.WaitGroup
-		wg.Add(2)
+		wg.Add(3)
+		w := watcher.New(dyn, disc, cfg.Watch, corr.Observe)
 		safego.Go("correlator", func() { defer wg.Done(); corr.Run(lctx) })
-		safego.Go("watcher", func() { defer wg.Done(); watcher.New(dyn, disc, cfg.Watch, corr.Observe).Run(lctx) })
+		safego.Go("watcher", func() { defer wg.Done(); w.Run(lctx) })
+		safego.Go("heartbeat", func() { defer wg.Done(); heartbeat(lctx, st, cfg, identity, w, corr) })
 		wg.Wait()
 	}
 
@@ -252,4 +266,50 @@ func runLeaderElection(ctx context.Context, kube kubernetes.Interface, cfg confi
 			},
 		},
 	})
+}
+
+// heartbeat writes a row every recorder.heartbeatInterval while this replica
+// leads, so the history can show when nobody was recording. A failed write is
+// only logged: the heartbeat must never take the recording down with it.
+func heartbeat(ctx context.Context, st *store.Store, cfg config.Config, identity string, w *watcher.Watcher, corr *correlate.Correlator) {
+	t := time.NewTicker(cfg.Recorder.HeartbeatInterval.Duration)
+	defer t.Stop()
+	for {
+		wctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+		err := st.WriteHeartbeat(wctx, store.Heartbeat{
+			Time: time.Now(), Cluster: cfg.ClusterName, Identity: identity,
+			WatchedResources: uint32(w.Watched()), Pending: uint32(corr.Pending()),
+		})
+		cancel()
+		if err != nil && ctx.Err() == nil {
+			slog.Warn("heartbeat write failed", "err", err)
+		}
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C:
+		}
+	}
+}
+
+// leaseReader reads the leader lease for the health report. Every replica
+// serves the API, so it is read from the API server, not from this process.
+func leaseReader(kube kubernetes.Interface, cfg config.Config) func(context.Context) (*api.LeaderInfo, error) {
+	return func(ctx context.Context) (*api.LeaderInfo, error) {
+		l, err := kube.CoordinationV1().Leases(cfg.Namespace).Get(ctx, cfg.LeaderElection.LeaseName, metav1.GetOptions{})
+		if err != nil {
+			return nil, err
+		}
+		if l.Spec.HolderIdentity == nil || *l.Spec.HolderIdentity == "" {
+			return nil, nil
+		}
+		info := &api.LeaderInfo{Identity: *l.Spec.HolderIdentity}
+		if l.Spec.AcquireTime != nil {
+			info.Since = &l.Spec.AcquireTime.Time
+		}
+		if l.Spec.RenewTime != nil {
+			info.RenewedAt = &l.Spec.RenewTime.Time
+		}
+		return info, nil
+	}
 }

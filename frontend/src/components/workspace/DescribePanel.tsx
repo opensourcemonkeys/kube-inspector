@@ -7,6 +7,7 @@ import { errText } from '../../lib/errText';
 import ErrorBanner from '../shared/ErrorBanner';
 import { useT } from '../../i18n/useT';
 import PanelSkeleton from '../shared/PanelSkeleton';
+import HistoryButton from '../toolbox/history/HistoryButton';
 
 export interface DescribePanelParams {
     clusterName: string;
@@ -23,9 +24,10 @@ export interface DescribePanelParams {
  * language and no schema, and Monaco is the heaviest import in the bundle —
  * paying for it here would slow every panel's first paint for a <pre> block.
  */
-export default function DescribePanel({ params }: IDockviewPanelProps<DescribePanelParams>) {
+export default function DescribePanel({ params, api }: IDockviewPanelProps<DescribePanelParams>) {
     const t = useT();
     const { clusterName, resource, name, namespace } = params;
+    const panelId = api.id;
     const [text, setText] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [loaded, setLoaded] = useState(false);
@@ -76,6 +78,7 @@ export default function DescribePanel({ params }: IDockviewPanelProps<DescribePa
                     <span className="cell-clip">{namespace ? `${namespace}/${name}` : name}</span>
                 </span>
                 <div className="panel-toolbar__actions">
+                    <HistoryButton def={{ clusterName, resource, name, namespace, referencePanel: panelId }} />
                     <Button
                         label={t('panels:describe.refresh')}
                         icon={<VscRefresh size={16} />}

@@ -84,7 +84,8 @@ return out;
 SCENES = {"overview", "pods", "pod-detail", "events", "nodes", "monitoring", "securityrolemap", "trivy",
           "deployments", "pod-yaml", "pod-logs", "pod-describe", "configmap-editor", "crd-instances",
           "terminal", "port-forwards", "diagnostics", "ai-log", "about-modal", "update-modal",
-          "cluster-modal", "menu-open", "cluster-dropdown", "delete-dialog", "list-selection", "tour-2"}
+          "cluster-modal", "menu-open", "cluster-dropdown", "delete-dialog", "list-selection", "tour-2",
+          "toolbox", "history-overview", "cluster-history", "history-range", "object-history"}
 
 
 def main():

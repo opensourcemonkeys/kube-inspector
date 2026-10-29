@@ -12,7 +12,8 @@
     "resourceGraph": "Resource Graph",
     "describe": "Describe {{name}}",
     "toolbox": "Toolbox",
-    "clusterHistory": "Cluster History"
+    "clusterHistory": "Cluster History",
+    "objectHistory": "History {{name}}"
   },
   "portForward": {
     "startedSummary": "Port forward started",
@@ -888,6 +889,46 @@
       "notInstalled": "Install the toolbox Helm chart in this cluster to record changes.",
       "forbidden": "Your access does not allow reading the toolbox API token or reaching it through the API server.",
       "unreachable": "toolbox was found but did not answer."
+    },
+    "health": {
+      "title": "Recording health",
+      "attention": "Needs attention",
+      "unsupported": "This toolbox release does not report its health. Upgrade toolbox to see it.",
+      "ago": "{{age}} ago",
+      "off": "Turned off",
+      "quiet": "Nothing in the last 24 hours",
+      "noAdmission": "Users and groups are not recorded.",
+      "noAudit": "Source IPs and user agents are not recorded.",
+      "admission": "Admission webhook",
+      "audit": "Audit webhook",
+      "leader": "Leader",
+      "noLeader": "No leader — changes are not being recorded",
+      "leaderSince": "leader for {{age}}",
+      "watching_one": "{{count}} resource",
+      "watching_other": "{{count}} resources",
+      "staleBeat": "Its last heartbeat was {{age}} ago.",
+      "coverage": "Coverage (7 days)",
+      "noCoverage": "Not reported yet",
+      "coverageRatio": "{{ratio}}% recorded",
+      "lastGap": "last gap {{age}} ago, {{duration}}",
+      "noGaps": "no gaps",
+      "coverageSince": "Counted from {{since}}, when this toolbox started reporting.",
+      "attribution": "Attributed via (24 h)",
+      "noChanges": "No changes",
+      "config": "Settings",
+      "retention": "kept {{days}} days",
+      "statusOn": "status changes recorded",
+      "statusOff": "status changes not recorded",
+      "excluded_one": "{{count}} exclusion",
+      "excluded_other": "{{count}} exclusions"
+    },
+    "install": {
+      "intro": "toolbox is not installed. Install it with Helm (needs cluster-admin):",
+      "copy": "Copy command",
+      "copied": "Copied",
+      "audit": "For source IPs and user agents, also wire the audit webhook into kube-apiserver: add --set audit.service.clusterIP=<a free IP in your service CIDR>, then follow the steps `helm get notes toolbox -n toolbox` prints.",
+      "managed": "On managed clusters (EKS, GKE, AKS) the API server is not yours to configure; users and groups are still recorded through the admission webhook.",
+      "guide": "Full installation guide"
     }
   },
   "clusterHistory": {
@@ -895,6 +936,7 @@
     "viewAria": "History view",
     "refresh": "Refresh",
     "view": {
+      "overview": "Overview",
       "changes": "Changes",
       "attempts": "Rejected",
       "users": "Users"
@@ -905,14 +947,20 @@
       "resource": "Resource",
       "user": "User",
       "anyVerb": "Any verb",
-      "sinceAria": "Time range"
+      "sinceAria": "Time range",
+      "kind": "Kind",
+      "name": "Name",
+      "path": "Path, e.g. /spec/replicas",
+      "anySource": "Any source",
+      "range": "Pick a time range"
     },
     "since": {
       "1h": "1 hour",
       "24h": "24 hours",
       "168h": "7 days",
       "720h": "30 days",
-      "all": "All time"
+      "all": "All time",
+      "custom": "Custom range…"
     },
     "col": {
       "time": "Time",
@@ -920,7 +968,6 @@
       "object": "Object",
       "namespace": "Namespace",
       "user": "User",
-      "sourceIp": "Source IP",
       "via": "Via",
       "changed": "Changed",
       "response": "Response",
@@ -986,7 +1033,106 @@
       "blocked": {
         "secretRedacted": "Secrets cannot be rolled back: toolbox does not store their values.",
         "noVersion": "There is no version on the left to restore."
+      },
+      "dryRun": {
+        "running": "Checking with the API server…",
+        "ok": "The API server accepts this change (dry run).",
+        "failed": "The API server would reject this change:"
       }
+    },
+    "pivot": {
+      "namespace": "Filter by this namespace",
+      "object": "Filter by this object",
+      "user": "Filter by this user"
+    },
+    "via": {
+      "audit": "Audit",
+      "admission": "Admission",
+      "managedFields": "Field manager",
+      "none": "Unknown"
+    },
+    "viaHint": {
+      "audit": "Audit log: user, groups, source IP and user agent.",
+      "admission": "Admission webhook: user and groups, no network details.",
+      "managedFields": "Only the name of the client that wrote it; the user is unknown.",
+      "none": "No source named who made this change."
+    },
+    "gap": {
+      "closed": "Not recorded {{from}} – {{to}} ({{duration}}): changes made then are missing.",
+      "open": "Not recording since {{from}} ({{duration}}): no toolbox leader is running."
+    },
+    "overview": {
+      "total_one": "{{count}} change",
+      "total_other": "{{count}} changes",
+      "same": "Same as the previous period",
+      "newSince": "None in the previous period",
+      "up": "▲ {{pct}}% vs the previous period",
+      "down": "▼ {{pct}}% vs the previous period",
+      "points": "{{before}}% in the previous period",
+      "noTotals": "Upgrade toolbox for the summary counts; the chart and top lists below work as they are.",
+      "activity": "Activity",
+      "legend": "Verbs",
+      "gapKey": "Not recorded",
+      "bucket": "Column width",
+      "per": "per {{width}}",
+      "modeAria": "Show as",
+      "chart": "Chart",
+      "table": "Table",
+      "totalCol": "Total",
+      "none": "Nothing in this period.",
+      "clusterScoped": "(cluster-scoped)",
+      "showChanges": "Show the changes of {{name}}",
+      "tile": {
+        "changes": "Changes",
+        "deletes": "Deletes",
+        "attempts": "Rejected requests",
+        "unattributed": "Unattributed"
+      },
+      "top": {
+        "resources": "Most changed resources",
+        "users": "Most active users",
+        "namespaces": "Busiest namespaces"
+      }
+    },
+    "export": {
+      "button": "Export",
+      "csv": "CSV (spreadsheet)",
+      "json": "JSON (with patches)",
+      "done_one": "{{count}} row exported",
+      "done_other": "{{count}} rows exported",
+      "truncated_one": "Only the newest {{count}} row exported",
+      "truncated_other": "Only the newest {{count}} rows exported",
+      "truncatedDetail": "The filter matched more than {{limit}} rows; narrow it to export the rest. Saved to {{path}}",
+      "failed": "Export failed"
+    },
+    "attempt": {
+      "requestUri": "Request",
+      "message": "Server response"
+    },
+    "live": "Live",
+    "liveHint": "New changes appear as toolbox records them."
+  },
+  "objectHistory": {
+    "open": "History",
+    "live": "Live now",
+    "liveGone": "Deleted — not in the cluster now",
+    "after": "after {{verb}} by {{user}} at {{time}}",
+    "pickA": "Compare from: {{version}}",
+    "pickB": "Compare to: {{version}}",
+    "timelineAria": "Recorded changes, newest first",
+    "recreated": "Re-created: uid {{from}}… → {{to}}…",
+    "empty": "toolbox has recorded no changes to this object.",
+    "compareLive": "Compare with live",
+    "waiting": "Waiting for toolbox to record the rollback…",
+    "restore": {
+      "button": "Restore",
+      "message": "{{kind}} {{name}} is replaced with the version recorded after the change at {{time}}. Fields added since then are removed.",
+      "recreate": "{{kind}} {{name}} no longer exists and is created again as it was after the change at {{time}}."
+    },
+    "unavailable": {
+      "notInstalled": "toolbox is not installed on this cluster.",
+      "forbidden": "Your access does not allow reading toolbox on this cluster.",
+      "unreachable": "toolbox did not answer on this cluster."
     }
   }
 }

@@ -44,14 +44,18 @@ func (r *cancelRegistry) begin(key string, cancel context.CancelFunc) *cancelTok
 }
 
 // done deregisters tok — but only while it is still the current entry for key —
-// and releases its context.
-func (r *cancelRegistry) done(key string, tok *cancelToken) {
+// and releases its context. It reports whether tok was still current, i.e.
+// whether the job may still speak for key (emit its end event).
+func (r *cancelRegistry) done(key string, tok *cancelToken) bool {
 	r.mu.Lock()
-	if cur, ok := r.m[key]; ok && cur == tok {
+	cur, ok := r.m[key]
+	owned := ok && cur == tok
+	if owned {
 		delete(r.m, key)
 	}
 	r.mu.Unlock()
 	tok.cancel()
+	return owned
 }
 
 // cancel stops the job currently registered under key, if any.

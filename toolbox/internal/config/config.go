@@ -38,7 +38,7 @@ type Config struct {
 	// Namespace is where toolbox itself runs (POD_NAMESPACE).
 	Namespace string `json:"namespace"`
 
-	HTTPAddr    string `json:"httpAddr"`    // REST API, UI, health, metrics
+	HTTPAddr    string `json:"httpAddr"`    // REST API, health, metrics
 	WebhookAddr string `json:"webhookAddr"` // TLS: /admission and /audit
 
 	ClickHouse     ClickHouse     `json:"clickhouse"`
@@ -47,6 +47,8 @@ type Config struct {
 	Retention      Retention      `json:"retention"`
 	TLS            TLS            `json:"tls"`
 	LeaderElection LeaderElection `json:"leaderElection"`
+	Recorder       Recorder       `json:"recorder"`
+	Sources        Sources        `json:"sources"`
 
 	// APIToken guards /api; AuditToken guards /audit. Both come from the
 	// environment (a Secret), never from the ConfigMap.
@@ -107,6 +109,21 @@ type TLS struct {
 	WebhookConfigName string `json:"webhookConfigName"`
 }
 
+// Recorder is the leader's heartbeat: a row every HeartbeatInterval while it
+// is watching, so a stretch with none longer than GapThreshold is a period in
+// which changes went unrecorded.
+type Recorder struct {
+	HeartbeatInterval Duration `json:"heartbeatInterval"`
+	GapThreshold      Duration `json:"gapThreshold"`
+}
+
+// Sources says which collectors this release has switched on, so the health
+// report can tell "audit is not configured" from "audit has gone quiet".
+type Sources struct {
+	AdmissionWebhook bool `json:"admissionWebhook"`
+	AuditWebhook     bool `json:"auditWebhook"`
+}
+
 type LeaderElection struct {
 	Enabled   bool   `json:"enabled"`
 	LeaseName string `json:"leaseName"`
@@ -155,6 +172,10 @@ func Default() Config {
 			WebhookConfigName: "toolbox",
 		},
 		LeaderElection: LeaderElection{Enabled: true, LeaseName: "toolbox-leader"},
+		// The lease lasts 15s, so a normal hand-over (~15-20s) stays under
+		// the threshold and only a real outage reads as a gap.
+		Recorder: Recorder{HeartbeatInterval: Duration{15 * time.Second}, GapThreshold: Duration{45 * time.Second}},
+		Sources:  Sources{AdmissionWebhook: true, AuditWebhook: true},
 	}
 }
 
@@ -200,6 +221,9 @@ func (c Config) validate() error {
 	}
 	if c.Retention.ChangesDays <= 0 || c.Retention.AuditRawDays <= 0 {
 		return fmt.Errorf("retention days must be positive")
+	}
+	if c.Recorder.HeartbeatInterval.Duration <= 0 || c.Recorder.GapThreshold.Duration <= c.Recorder.HeartbeatInterval.Duration {
+		return fmt.Errorf("recorder: need 0 < heartbeatInterval < gapThreshold")
 	}
 	return nil
 }

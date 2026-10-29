@@ -42,6 +42,12 @@ data:
       serviceName: {{ include "toolbox.fullname" . | quote }}
       extraSANs: {{ concat $auditSANs .Values.audit.extraSANs | toJson }}
       webhookConfigName: {{ if .Values.admissionWebhook.enabled }}{{ include "toolbox.fullname" . | quote }}{{ else }}""{{ end }}
+    recorder:
+      heartbeatInterval: {{ .Values.recorder.heartbeatInterval | quote }}
+      gapThreshold: {{ .Values.recorder.gapThreshold | quote }}
+    sources:
+      admissionWebhook: {{ .Values.admissionWebhook.enabled }}
+      auditWebhook: {{ .Values.audit.enabled }}
     leaderElection:
       enabled: true
       leaseName: {{ printf "%s-leader" (include "toolbox.fullname" .) | quote }}

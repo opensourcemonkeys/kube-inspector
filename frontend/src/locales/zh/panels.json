@@ -12,7 +12,8 @@
     "resourceGraph": "资源关系图",
     "describe": "Describe {{name}}",
     "toolbox": "Toolbox",
-    "clusterHistory": "集群历史"
+    "clusterHistory": "集群历史",
+    "objectHistory": "历史 {{name}}"
   },
   "portForward": {
     "startedSummary": "端口转发已启动",
@@ -872,6 +873,44 @@
       "notInstalled": "在此集群中安装 toolbox Helm chart 以记录变更。",
       "forbidden": "您的权限不允许读取 toolbox API 令牌,或通过 API 服务器访问它。",
       "unreachable": "已找到 toolbox,但它没有响应。"
+    },
+    "health": {
+      "title": "记录状态",
+      "attention": "需要关注",
+      "unsupported": "此 toolbox 版本不报告状态。升级 toolbox 后即可查看。",
+      "ago": "{{age}} 前",
+      "off": "已关闭",
+      "quiet": "过去 24 小时没有收到",
+      "noAdmission": "不记录用户和用户组。",
+      "noAudit": "不记录来源 IP 和 User-Agent。",
+      "admission": "Admission Webhook",
+      "audit": "Audit Webhook",
+      "leader": "Leader",
+      "noLeader": "没有 Leader — 更改未被记录",
+      "leaderSince": "已担任 Leader {{age}}",
+      "watching_other": "{{count}} 个资源",
+      "staleBeat": "最近一次心跳在 {{age}} 前。",
+      "coverage": "覆盖率（7 天）",
+      "noCoverage": "尚未报告",
+      "coverageRatio": "已记录 {{ratio}}%",
+      "lastGap": "最近缺口 {{age}} 前，{{duration}}",
+      "noGaps": "无缺口",
+      "coverageSince": "自此 toolbox 开始报告的 {{since}} 起计算。",
+      "attribution": "归因方式（24 小时）",
+      "noChanges": "无更改",
+      "config": "设置",
+      "retention": "保留 {{days}} 天",
+      "statusOn": "记录 status 更改",
+      "statusOff": "不记录 status 更改",
+      "excluded_other": "{{count}} 项排除"
+    },
+    "install": {
+      "intro": "未安装 toolbox。使用 Helm 安装（需要 cluster-admin）：",
+      "copy": "复制命令",
+      "copied": "已复制",
+      "audit": "如需记录来源 IP 和 User-Agent，还需将 Audit Webhook 接入 kube-apiserver：添加 --set audit.service.clusterIP=<Service CIDR 中的空闲 IP>，然后按 `helm get notes toolbox -n toolbox` 输出的步骤操作。",
+      "managed": "在托管集群（EKS、GKE、AKS）上无法配置 API Server；用户和用户组仍会通过 Admission Webhook 记录。",
+      "guide": "完整安装指南"
     }
   },
   "clusterHistory": {
@@ -879,6 +918,7 @@
     "viewAria": "历史视图",
     "refresh": "刷新",
     "view": {
+      "overview": "概览",
       "changes": "变更",
       "attempts": "被拒绝",
       "users": "用户"
@@ -889,14 +929,20 @@
       "resource": "资源",
       "user": "用户",
       "anyVerb": "全部操作",
-      "sinceAria": "时间范围"
+      "sinceAria": "时间范围",
+      "kind": "类型",
+      "name": "名称",
+      "path": "路径，例如 /spec/replicas",
+      "anySource": "全部来源",
+      "range": "选择时间范围"
     },
     "since": {
       "1h": "1 小时",
       "24h": "24 小时",
       "168h": "7 天",
       "720h": "30 天",
-      "all": "全部时间"
+      "all": "全部时间",
+      "custom": "自定义范围…"
     },
     "col": {
       "time": "时间",
@@ -904,7 +950,6 @@
       "object": "对象",
       "namespace": "Namespace",
       "user": "用户",
-      "sourceIp": "来源 IP",
       "via": "归因方式",
       "changed": "变更内容",
       "response": "响应",
@@ -970,7 +1015,103 @@
       "blocked": {
         "secretRedacted": "Secret 无法回滚:toolbox 不保存它们的值。",
         "noVersion": "左侧没有可恢复的版本。"
+      },
+      "dryRun": {
+        "running": "正在向 API Server 校验…",
+        "ok": "API Server 接受此更改（dry run）。",
+        "failed": "API Server 将拒绝此更改："
       }
+    },
+    "pivot": {
+      "namespace": "按此 Namespace 筛选",
+      "object": "按此对象筛选",
+      "user": "按此用户筛选"
+    },
+    "via": {
+      "audit": "Audit",
+      "admission": "Admission",
+      "managedFields": "Field manager",
+      "none": "未知"
+    },
+    "viaHint": {
+      "audit": "审计日志：用户、用户组、来源 IP 和 User-Agent。",
+      "admission": "Admission Webhook：用户和用户组，无网络信息。",
+      "managedFields": "仅有写入客户端的名称，用户未知。",
+      "none": "没有任何来源指明是谁做了此更改。"
+    },
+    "gap": {
+      "closed": "未记录 {{from}} – {{to}}（{{duration}}）：期间的更改缺失。",
+      "open": "自 {{from}} 起未记录（{{duration}}）：没有运行中的 toolbox Leader。"
+    },
+    "overview": {
+      "total_other": "{{count}} 次更改",
+      "same": "与上一周期相同",
+      "newSince": "上一周期没有",
+      "up": "▲ 较上一周期 {{pct}}%",
+      "down": "▼ 较上一周期 {{pct}}%",
+      "points": "上一周期为 {{before}}%",
+      "noTotals": "升级 toolbox 后可查看汇总数字；下面的图表和排行可直接使用。",
+      "activity": "活动",
+      "legend": "操作",
+      "gapKey": "未记录",
+      "bucket": "列宽",
+      "per": "每 {{width}}",
+      "modeAria": "显示方式",
+      "chart": "图表",
+      "table": "表格",
+      "totalCol": "合计",
+      "none": "此期间没有任何内容。",
+      "clusterScoped": "（集群级）",
+      "showChanges": "显示 {{name}} 的更改",
+      "tile": {
+        "changes": "更改",
+        "deletes": "删除",
+        "attempts": "被拒绝的请求",
+        "unattributed": "未归因"
+      },
+      "top": {
+        "resources": "更改最多的资源",
+        "users": "最活跃的用户",
+        "namespaces": "最繁忙的 Namespace"
+      }
+    },
+    "export": {
+      "button": "导出",
+      "csv": "CSV（表格）",
+      "json": "JSON（含补丁）",
+      "done_other": "已导出 {{count}} 行",
+      "truncated_other": "仅导出了最新的 {{count}} 行",
+      "truncatedDetail": "筛选匹配超过 {{limit}} 行；缩小筛选范围以导出其余部分。已保存到 {{path}}",
+      "failed": "导出失败"
+    },
+    "attempt": {
+      "requestUri": "请求",
+      "message": "服务器响应"
+    },
+    "live": "实时",
+    "liveHint": "新的更改会在 toolbox 记录后立即显示。"
+  },
+  "objectHistory": {
+    "open": "历史",
+    "live": "当前状态",
+    "liveGone": "已删除 — 当前不在集群中",
+    "after": "{{time}} {{user}} {{verb}} 之后",
+    "pickA": "比较起点：{{version}}",
+    "pickB": "比较终点：{{version}}",
+    "timelineAria": "已记录的更改，最新在前",
+    "recreated": "已重新创建：uid {{from}}… → {{to}}…",
+    "empty": "toolbox 未记录此对象的任何更改。",
+    "compareLive": "与当前状态比较",
+    "waiting": "正在等待 toolbox 记录此次回滚…",
+    "restore": {
+      "button": "恢复到此版本",
+      "message": "{{kind}} {{name}} 将被替换为 {{time}} 更改之后记录的版本。之后添加的字段将被移除。",
+      "recreate": "{{kind}} {{name}} 已不存在，将按 {{time}} 更改之后的状态重新创建。"
+    },
+    "unavailable": {
+      "notInstalled": "此集群未安装 toolbox。",
+      "forbidden": "你的权限不允许在此集群读取 toolbox。",
+      "unreachable": "此集群的 toolbox 没有响应。"
     }
   }
 }

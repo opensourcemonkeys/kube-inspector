@@ -13,6 +13,7 @@ import { Button } from 'primereact/button';
 import { Toast } from 'primereact/toast';
 import { ensureK8sYamlIntellisense, k8sYamlSuggestOptions } from '../../lib/k8sYamlIntellisense';
 import PanelLoading from '../shared/PanelLoading';
+import HistoryButton from '../toolbox/history/HistoryButton';
 import { useT } from '../../i18n/useT';
 import {
     GetPodYaml,
@@ -57,7 +58,20 @@ const editable = (kind: string) => [
     'persistentvolumeclaim', 'storageclass', 'serviceaccount', 'role', 'rolebinding',
 ].includes(kind);
 
-export default function YamlEditorPanel({ params }: IDockviewPanelProps<YamlEditorPanelParams>) {
+// Each kind's resource and API group as toolbox records them, for History.
+const HISTORY_RESOURCE: Record<YamlEditorPanelParams['resourceKind'], [resource: string, group: string]> = {
+    pod: ['pods', 'core'], deployment: ['deployments', 'apps'], statefulset: ['statefulsets', 'apps'],
+    replicaset: ['replicasets', 'apps'], daemonset: ['daemonsets', 'apps'], job: ['jobs', 'batch'],
+    cronjob: ['cronjobs', 'batch'], service: ['services', 'core'], ingress: ['ingresses', 'networking.k8s.io'],
+    ingressclass: ['ingressclasses', 'networking.k8s.io'], endpoint: ['endpoints', 'core'], configmap: ['configmaps', 'core'],
+    secret: ['secrets', 'core'], node: ['nodes', 'core'], namespace: ['namespaces', 'core'],
+    resourcequota: ['resourcequotas', 'core'], limitrange: ['limitranges', 'core'],
+    persistentvolume: ['persistentvolumes', 'core'], persistentvolumeclaim: ['persistentvolumeclaims', 'core'],
+    storageclass: ['storageclasses', 'storage.k8s.io'], serviceaccount: ['serviceaccounts', 'core'],
+    role: ['roles', 'rbac.authorization.k8s.io'], rolebinding: ['rolebindings', 'rbac.authorization.k8s.io'],
+};
+
+export default function YamlEditorPanel({ params, api }: IDockviewPanelProps<YamlEditorPanelParams>) {
     useMonacoTheme();
     const t = useT();
     const { clusterName, resourceKind, name, namespace } = params;
@@ -227,6 +241,12 @@ export default function YamlEditorPanel({ params }: IDockviewPanelProps<YamlEdit
                     {namespace}/{name}
                 </span>
                 <div className="flex align-items-center gap-1 flex-shrink-0">
+                    {HISTORY_RESOURCE[resourceKind] && (
+                        <HistoryButton def={{
+                            clusterName, resource: HISTORY_RESOURCE[resourceKind][0], group: HISTORY_RESOURCE[resourceKind][1],
+                            name, namespace, referencePanel: api.id,
+                        }} />
+                    )}
                     {editable(resourceKind) && (
                         <>
                             <Button

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import type { Chart as ChartJS, ChartData, ChartOptions, ChartType } from 'chart.js';
+import type { Chart as ChartJS, ChartData, ChartOptions, ChartType, Plugin } from 'chart.js';
 import { themeColor } from './themeColors';
 
 // A chart.js canvas for data that refreshes on a poll.
@@ -25,25 +25,28 @@ function applyChartDefaults(Chart: typeof ChartJS): void {
     d.borderColor = themeColor('--line');
 }
 
-export function LiveChart<T extends ChartType>({ type, data, options, height }: {
+export function LiveChart<T extends ChartType>({ type, data, options, height, plugins }: {
     type: T;
     data: ChartData<T, any, any>;
     options?: ChartOptions<T>;
     height: number | string;
+    /** Inline plugins, fixed at creation (chart.js reads them once). */
+    plugins?: Plugin<T>[];
 }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const chartRef = useRef<ChartJS | null>(null);
     // The instance is created asynchronously; it must start from the props of
     // the render it lands after, not the render that requested it.
-    const latest = useRef({ data, options });
-    latest.current = { data, options };
+    const latest = useRef({ data, options, plugins });
+    latest.current = { data, options, plugins };
 
     useEffect(() => {
         let cancelled = false;
         import('chart.js/auto').then(({ default: Chart }) => {
             if (cancelled || !canvasRef.current) return;
             applyChartDefaults(Chart);
-            chartRef.current = new Chart(canvasRef.current, { type, ...latest.current } as any);
+            const { data: d, options: o, plugins: p } = latest.current;
+            chartRef.current = new Chart(canvasRef.current, { type, data: d, options: o, plugins: p ?? [] } as any);
         });
         return () => {
             cancelled = true;

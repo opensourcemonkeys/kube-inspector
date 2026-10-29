@@ -25,6 +25,8 @@ export default function ConfirmActionDialog({
     warning,
     confirmLabel = 'Confirm',
     severity,
+    extra,
+    confirmDisabled,
     onHide,
     onConfirm,
 }: {
@@ -35,6 +37,10 @@ export default function ConfirmActionDialog({
     warning?: React.ReactNode;
     confirmLabel?: string;
     severity?: 'danger' | 'warning';
+    /** Shown between the message and the warning (e.g. a pre-flight check). */
+    extra?: React.ReactNode;
+    /** Holds the confirm button off, e.g. until a pre-flight check passes. */
+    confirmDisabled?: boolean;
     onHide: () => void;
     /** Performs the action. Throwing keeps the dialog open with the message shown. */
     onConfirm: () => Promise<void>;
@@ -78,12 +84,14 @@ export default function ConfirmActionDialog({
                         severity={severity === 'danger' ? 'danger' : undefined}
                         onClick={run}
                         loading={busy}
+                        disabled={confirmDisabled}
                     />
                 </div>
             }
         >
             <div className="dlg-form">
                 <p className="dlg-message">{message}</p>
+                {extra}
                 {warning && <p className="dlg-note dlg-note--warn">{warning}</p>}
                 {error && <p className="dlg-error">{error}</p>}
             </div>

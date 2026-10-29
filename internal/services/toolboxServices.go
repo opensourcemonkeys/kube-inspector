@@ -56,6 +56,9 @@ const (
 type ToolboxError struct {
 	State string
 	Err   error
+	// Code is toolbox's HTTP status when it answered with one, so a caller
+	// can tell "this toolbox has no such endpoint" (404) from an outage.
+	Code int
 }
 
 func (e *ToolboxError) Error() string { return e.Err.Error() }
@@ -203,7 +206,8 @@ func (t Toolbox) get(ctx context.Context, path string, params url.Values) ([]byt
 			// toolbox's own validation message ({"error": "..."}).
 			return nil, ep, fmt.Errorf("toolbox: %s", toolboxMessage(body, err))
 		}
-		return nil, ep, toolboxErr(ToolboxUnreachable, "toolbox %s: %s", path, toolboxMessage(body, err))
+		return nil, ep, &ToolboxError{State: ToolboxUnreachable, Code: code,
+			Err: fmt.Errorf("toolbox %s: %s", path, toolboxMessage(body, err))}
 	}
 }
 
@@ -223,6 +227,13 @@ func toolboxMessage(body []byte, err error) string {
 		return e.Error
 	}
 	return err.Error()
+}
+
+// isToolboxNotFound reports whether toolbox itself answered 404, i.e. this
+// release does not have the endpoint.
+func isToolboxNotFound(err error) bool {
+	var te *ToolboxError
+	return errors.As(err, &te) && te.Code == http.StatusNotFound
 }
 
 // GetToolboxStatus says whether toolbox can be used, never failing: the
@@ -251,12 +262,17 @@ func changeParams(f models.ToolboxChangeFilter) url.Values {
 		}
 	}
 	set("q", f.Q)
+	set("group", f.Group)
 	set("namespace", f.Namespace)
 	set("resource", f.Resource)
+	set("kind", f.Kind)
 	set("name", f.Name)
 	set("user", f.User)
 	set("verb", f.Verb)
+	set("attribution", f.Attribution)
+	set("path", f.Path)
 	set("since", f.Since)
+	set("until", f.Until)
 	set("cursor", f.Cursor)
 	if f.Limit > 0 {
 		p.Set("limit", strconv.Itoa(f.Limit))
@@ -279,20 +295,26 @@ func ListToolboxChanges(ctx context.Context, t Toolbox, f models.ToolboxChangeFi
 	return page, nil
 }
 
-func ListToolboxAttempts(ctx context.Context, t Toolbox, f models.ToolboxChangeFilter) ([]models.ToolboxAttempt, error) {
-	f.Q, f.Verb, f.Cursor = "", "", ""
-	body, _, err := t.get(ctx, "api/v1/attempts", changeParams(f))
+func attemptParams(f models.ToolboxChangeFilter) url.Values {
+	// Audited requests are not changes: they have no kind, attribution or
+	// changed paths.
+	f.Q, f.Verb, f.Kind, f.Attribution, f.Path, f.Group = "", "", "", "", "", ""
+	return changeParams(f)
+}
+
+func ListToolboxAttempts(ctx context.Context, t Toolbox, f models.ToolboxChangeFilter) (models.ToolboxAttemptPage, error) {
+	var page models.ToolboxAttemptPage
+	body, _, err := t.get(ctx, "api/v1/attempts", attemptParams(f))
 	if err != nil {
-		return nil, err
+		return page, err
 	}
-	var res struct{ Items []models.ToolboxAttempt }
-	if err := json.Unmarshal(body, &res); err != nil {
-		return nil, fmt.Errorf("decode toolbox attempts: %w", err)
+	if err := json.Unmarshal(body, &page); err != nil {
+		return page, fmt.Errorf("decode toolbox attempts: %w", err)
 	}
-	if res.Items == nil {
-		res.Items = []models.ToolboxAttempt{}
+	if page.Items == nil {
+		page.Items = []models.ToolboxAttempt{}
 	}
-	return res.Items, nil
+	return page, nil
 }
 
 func ListToolboxUsers(ctx context.Context, t Toolbox, since string) ([]models.ToolboxUser, error) {
@@ -312,6 +334,83 @@ func ListToolboxUsers(ctx context.Context, t Toolbox, since string) ([]models.To
 		res.Items = []models.ToolboxUser{}
 	}
 	return res.Items, nil
+}
+
+// GetToolboxHealth reads toolbox's recording health. A toolbox from before
+// /api/v1/health answers 404 through the proxy (after the one rediscovery a
+// 404 triggers); that is reported as Supported=false, not as an error.
+func GetToolboxHealth(ctx context.Context, t Toolbox) (models.ToolboxHealth, error) {
+	var h models.ToolboxHealth
+	body, _, err := t.get(ctx, "api/v1/health", nil)
+	if err != nil {
+		if isToolboxNotFound(err) {
+			return h, nil
+		}
+		return h, err
+	}
+	if err := json.Unmarshal(body, &h); err != nil {
+		return h, fmt.Errorf("decode toolbox health: %w", err)
+	}
+	h.Supported = true
+	if h.Coverage.Gaps == nil {
+		h.Coverage.Gaps = []models.ToolboxGap{}
+	}
+	return h, nil
+}
+
+// ListToolboxGaps returns the recording gaps in [since, until] (a duration
+// like "168h" or RFC 3339; empty until is now). An old toolbox has none to
+// report.
+func ListToolboxGaps(ctx context.Context, t Toolbox, since, until string) (models.ToolboxCoverage, error) {
+	var cov models.ToolboxCoverage
+	p := url.Values{}
+	if since != "" {
+		p.Set("since", since)
+	}
+	if until != "" {
+		p.Set("until", until)
+	}
+	body, _, err := t.get(ctx, "api/v1/gaps", p)
+	if err != nil {
+		if isToolboxNotFound(err) {
+			return models.ToolboxCoverage{Gaps: []models.ToolboxGap{}}, nil
+		}
+		return cov, err
+	}
+	if err := json.Unmarshal(body, &cov); err != nil {
+		return cov, fmt.Errorf("decode toolbox gaps: %w", err)
+	}
+	if cov.Gaps == nil {
+		cov.Gaps = []models.ToolboxGap{}
+	}
+	return cov, nil
+}
+
+// GetToolboxStats reads toolbox's summary of a period.
+func GetToolboxStats(ctx context.Context, t Toolbox, f models.ToolboxStatsFilter) (models.ToolboxStats, error) {
+	var st models.ToolboxStats
+	p := url.Values{}
+	for k, v := range map[string]string{"since": f.Since, "until": f.Until, "namespace": f.Namespace, "bucket": f.Bucket} {
+		if v != "" {
+			p.Set(k, v)
+		}
+	}
+	body, _, err := t.get(ctx, "api/v1/stats", p)
+	if err != nil {
+		return st, err
+	}
+	if err := json.Unmarshal(body, &st); err != nil {
+		return st, fmt.Errorf("decode toolbox stats: %w", err)
+	}
+	for _, l := range []*[]models.ToolboxCount{&st.ByResource, &st.ByUser, &st.ByNamespace} {
+		if *l == nil {
+			*l = []models.ToolboxCount{}
+		}
+	}
+	if st.Buckets == nil {
+		st.Buckets = []models.ToolboxBucket{}
+	}
+	return st, nil
 }
 
 // toolboxChange is a change with the stored objects, which toolbox sends as
@@ -461,6 +560,17 @@ func GetToolboxLiveObject(ctx context.Context, dyn dynamic.Interface, group, ver
 // this fail instead of being overwritten unseen. A deleted object is created
 // again. The version is read from toolbox here, never from the caller.
 func RollbackToolboxChange(ctx context.Context, t Toolbox, dyn dynamic.Interface, eventID, side string) (string, error) {
+	return rollbackToolboxChange(ctx, t, dyn, eventID, side, false)
+}
+
+// DryRunToolboxRollback runs the same write as RollbackToolboxChange with
+// dryRun=All, so validation and admission (webhooks, quotas, a namespace that
+// is gone) answer before anything is written.
+func DryRunToolboxRollback(ctx context.Context, t Toolbox, dyn dynamic.Interface, eventID, side string) (string, error) {
+	return rollbackToolboxChange(ctx, t, dyn, eventID, side, true)
+}
+
+func rollbackToolboxChange(ctx context.Context, t Toolbox, dyn dynamic.Interface, eventID, side string, dryRun bool) (string, error) {
 	ch, err := getToolboxChange(ctx, t, eventID)
 	if err != nil {
 		return "", err
@@ -484,23 +594,36 @@ func RollbackToolboxChange(ctx context.Context, t Toolbox, dyn dynamic.Interface
 	u := &unstructured.Unstructured{Object: restorable(obj)}
 	ri := toolboxResource(dyn, ch.Group, ch.APIVersion, ch.Resource, ch.Namespace)
 	target := ch.Kind + "/" + ch.Name
+	var dry []string
+	verbs := [2]string{"re-created", "rolled back"}
+	if dryRun {
+		dry = []string{metav1.DryRunAll}
+		verbs = [2]string{"can be re-created", "can be rolled back"}
+	}
 
 	live, err := ri.Get(ctx, ch.Name, metav1.GetOptions{})
 	switch {
 	case apierrors.IsNotFound(err):
-		if _, err := ri.Create(ctx, u, metav1.CreateOptions{FieldManager: fieldManager}); err != nil {
+		// The API server's answer for a missing namespace is a bare
+		// NotFound that reads like the object itself is missing.
+		if ch.Namespace != "" {
+			if _, err := t.Client.CoreV1().Namespaces().Get(ctx, ch.Namespace, metav1.GetOptions{}); apierrors.IsNotFound(err) {
+				return "", fmt.Errorf("namespace %s no longer exists; create it first, then re-create %s", ch.Namespace, target)
+			}
+		}
+		if _, err := ri.Create(ctx, u, metav1.CreateOptions{FieldManager: fieldManager, DryRun: dry}); err != nil {
 			return "", fmt.Errorf("re-create %s: %w", target, err)
 		}
-		return target + " re-created", nil
+		return target + " " + verbs[0], nil
 	case err != nil:
 		return "", fmt.Errorf("read live %s: %w", target, err)
 	}
 	u.SetResourceVersion(live.GetResourceVersion())
-	if _, err := ri.Update(ctx, u, metav1.UpdateOptions{FieldManager: fieldManager}); err != nil {
+	if _, err := ri.Update(ctx, u, metav1.UpdateOptions{FieldManager: fieldManager, DryRun: dry}); err != nil {
 		if apierrors.IsConflict(err) {
 			return "", fmt.Errorf("%s changed while rolling back; compare again and retry", target)
 		}
 		return "", fmt.Errorf("roll back %s: %w", target, err)
 	}
-	return target + " rolled back", nil
+	return target + " " + verbs[1], nil
 }
