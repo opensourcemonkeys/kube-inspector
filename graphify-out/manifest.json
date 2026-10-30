@@ -75,9 +75,9 @@
     "semantic_hash": ""
   },
   "electron/package.json": {
-    "mtime": 1784456524.8476372,
-    "ast_hash": "acf23550a3ce6eb6391ea21dd0ea1a21",
-    "semantic_hash": "acf23550a3ce6eb6391ea21dd0ea1a21"
+    "mtime": 1793366460.9769125,
+    "ast_hash": "016b296295814f7d13eda40d93c555f6",
+    "semantic_hash": ""
   },
   "electron/preload.cjs": {
     "mtime": 1792604711.2250938,
@@ -85,8 +85,8 @@
     "semantic_hash": ""
   },
   "frontend/package.json": {
-    "mtime": 1792325947.3705032,
-    "ast_hash": "838403972b063b47319acc5fcf322dfc",
+    "mtime": 1793366460.9782157,
+    "ast_hash": "06b0794dad9ab442474a809fad18c731",
     "semantic_hash": ""
   },
   "frontend/src/components/ai/AiChat.tsx": {
@@ -480,9 +480,9 @@
     "semantic_hash": "0352474ba2918efe13895edbc3780d94"
   },
   "frontend/tsconfig.json": {
-    "mtime": 1777815930.7063491,
-    "ast_hash": "c00aeef164e2b8c0f4ff2f7ae9c1a433",
-    "semantic_hash": "c00aeef164e2b8c0f4ff2f7ae9c1a433"
+    "mtime": 1793366460.9784853,
+    "ast_hash": "24659a5484e166533b299e5b04370646",
+    "semantic_hash": ""
   },
   "frontend/tsconfig.node.json": {
     "mtime": 1777815930.7063491,
@@ -490,13 +490,13 @@
     "semantic_hash": "80e0f622dc62c135bc19cda859de41b9"
   },
   "frontend/vite.config.ts": {
-    "mtime": 1792325947.377532,
-    "ast_hash": "449761d32529435e2b77af41e164f975",
+    "mtime": 1793366460.9787204,
+    "ast_hash": "ec8b15c2062e219cfcb479244ecc5914",
     "semantic_hash": ""
   },
   "go.mod": {
-    "mtime": 1792241374.7363272,
-    "ast_hash": "36718853fd6b8727fd8557ee77162b7e",
+    "mtime": 1793366460.9789424,
+    "ast_hash": "8e52442d52510f4fbf4544216d7d604c",
     "semantic_hash": ""
   },
   "internal/ai/agent.go": {
@@ -1145,8 +1145,8 @@
     "semantic_hash": ""
   },
   "internal/services/trivyServices.go": {
-    "mtime": 1786196266.1834629,
-    "ast_hash": "d676e4ecca9878aa3c01ba4de18a05af",
+    "mtime": 1793366460.980035,
+    "ast_hash": "e22655306e6d29857e02e5dbfee7aad8",
     "semantic_hash": ""
   },
   "internal/services/yamlUtils.go": {
@@ -1255,8 +1255,8 @@
     "semantic_hash": "3d16cd4868fa1e8a6ce5c2fe7e205af6"
   },
   ".github/workflows/build.yml": {
-    "mtime": 1787603710.8934145,
-    "ast_hash": "50fb2b1baef45d616843f1fef82da71f",
+    "mtime": 1793366460.9758456,
+    "ast_hash": "5df5fa5fa2abd3bef4baafccdf9e9e63",
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
@@ -1265,13 +1265,13 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793311995.4292212,
-    "ast_hash": "f4257ab3e7b9161b23fac50df000caf2",
+    "mtime": 1793366460.9764082,
+    "ast_hash": "3cdf9a1049b99224c32b9ebd268c000b",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1792326791.0856788,
-    "ast_hash": "083edd33dd26c27c49a43c5eddaa4f20",
+    "mtime": 1793366460.9765782,
+    "ast_hash": "30174cab2b6a3add5a218030014f9e7b",
     "semantic_hash": ""
   },
   "docs/changelog.md": {
@@ -1645,8 +1645,8 @@
     "semantic_hash": ""
   },
   "frontend/vitest.config.ts": {
-    "mtime": 1787483813.8430388,
-    "ast_hash": "d9cd87a66772b991126fdfad540cad02",
+    "mtime": 1793366460.9788585,
+    "ast_hash": "78f596dbc038efb003039bcbb23194ca",
     "semantic_hash": ""
   },
   "internal/business/update_test.go": {
@@ -1655,13 +1655,13 @@
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {
-    "mtime": 1792326791.085449,
-    "ast_hash": "76fe884fe8749e78a43515e72e5e4bf4",
+    "mtime": 1793366460.9758456,
+    "ast_hash": "87dbadad9d604d4e2f4a5048b2262add",
     "semantic_hash": ""
   },
   ".golangci.yml": {
-    "mtime": 1786200235.996548,
-    "ast_hash": "6837ad742c991cc7d174c7439a15ba7b",
+    "mtime": 1793366460.9758456,
+    "ast_hash": "08f83624030c2f222342e64b1fb8fb41",
     "semantic_hash": ""
   },
   "internal/repository/k8sClient_test.go": {
@@ -1785,8 +1785,8 @@
     "semantic_hash": ""
   },
   "internal/logging/logging.go": {
-    "mtime": 1788006165.0713665,
-    "ast_hash": "b533570909d81d71372dfc58b6cde1ad",
+    "mtime": 1793366460.9799266,
+    "ast_hash": "ee5cc1dde6e0351e4179009f84ca8544",
     "semantic_hash": ""
   },
   "internal/logging/logging_test.go": {
@@ -2190,8 +2190,8 @@
     "semantic_hash": ""
   },
   "frontend/src/lib/monacoBootstrap.ts": {
-    "mtime": 1792944010.1862147,
-    "ast_hash": "52b70b5057eab3ccf7d09304a8756c40",
+    "mtime": 1793366460.9784198,
+    "ast_hash": "700e3e0650a755707b1258bb6d7f0182",
     "semantic_hash": ""
   },
   "frontend/src/lib/themeColors.ts": {
@@ -2300,8 +2300,8 @@
     "semantic_hash": ""
   },
   ".github/CONTRIBUTING.md": {
-    "mtime": 1792326791.085971,
-    "ast_hash": "0bf98240a884203f7190c3a98243c072",
+    "mtime": 1793366460.9745429,
+    "ast_hash": "bacedd0bf4de8ff7987b0a796e09d083",
     "semantic_hash": ""
   },
   ".github/ISSUE_TEMPLATE/bug_report.yml": {

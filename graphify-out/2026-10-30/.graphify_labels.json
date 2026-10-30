@@ -655,6 +655,7 @@
   "653": "destructive-foreground",
   "654": "muted",
   "655": "primary-foreground",
+  "656": "secondary-foreground",
   "657": "progressWriter",
   "658": "destructive",
   "662": "ring"
