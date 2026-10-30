@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.20.0-beta] - 2026-10-30
+
+A release about knowing what happened in a cluster and what would happen next. **Cluster History** shows who changed what, when and through which path, with a diff of every change and a rollback that is checked with the API server before it writes anything. It reads from **toolbox**, a small recorder you install into the cluster with Helm. The **resource graph** has been rebuilt to find what is broken and to answer "what breaks if I delete this?" before you do.
+
+### Added
+- **Cluster History.** The new tools button in the cluster bar opens the cluster's **Toolbox**, and its first tool is the change history toolbox records: every create, update and delete, with the user, the time, the path it came through and a YAML diff. It opens on an **overview**: totals for the period compared with the one before, an activity chart stacked by create, update, delete and finalized (also readable as a table), and the most-changed resources, most active users and busiest namespaces. Clicking a column, a row or a name opens the changes it counts.
+- **Filter changes by anything toolbox records.** Filter by namespace, resource, kind, name, user, verb, how the change was attributed, and a **changed path** such as `/spec/replicas` to see only scale changes. Pick a preset range or a custom one with a date and time. Hovering a namespace, user or object cell offers "filter by this". Times read as "5m" with the exact time on hover. Filters and the view you picked last for as long as the app is open.
+- **Live changes.** On the first page of a range that runs to now, changes appear as toolbox records them rather than on a timer, falling back to polling against a toolbox that cannot stream.
+- **History of a single object.** **History** in a list row's ⋮ menu, in the YAML, Describe and object YAML toolbars and in the pod detail opens a timeline of that one object. You can compare any two of its versions, or a version with the live object, and restore it to any point. An object deleted and created again under the same name stays on one timeline, with a divider where it was recreated. These entries are disabled, with the reason on hover, when toolbox is not installed or cannot be reached.
+- **A rollback that is checked first.** Undo a change or restore a version, and the dialog first asks the API server for a dry run. Confirm stays off until the dry run passes. A namespace that no longer exists is named as such. Afterwards the list waits for toolbox to record the rollback itself and marks it. The rollback writes the stored version back in full, so fields added since are removed, and a concurrent edit makes it fail rather than be overwritten. Secrets cannot be rolled back, because toolbox never stores their values.
+- **Rejected requests and users.** **Rejected** lists the requests the API server refused, page by page, with a detail panel: request URI, user agent, groups, impersonation and the full message. **Users** shows how many creates, updates, deletes and finalizations each user made.
+- **Export.** The changes or rejected requests matching the current filter can be saved as CSV or JSON, up to 50,000 rows. Every row the filter matches is exported, not only the pages on screen. CSV cells that a spreadsheet would run as a formula are escaped.
+- **Recording health.** Under the history tool: when each source last reported, which pod is recording and how many resource types it watches, how much of the last seven days was recorded, how changes were attributed over the last day, and what toolbox keeps and excludes. It opens by itself when something needs attention. Stretches in which nothing was recorded — no recorder running, ClickHouse unreachable, the recorder handing over to another pod — are drawn as **gaps** in the changes list, the object timeline and the activity chart, so a quiet period is never mistaken for one with no changes.
+- **An install guide.** When toolbox is not installed, the Toolbox row shows the Helm command to install it, with this cluster's name already filled in, and links to the new **Toolbox** section of the documentation.
+- **Cluster History in the terminal UI.** A Cluster History view lists the same changes: `F` filters by namespace, user, verb and age, `M` loads older changes, and `U` undoes a change after a dry run and a confirmation naming the object, the change and the dry run's answer.
+- **A resource graph that finds problems.** Each object in the graph is checked against what it depends on, and problems are marked on the object and on the broken link. **Problems** steps through them, and **Only problems** hides the rest. It finds Secrets, ConfigMaps, PVCs and ServiceAccounts a pod needs but cannot find, Services whose selector matches no pods or no ready ones, target ports the pods do not expose, Ingress backends that are down, claims that are pending or lost, node pressure and cordoned nodes, and recent Warning events.
+- **"What if it is deleted?" and "What if it fails?"** Right-click any object in the graph to see what else would be affected, and how: removed with it, broken now, broken on the next restart, or running with less capacity. It also warns when a volume's data would be deleted with it. The summary can be copied as Markdown.
+- **Impact in delete dialogs.** The same summary appears in the delete dialog of the Pod, Deployment, StatefulSet, DaemonSet, ReplicaSet, Service, Ingress, ConfigMap, Secret, ServiceAccount, PersistentVolume, PersistentVolumeClaim and StorageClass lists.
+- **More in the graph.** ConfigMaps and Secrets (names only, never values), ServiceAccounts, and PVCs with their PersistentVolumes and StorageClasses now appear with their links. Every link is labelled with how the object is used — a mount path, an env var.
+- **A graph that keeps up.** The graph refreshes on an interval you choose. Objects that appeared, changed or restarted since you last looked are marked, and removed objects stay as faded outlines until marked seen. **Usage** overlays CPU and memory from metrics-server.
+- **Graph views.** Group by namespace or by node, controllers collapsed into one box until expanded, a top-down or left-right layout, a finder, and a right-click menu with YAML, Describe, Logs and Copy name. Views can be saved by name per cluster, and the graph can be exported as SVG.
+
+### Changed
+- **The resource graph** is laid out in rows by kind and scoped to the namespaces you pick, with all its controls in one toolbar row. Clicking an object highlights only its own chain of dependencies instead of everything it touches.
+- **The pod detail panel and the resource graph** now read a pod's references the same way, so they always agree on which Secrets, ConfigMaps and claims a pod uses. A missing pull secret is no longer reported as stopping a pod from starting: the kubelet skips it and pulls anonymously.
+
+### Fixed
+- **A tab dragged out of the window** is now drawn in the current theme's colours, with its cluster stripe. It used to show the colours of the old design.
+- **The "pods failing" warning in the resource graph** was shown in English in every other language.
+
+### Internal
+- `toolbox/` is a separate Go module with its own release line: `toolbox-v*` tags publish the image `ghcr.io/opensourcemonkeys/kube-inspector-toolbox` and the chart `oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox` through `.github/workflows/toolbox.yml`. The app reaches toolbox through the API server's service proxy with the cluster's own kubeconfig — there is no port-forward. It treats a 404 from an older toolbox as "not supported" rather than an error.
+- The app version now comes from `v*` tags only (`git describe --match 'v[0-9]*'` in the Makefile and `mkdocs_hooks.py`). The `toolbox-v*` tags were being picked up as the app's version.
+- The first Monaco `DiffEditor` in the app. `monacoBootstrap.ts` now refuses a worker, so Monaco runs its editor worker on the main thread; the old no-op worker stub left the diff waiting forever.
+- Shared pieces extracted from the graph work: `lib/graphHighlight.ts`, also used by the Security Role Map; `lib/useSplitPane.ts`, also used by the pod list; and `services.podReferences`.
+
+---
+
 ## [v0.19.0-beta] - 2026-10-18
 
 A redesign release. Every screen has been redrawn around one idea taken from an instrument panel: a graphite frame — title bar, sidebar, tab strip, toolbars — with the content set into it as a darker screen. States read as lamps with a shape as well as a colour, the type is IBM Plex, and the one accent is the blue of the app's logo. Alongside it come a light theme, a log viewer that can follow every pod of a workload, and a shell picker for the built-in terminal.
