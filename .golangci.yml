@@ -1,7 +1,7 @@
 version: "2"
 
-# The Trivy scanner library pulls in encoding/json/v2, gated behind the jsonv2
-# GOEXPERIMENT on Go 1.26. golangci-lint shells out to the Go toolchain, so it
+# The Trivy scanner library pulls in encoding/json/v2, which Go 1.26 gated
+# behind the jsonv2 GOEXPERIMENT (1.27 enables it by default). golangci-lint shells out to the Go toolchain, so it
 # inherits GOEXPERIMENT from the environment — the Makefile exports it and
 # ci.yml sets it in the workflow env. Running `golangci-lint run` by hand
 # without it fails the whole run with a typecheck error on the Trivy import.

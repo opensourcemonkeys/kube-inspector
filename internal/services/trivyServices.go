@@ -674,6 +674,11 @@ func mapReport(kind, ref string, report types.Report) *models.TrivyScanResult {
 			Type:   string(r.Type),
 		}
 		for _, v := range r.Vulnerabilities {
+			// Deprecated in favour of VendorSeverity, but it is the one value
+			// Trivy resolves through VulnSeveritySources ("auto") and the only
+			// one set when the DB has no detail for the ID. Reading the vendor
+			// map instead would need that resolution redone here.
+			severity := v.Severity //nolint:staticcheck // SA1019: see above
 			published := ""
 			if v.PublishedDate != nil {
 				published = v.PublishedDate.Format("2006-01-02")
@@ -683,14 +688,14 @@ func mapReport(kind, ref string, report types.Report) *models.TrivyScanResult {
 				PkgName:          v.PkgName,
 				InstalledVersion: v.InstalledVersion,
 				FixedVersion:     v.FixedVersion,
-				Severity:         v.Severity,
+				Severity:         severity,
 				Title:            v.Title,
 				Description:      v.Description,
 				PrimaryURL:       v.PrimaryURL,
 				References:       v.References,
 				PublishedDate:    published,
 			})
-			res.Summary[v.Severity]++
+			res.Summary[severity]++
 		}
 		if len(t.Vulnerabilities) > 0 {
 			res.Targets = append(res.Targets, t)
