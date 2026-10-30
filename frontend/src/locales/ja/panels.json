@@ -476,7 +476,7 @@
       "notFound": "見つかりません",
       "missingRef": "{{kind}} {{name}} が見つかりません",
       "optionalRefMissing": "任意の {{kind}} {{name}} が見つかりません",
-      "podsFailing": "{{count}} 個の Pod が失敗",
+      "podsFailing_other": "{{count}} 個の Pod が失敗",
       "noMatchingPods": "セレクターに一致する Pod がありません",
       "noReadyEndpoints": "Ready の Pod がありません",
       "someNotReady": "{{ready}}/{{total}} Pod が Ready",

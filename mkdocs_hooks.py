@@ -49,7 +49,8 @@ def _app_version(config):
         pass
     try:
         tag = subprocess.check_output(
-            ["git", "describe", "--tags", "--abbrev=0"],
+            # Only app tags: toolbox ships on its own toolbox-v* tags.
+            ["git", "describe", "--tags", "--abbrev=0", "--match", "v[0-9]*"],
             cwd=root,
             stderr=subprocess.DEVNULL,
         ).decode().strip()

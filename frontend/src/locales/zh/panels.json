@@ -476,7 +476,7 @@
       "notFound": "未找到",
       "missingRef": "未找到 {{kind}} {{name}}",
       "optionalRefMissing": "未找到可选的 {{kind}} {{name}}",
-      "podsFailing": "{{count}} 个 Pod 故障",
+      "podsFailing_other": "{{count}} 个 Pod 故障",
       "noMatchingPods": "选择器未匹配任何 Pod",
       "noReadyEndpoints": "没有就绪的 Pod",
       "someNotReady": "{{ready}}/{{total}} 个 Pod 就绪",

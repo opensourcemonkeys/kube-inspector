@@ -1,4 +1,6 @@
-VERSION := $(shell git describe --tags --abbrev=0 | sed 's/^v//')
+# --match: the in-cluster toolbox ships on its own toolbox-v* tags, which a bare
+# `git describe --tags` would also pick up.
+VERSION := $(shell git describe --tags --abbrev=0 --match 'v[0-9]*' | sed 's/^v//')
 LDFLAGS := -X 'kube-ins/internal/business.appVersion=$(VERSION)' -s -w
 
 # The Trivy library (security scanner) depends on encoding/json/v2, which is
@@ -236,7 +238,7 @@ check-frontend: bindings
 # and asset links that 404.
 print-version:
 	@test -n "$(VERSION)" || { \
-		echo "make: VERSION is empty - 'git describe --tags' found no tag." >&2; \
+		echo "make: VERSION is empty - 'git describe --tags' found no v* tag." >&2; \
 		echo "      Use a full clone with tags (actions/checkout fetch-depth: 0)." >&2; \
 		exit 1; }
 	@echo $(VERSION)
