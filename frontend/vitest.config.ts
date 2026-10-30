@@ -1,9 +1,8 @@
 import { defineConfig } from 'vitest/config';
 
-// Deliberately standalone rather than merged with vite.config.ts: the project
-// still builds on Vite 3, while Vitest 2 carries its own Vite 5. Importing the
-// app's config here would drag the Vite 3 plugin pipeline into a Vite 5 runtime.
-// Revisit once the Vite upgrade in beta-plan S14f lands.
+// Standalone rather than merged with vite.config.ts: the app's config carries
+// the Monaco alias, vendor chunking and dev proxy, none of which a unit test
+// wants.
 export default defineConfig({
     test: {
         environment: 'jsdom',

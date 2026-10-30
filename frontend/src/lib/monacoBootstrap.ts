@@ -1,8 +1,10 @@
 import { loader } from '@monaco-editor/react';
-// `monaco-editor` is aliased to `edcore.main` in vite.config.ts — see there for
-// why. The YAML grammar is not part of the core entry, so it is asked for here.
+// `monaco-editor` is aliased to the bare editor API in vite.config.ts — see
+// there for why. The editor features and the YAML grammar are not part of that
+// entry, so they are asked for here.
 import * as monacoEditor from 'monaco-editor';
-import 'monaco-editor/esm/vs/basic-languages/yaml/yaml.contribution';
+import 'monaco-editor/features/register.all';
+import 'monaco-editor/languages/definitions/yaml/register';
 import { monoFontReady } from './fonts';
 
 /**

@@ -18,7 +18,13 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    // monaco-editor 0.56+ declares its types only through package `exports`,
+    // which "Node" resolution does not read. Same targets as the Vite alias.
+    "paths": {
+      "monaco-editor": ["./node_modules/monaco-editor/esm/vs/editor.d.ts"],
+      "monaco-editor/*": ["./node_modules/monaco-editor/esm/vs/*"]
+    }
   },
   "include": [
     "src"
