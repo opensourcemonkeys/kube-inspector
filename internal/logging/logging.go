@@ -319,7 +319,7 @@ func Level() string { return levelName(lvl.Level()) }
 func Dir() (string, error) {
 	if d := os.Getenv(envLogDir); d != "" {
 		d = filepath.Clean(d)
-		if err := os.MkdirAll(d, 0700); err != nil {
+		if err := os.MkdirAll(d, 0700); err != nil { //nolint:gosec // G703: see above
 			return "", err
 		}
 		return d, nil

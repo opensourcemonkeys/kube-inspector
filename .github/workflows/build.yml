@@ -11,7 +11,7 @@ on:
 env:
   NODE_OPTIONS: "--max-old-space-size=4096"
   # The Trivy security-scanner library pulls in encoding/json/v2, which is
-  # gated behind the jsonv2 GOEXPERIMENT on Go 1.26.
+  # gated behind the jsonv2 GOEXPERIMENT on Go 1.26 (on by default since 1.27).
   GOEXPERIMENT: jsonv2
 
 # The R2 credentials are declared per job rather than here. They are write
@@ -48,7 +48,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.26'
+          go-version: '1.27'
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -85,7 +85,7 @@ jobs:
         # Pinned to the version in go.mod. Every `uses:` here is SHA-pinned;
         # an unpinned @latest toolchain generates the bindings a release is
         # built from, which is the loudest remaining supply-chain gap.
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.17.0
 
       - name: Install nfpm
         run: |
@@ -163,7 +163,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.26'
+          go-version: '1.27'
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -200,7 +200,7 @@ jobs:
         # Pinned to the version in go.mod. Every `uses:` here is SHA-pinned;
         # an unpinned @latest toolchain generates the bindings a release is
         # built from, which is the loudest remaining supply-chain gap.
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.17.0
 
       - name: Build and Package
         shell: bash
@@ -267,7 +267,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          go-version: '1.26'
+          go-version: '1.27'
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
@@ -299,7 +299,7 @@ jobs:
         # Pinned to the version in go.mod. Every `uses:` here is SHA-pinned;
         # an unpinned @latest toolchain generates the bindings a release is
         # built from, which is the loudest remaining supply-chain gap.
-        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.12.0
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@v2.17.0
 
       - name: Build and Package
         run: make pkg-mac

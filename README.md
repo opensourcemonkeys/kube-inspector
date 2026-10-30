@@ -186,7 +186,7 @@ Full detail: [Privacy](https://kubeinspector.com/privacy/).
 
 | Tool | Version | Notes |
 |---|---|---|
-| Go | 1.26+ | `GOEXPERIMENT=jsonv2` is **required**, not optional |
+| Go | 1.27+ | needs `encoding/json/v2`, which Go 1.27 enables by default |
 | Node.js | 20+ | |
 | Wails CLI | latest | used to generate the TypeScript bindings |
 | nfpm | latest | only for `pkg-deb` / `pkg-rpm` |

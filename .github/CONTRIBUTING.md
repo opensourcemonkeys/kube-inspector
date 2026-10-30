@@ -11,7 +11,7 @@ welcome.
 
 | Tool | Version | Notes |
 |---|---|---|
-| Go | 1.26+ | |
+| Go | 1.27+ | |
 | Node.js | 20+ | |
 | Wails CLI | latest | generates the TypeScript bindings |
 | golangci-lint | latest | optional locally, mandatory in CI |

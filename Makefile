@@ -4,8 +4,10 @@ VERSION := $(shell git describe --tags --abbrev=0 --match 'v[0-9]*' | sed 's/^v/
 LDFLAGS := -X 'kube-ins/internal/business.appVersion=$(VERSION)' -s -w
 
 # The Trivy library (security scanner) depends on encoding/json/v2, which is
-# gated behind the jsonv2 GOEXPERIMENT on Go 1.26. Export it so every wails/go
-# invocation in this Makefile (build, dev, packaging) compiles it.
+# gated behind the jsonv2 GOEXPERIMENT on Go 1.26; 1.27, which go.mod now
+# requires, enables it by default. Still exported, harmlessly, so every
+# wails/go invocation in this Makefile (build, dev, packaging) compiles it on
+# either.
 export GOEXPERIMENT := jsonv2
 export GOFLAGS := -trimpath -buildvcs=false
 NFPM    := nfpm
