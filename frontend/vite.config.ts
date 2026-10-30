@@ -1,5 +1,6 @@
 import {defineConfig} from 'vite'
 import react from '@vitejs/plugin-react'
+import {writeFileSync} from 'node:fs'
 
 const nm = (pkg: string) => new URL(`node_modules/${pkg}`, import.meta.url).pathname
 
@@ -32,6 +33,18 @@ const stripLaraFonts = () => ({
   },
 })
 
+// main.go embeds frontend/dist, so a fresh checkout needs the tracked
+// .gitkeep there. Vite empties the directory on every build; without this a
+// plain `npm run build` deleted the placeholder, and committing that broke
+// every CI Go build.
+const keepGitkeep = () => ({
+  name: 'kube-ins-keep-gitkeep',
+  apply: 'build' as const,
+  closeBundle() {
+    writeFileSync(new URL('dist/.gitkeep', import.meta.url), '')
+  },
+})
+
 // Vendor chunks. Without these, Rollup hoists every shared dependency of the
 // lazy panels back into one chunk and the code splitting buys nothing: the
 // libraries below are exactly the weight the app used to pay at launch.
@@ -58,7 +71,7 @@ const vendorChunk = (id: string): string | undefined => {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react(), devToken(), stripLaraFonts()],
+  plugins: [react(), devToken(), stripLaraFonts(), keepGitkeep()],
   build: {
     rollupOptions: {
       output: { manualChunks: (id) => vendorChunk(id) },
