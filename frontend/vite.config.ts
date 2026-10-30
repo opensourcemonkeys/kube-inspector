@@ -90,23 +90,22 @@ export default defineConfig({
     },
   },
   resolve: {
-    // Monaco's default entry (`editor.main`) statically imports the css, html,
-    // json and TypeScript *language services* — the TypeScript one carries the
-    // whole compiler — plus ~80 basic-language grammars. This app edits
-    // Kubernetes YAML and nothing else. `edcore.main` is the same editor with
-    // every editor contribution (find, folding, suggest, hover, context menu)
-    // and no languages; lib/monacoBootstrap.ts then adds the one grammar we do
-    // want.
+    // Monaco's default entry statically imports the css, html, json and
+    // TypeScript *language services* — the TypeScript one carries the whole
+    // compiler — plus ~80 basic-language grammars. This app edits Kubernetes
+    // YAML and nothing else. `editor` is the bare editor API;
+    // lib/monacoBootstrap.ts then registers every editor feature (find,
+    // folding, suggest, hover, context menu) and the one grammar we want.
     //
     // Aliased rather than imported directly so that *every* importer gets the
     // trimmed build — otherwise one `import 'monaco-editor'` left anywhere
     // silently pulls the full entry back in and undoes it.
     //
     // Array form, because the object form matches by prefix: aliasing the bare
-    // string also rewrote `monaco-editor/esm/...` deep imports into nonsense
+    // string also rewrote `monaco-editor/...` subpath imports into nonsense
     // paths. A regex anchors it to the bare specifier.
     alias: [
-      { find: /^monaco-editor$/, replacement: nm('monaco-editor/esm/vs/editor/edcore.main.js') },
+      { find: /^monaco-editor$/, replacement: nm('monaco-editor/esm/vs/editor.js') },
       ...Object.entries({
       'next/navigation': new URL('src/lib/next-stub.ts', import.meta.url).pathname,
       'next/router': new URL('src/lib/next-stub.ts', import.meta.url).pathname,
