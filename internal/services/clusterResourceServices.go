@@ -67,7 +67,7 @@ const kubeRootCA = "kube-root-ca.crt"
 
 // helmReleaseSecretType is the type Helm stores each release revision under —
 // one Secret per upgrade, in every namespace with a chart in it.
-const helmReleaseSecretType = "helm.sh/release.v1"
+const helmReleaseSecretType = "helm.sh/release.v1" //nolint:gosec // G101: a Secret type name, not a credential
 
 // GetClusterGraph builds the Ingress → Service → controller → ReplicaSet → Pod
 // graph for the given namespaces; an empty list means every namespace.

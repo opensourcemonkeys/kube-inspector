@@ -1245,8 +1245,8 @@
     "semantic_hash": ""
   },
   "mkdocs_hooks.py": {
-    "mtime": 1791146611.0520701,
-    "ast_hash": "0b32428ba7e53413c4773c9bd3d6d76f",
+    "mtime": 1793338697.6067603,
+    "ast_hash": "7ec78ce03de516a14cc342ba002956aa",
     "semantic_hash": ""
   },
   "wails.json": {
@@ -1260,8 +1260,8 @@
     "semantic_hash": ""
   },
   "CHANGELOG.md": {
-    "mtime": 1792326164.1438677,
-    "ast_hash": "2bff1aa80e902ea76b09ab0a61fa592e",
+    "mtime": 1793338760.9630709,
+    "ast_hash": "5aa6a1020eb4f472bdb0274cd1fa2736",
     "semantic_hash": ""
   },
   "CLAUDE.md": {
@@ -2050,8 +2050,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/de/panels.json": {
-    "mtime": 1793308530.3609316,
-    "ast_hash": "7288fcc0a00e00bc7313b813e48154b1",
+    "mtime": 1793338697.6141574,
+    "ast_hash": "d4c0b45a0d469c373d1f33a91fd02f13",
     "semantic_hash": ""
   },
   "frontend/src/locales/de/resources.json": {
@@ -2080,8 +2080,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/ja/panels.json": {
-    "mtime": 1793308530.3629947,
-    "ast_hash": "c29fa3249c6d185cccc7c30b8a3b5d37",
+    "mtime": 1793338697.6176696,
+    "ast_hash": "d4b85108be6313c0b3b2132edc01b5d0",
     "semantic_hash": ""
   },
   "frontend/src/locales/ja/resources.json": {
@@ -2110,8 +2110,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/ru/panels.json": {
-    "mtime": 1793308530.3659315,
-    "ast_hash": "22b926efd5afd248049ca8ca71d69b39",
+    "mtime": 1793338697.6150105,
+    "ast_hash": "62f7b43d59093d3012ad1e26b71123a7",
     "semantic_hash": ""
   },
   "frontend/src/locales/ru/resources.json": {
@@ -2140,8 +2140,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/tr/panels.json": {
-    "mtime": 1793308530.3599925,
-    "ast_hash": "227bd4f659e9f0ddb07d6365b4e467ee",
+    "mtime": 1793338697.6130521,
+    "ast_hash": "3c3b2432eb54d9a6cd4e950893947622",
     "semantic_hash": ""
   },
   "frontend/src/locales/tr/resources.json": {
@@ -2170,8 +2170,8 @@
     "semantic_hash": ""
   },
   "frontend/src/locales/zh/panels.json": {
-    "mtime": 1793308530.3699315,
-    "ast_hash": "25bcd5e6930745f2a35ec9ca45d9bf5c",
+    "mtime": 1793338697.6165872,
+    "ast_hash": "8c1f0f258bd509bb20c4febbf8413adb",
     "semantic_hash": ""
   },
   "frontend/src/locales/zh/resources.json": {

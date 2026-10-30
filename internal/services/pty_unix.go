@@ -17,7 +17,9 @@ type unixPty struct {
 }
 
 func startPty(path string, args []string, env []string, dir string) (ptyProcess, error) {
-	cmd := exec.Command(path, args...)
+	// path is never caller-supplied: terminalServices resolves it from
+	// discoverShells' list by ID (resolveShell), whatever the panel sent.
+	cmd := exec.Command(path, args...) //nolint:gosec // G204: see above
 	cmd.Env = env
 	cmd.Dir = dir
 
