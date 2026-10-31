@@ -47,3 +47,6 @@ graphify-out/cache/
 # Screenshots and reports from scripts/ui/ (capture, contrast scan, docs
 # shots). Regenerated on demand; only the scripts are tracked.
 /scripts/ui/out/
+
+# superpowers scratch (plan ledgers, review packages)
+/.superpowers/
