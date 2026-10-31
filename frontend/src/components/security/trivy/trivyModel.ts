@@ -80,18 +80,6 @@ export function countDelta(cur: number, prev: number | null): number | null {
     return prev == null ? null : cur - prev;
 }
 
-const workloadKey = (w: models.TrivyWorkloadRef) => `${w.namespace}/${w.kind}/${w.name}`;
-
-/**
- * Critical vulnerability rows (one per finding per workload) in workloads
- * reachable from outside the cluster. Exposure is only known for the ranked
- * workloads, which list every exposed one first, so this counts those.
- */
-export function exposedCriticalCount(top: models.TrivyWorkloadRisk[] | null, vulns: models.TrivyVulnRow[] | null): number {
-    const exposed = new Set((top ?? []).filter((w) => (w.exposure ?? []).length > 0).map((w) => workloadKey(w.workload)));
-    return (vulns ?? []).filter((r) => !r.accepted && r.severity === 'CRITICAL' && exposed.has(workloadKey(r.workload))).length;
-}
-
 /** The verdict's numbers: how many of the first fix items it names, and the critical+high findings they close. */
 export function verdictParams(plan: models.TrivyFixItem[] | null): { topItems: number; closes: number } {
     const top = (plan ?? []).slice(0, 3);

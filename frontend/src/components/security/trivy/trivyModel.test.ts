@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { models } from '../../../../wailsjs/go/models';
 import {
-    countDelta, defaultCompareId, defaultExpiryDate, endOfDayRFC3339, exposedCriticalCount,
+    countDelta, defaultCompareId, defaultExpiryDate, endOfDayRFC3339,
     fixItemExceptions, misconfigException, sumSeverities, verdictParams, vulnException, workloadYamlTarget,
 } from './trivyModel';
 
@@ -85,20 +85,6 @@ describe('summary arithmetic', () => {
         expect(countDelta(5, null)).toBeNull();
         expect(countDelta(5, 3)).toBe(2);
         expect(countDelta(1, 3)).toBe(-2);
-    });
-
-    it('counts critical rows of exposed workloads, accepted ones aside', () => {
-        const top = [
-            { workload: ref('Deployment', 'api'), exposure: ['LoadBalancer default/api'], privileges: null, counts: {} },
-            { workload: ref('Deployment', 'job'), exposure: null, privileges: ['root'], counts: {} },
-        ] as unknown as models.TrivyWorkloadRisk[];
-        const rows = [
-            vulnRow({ severity: 'CRITICAL' }),
-            vulnRow({ severity: 'CRITICAL', accepted: true }),
-            vulnRow({ severity: 'HIGH' }),
-            vulnRow({ severity: 'CRITICAL', workload: ref('Deployment', 'job') }),
-        ];
-        expect(exposedCriticalCount(top, rows)).toBe(1);
     });
 
     it('builds the verdict from the top three fix items', () => {

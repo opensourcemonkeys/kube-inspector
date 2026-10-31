@@ -437,3 +437,57 @@ func TestDiffScansIgnoresWhatTheOtherScanCouldNotSee(t *testing.T) {
 		t.Errorf("New = %+v; want none against a scan that failed to see them", d.New)
 	}
 }
+
+func TestViewExposedCriticalNotTruncatedAndDistinct(t *testing.T) {
+	// 12 exposed workloads share one image (more than the 10 ranked
+	// workloads), plus one internal workload with its own image.
+	var exposedRefs []models.TrivyWorkloadRef
+	var workloads []models.TrivyWorkload
+	for i := 0; i < 12; i++ {
+		ref := wref("prod", "Deployment", fmt.Sprintf("web-%02d", i))
+		exposedRefs = append(exposedRefs, ref)
+		workloads = append(workloads, models.TrivyWorkload{Kind: ref.Kind, Name: ref.Name, Namespace: ref.Namespace,
+			Images: []string{"shared:1"}, Exposure: []string{"LoadBalancer prod/" + ref.Name}})
+	}
+	internal := wref("prod", "Deployment", "worker")
+	workloads = append(workloads, models.TrivyWorkload{Kind: internal.Kind, Name: internal.Name, Namespace: internal.Namespace, Images: []string{"internal:1"}})
+
+	// The last 12 exposed workloads each carry a distinct critical vuln, so
+	// the ranked list (capped at 10) cannot see them all.
+	targets := map[string][]models.TrivyTarget{
+		"shared:1": {{Target: "os", Vulnerabilities: []models.TrivyVulnerability{
+			vuln("CVE-1", "openssl", "1", "2", "CRITICAL"),
+			vuln("CVE-2", "zlib", "1", "", "CRITICAL"),
+			vuln("CVE-3", "curl", "1", "2", "HIGH"),
+			vuln("CVE-4", "acc", "1", "2", "CRITICAL"),
+		}}},
+		"internal:1": {{Target: "os", Vulnerabilities: []models.TrivyVulnerability{vuln("CVE-9", "x", "1", "2", "CRITICAL")}}},
+	}
+	s := scanOf("s1", map[string][]models.TrivyWorkloadRef{"shared:1": exposedRefs, "internal:1": {internal}}, targets, workloads)
+	s.Misconfigs = []models.TrivyK8sMisconfigFinding{
+		{ResourceKind: "Deployment", ResourceName: "web-00", Namespace: "prod", CheckID: "KSV017", Severity: "CRITICAL"},
+		{ResourceKind: "Deployment", ResourceName: "web-11", Namespace: "prod", CheckID: "KSV017", Severity: "CRITICAL"},
+		{ResourceKind: "Deployment", ResourceName: "web-01", Namespace: "prod", CheckID: "KSV012", Severity: "CRITICAL"}, // accepted below
+		{ResourceKind: "Deployment", ResourceName: "worker", Namespace: "prod", CheckID: "KSV017", Severity: "CRITICAL"},
+		{ResourceKind: "Deployment", ResourceName: "web-02", Namespace: "prod", CheckID: "KSV020", Severity: "HIGH"},
+	}
+	s.Secrets = []models.TrivyK8sSecretFinding{
+		{ResourceKind: "Deployment", ResourceName: "web-05", Namespace: "prod", RuleID: "aws", Severity: "CRITICAL"},
+		{ResourceKind: "Deployment", ResourceName: "worker", Namespace: "prod", RuleID: "aws", Severity: "CRITICAL"},
+	}
+	exc := []models.TrivyException{
+		{ID: "e1", Kind: "vuln", VulnerabilityID: "CVE-4", ImageRepo: ImageRepo("shared:1"), ExpiresAt: "2027-01-01T00:00:00Z"},
+		{ID: "e2", Kind: "misconfig", CheckID: "KSV012", Workload: wref("prod", "Deployment", "web-01"), ExpiresAt: "2027-01-01T00:00:00Z"},
+	}
+
+	v := BuildScanView(s, nil, exc, viewNow)
+	// vulns: CVE-1 + CVE-2 once each for the shared image (not ×12), CVE-4
+	// accepted, CVE-9 internal → 2; misconfigs: web-00, web-11 → 2;
+	// secrets: web-05 → 1.
+	if got, want := v.Summary.ExposedCritical, 5; got != want {
+		t.Fatalf("ExposedCritical = %d, want %d", got, want)
+	}
+	if len(v.TopWorkloads) != 10 {
+		t.Fatalf("fixture must exceed the ranked list: %d top workloads", len(v.TopWorkloads))
+	}
+}

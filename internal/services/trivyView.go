@@ -451,6 +451,47 @@ func countScan(s *models.TrivyClusterScan, ex *exceptionSet) severityCounts {
 	return c
 }
 
+// exposedCritical counts the unaccepted CRITICAL findings that touch an
+// exposed workload: each distinct vulnerability finding (eachFinding) once if
+// any workload running its image is exposed, plus misconfig and secret rows
+// on exposed workloads. Exposure comes from every workload, not the ranked
+// top list.
+func exposedCritical(s *models.TrivyClusterScan, ex *exceptionSet) int {
+	exposed := map[models.TrivyWorkloadRef]bool{}
+	for _, w := range s.Workloads {
+		if len(w.Exposure) > 0 {
+			exposed[w.Ref()] = true
+		}
+	}
+	if len(exposed) == 0 {
+		return 0
+	}
+	n := 0
+	eachFinding(s.ImageTargets, s.Images, func(img models.TrivyImageCoverage, _ models.TrivyTarget, v models.TrivyVulnerability) {
+		if normSeverity(v.Severity) != "CRITICAL" || ex.accepts(ex.vulnMatches(v.VulnerabilityID, img.Image)) {
+			return
+		}
+		for _, w := range img.Workloads {
+			if exposed[w] {
+				n++
+				return
+			}
+		}
+	})
+	for _, m := range s.Misconfigs {
+		ref := misconfigRef(m)
+		if normSeverity(m.Severity) == "CRITICAL" && exposed[ref] && !ex.accepts(ex.misconfigMatches(m.CheckID, ref)) {
+			n++
+		}
+	}
+	for _, sec := range s.Secrets {
+		if normSeverity(sec.Severity) == "CRITICAL" && exposed[secretRef(sec)] {
+			n++
+		}
+	}
+	return n
+}
+
 // ---- view ----
 
 const topWorkloadLimit = 10
@@ -498,6 +539,7 @@ func BuildScanView(cur, prev *models.TrivyClusterScan, exc []models.TrivyExcepti
 			v.Summary.ImagesScanned++
 		}
 	}
+	v.Summary.ExposedCritical = exposedCritical(cur, ex)
 	if prev != nil {
 		p := countScan(prev, ex)
 		v.Summary.PrevVulns, v.Summary.PrevMisconfigs, v.Summary.PrevSecrets = p.vulns, p.misconfigs, p.secrets

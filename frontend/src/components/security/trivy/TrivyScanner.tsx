@@ -35,7 +35,9 @@ export default function TrivyScanner({ clusterName }: { clusterName: string }) {
     const onEnd = (end: ScanEnd) => {
         if (end.kind === 'done') void data.showFinished(end.id, end.late);
     };
-    const scan = useClusterScan(clusterName, pushToast, onEnd);
+    const followed = useClusterScan(clusterName, pushToast, onEnd);
+    // Starting a scan retires the "scan ended" notice of an earlier one.
+    const scan = { ...followed, start: () => { data.clearNotice(); return followed.start(); } };
     const imageScanner = useImageScanner(clusterName, pushToast);
     const [onlyNew, setOnlyNew] = useState(false);
     const [accepting, setAccepting] = useState<AcceptRequest | null>(null);

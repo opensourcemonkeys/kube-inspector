@@ -192,6 +192,10 @@ type TrivySummary struct {
 	FixableRatio   float64        `json:"fixableRatio"` // share of critical+high findings with a fixed version; -1 when there are none
 	ImagesTotal    int            `json:"imagesTotal"`
 	ImagesScanned  int            `json:"imagesScanned"`
+	// ExposedCritical is the unaccepted CRITICAL findings that touch a workload
+	// reachable from outside the cluster: distinct vulnerability findings of
+	// images such a workload runs, plus misconfig and secret rows on one.
+	ExposedCritical int `json:"exposedCritical"`
 }
 
 // TrivyWorkloadRisk is one row of the riskiest-workloads table.

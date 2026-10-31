@@ -50,9 +50,11 @@ export function useScanView(clusterName: string) {
         TrivyGetScanView(clusterName, scanId, compareId)
             .then((v) => {
                 if (!alive) return;
+                // The notice is not cleared here: after a scan that ended
+                // unseen this load is the fallback the notice explains. It
+                // goes when the user picks a scan or starts one.
                 setView(v);
                 setError('');
-                setNotice('');
             })
             .catch((e) => {
                 if (!alive) return;
@@ -82,8 +84,15 @@ export function useScanView(clusterName: string) {
         patch(clusterName, { scanId: id, compareId: null });
     }, [clusterName, listScans, patch]);
 
-    const select = (id: string) => patch(clusterName, { scanId: id, compareId: null, selectedFix: null });
-    const compare = (id: string) => patch(clusterName, { compareId: id });
+    const clearNotice = useCallback(() => setNotice(''), []);
+    const select = (id: string) => {
+        setNotice('');
+        patch(clusterName, { scanId: id, compareId: null, selectedFix: null });
+    };
+    const compare = (id: string) => {
+        setNotice('');
+        patch(clusterName, { compareId: id });
+    };
 
-    return { scans, scanId, compareId, view, loading, error, notice, reload, showFinished, select, compare };
+    return { scans, scanId, compareId, view, loading, error, notice, reload, showFinished, select, compare, clearNotice };
 }
