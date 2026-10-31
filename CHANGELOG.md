@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.20.1-beta] - 2026-10-31
+
+A maintenance release: every dependency brought up to date. Nothing in the app looks or works differently; underneath, the window runs on a newer Chromium, image scans use a newer Trivy, and the Kubernetes client libraries follow 1.37.
+
+### Changed
+- **Electron 45.** The desktop window now runs on Electron 45 (was 33), with its newer Chromium and the security fixes that come with it.
+- **Trivy 0.76.** Image and cluster scans use Trivy 0.76.1 (was 0.71.1).
+- **Kubernetes client libraries v0.37** (were v0.36): `client-go`, `api`, `apimachinery`, `metrics` and `kubectl`.
+- **Ollama client 0.40** (was 0.30) for the AI assistant.
+
+### Internal
+- Go 1.27, which Trivy 0.76 requires: `go.mod`, CI and the contributor docs. 1.27 enables `encoding/json/v2` by default; the Makefile and CI still set `GOEXPERIMENT=jsonv2`, which is harmless. CI runs golangci-lint v2.15.0, because v2.12 panics in its IR builder on 1.27's standard library; the two new findings it reports are marked (gosec G703 on the log directory, staticcheck SA1019 on Trivy's deprecated `Severity`, still the only field that carries it).
+- Wails v2.17.0, in `go.mod` and as the CLI CI installs. The generated bindings are unchanged.
+- Frontend build on Vite 8 (Rolldown), `@vitejs/plugin-react` 6 and Vitest 4. Monaco 0.57 reorganised its ESM tree: the bare `monaco-editor` alias now points at `esm/vs/editor.js`, `monacoBootstrap.ts` registers the editor features and the YAML grammar from their new paths, and `tsconfig.json` maps the types with `paths`. primeicons 8 and the rest of the minor/patch group.
+- electron-builder 26.18, which clears all 16 `npm audit` findings in the packaging chain. The two left in `frontend/` are the DOMPurify copy Monaco vendors; the advisories concern its `IN_PLACE` mode, which Monaco does not use.
+- CI actions: `actions/download-artifact` 8, `actions/setup-python` 7, `softprops/action-gh-release`.
+- `frontend/dist/.gitkeep` is tracked again, and a Vite plugin recreates it after every build, so a plain `npm run build` can no longer delete it and break the Go builds in CI.
+
+---
+
 ## [v0.20.0-beta] - 2026-10-30
 
 A release about knowing what happened in a cluster and what would happen next. **Cluster History** shows who changed what, when and through which path, with a diff of every change and a rollback that is checked with the API server before it writes anything. It reads from **toolbox**, a small recorder you install into the cluster with Helm. The **resource graph** has been rebuilt to find what is broken and to answer "what breaks if I delete this?" before you do.
