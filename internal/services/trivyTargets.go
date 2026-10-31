@@ -19,7 +19,7 @@ type PullSecretRef struct{ Namespace, Name string }
 type ScanTarget struct {
 	Image       string
 	Workloads   []models.TrivyWorkloadRef // sorted, unique
-	PullSecrets []PullSecretRef           // filled by a later task
+	PullSecrets []PullSecretRef           // pod's own, then its ServiceAccount's; first-seen order, unique
 }
 
 func wlLess(a, b models.TrivyWorkloadRef) bool {
@@ -87,14 +87,28 @@ func ListScanTargets(ctx context.Context, client kubernetes.Interface, namespace
 	}
 	jobOwner := cronJobOwners(jobs.Items)
 
+	sas := &saPullSecrets{client: client, byNS: map[string]map[string][]corev1.LocalObjectReference{}}
+	imageSecrets := map[string][]PullSecretRef{}
+	imageSecretSeen := map[string]map[PullSecretRef]struct{}{}
+
 	imageWls := map[string]map[models.TrivyWorkloadRef]struct{}{}
 	wlImages := map[models.TrivyWorkloadRef]map[string]struct{}{}
 	for i := range pods.Items {
 		pod := &pods.Items[i]
 		ref := workloadRefForPod(pod, jobOwner)
+		secrets := podPullSecrets(ctx, pod, sas)
 		for _, img := range podImages(pod) {
 			if img == "" {
 				continue
+			}
+			if imageSecretSeen[img] == nil {
+				imageSecretSeen[img] = map[PullSecretRef]struct{}{}
+			}
+			for _, s := range secrets {
+				if _, dup := imageSecretSeen[img][s]; !dup {
+					imageSecretSeen[img][s] = struct{}{}
+					imageSecrets[img] = append(imageSecrets[img], s)
+				}
 			}
 			if imageWls[img] == nil {
 				imageWls[img] = map[models.TrivyWorkloadRef]struct{}{}
@@ -114,7 +128,7 @@ func ListScanTargets(ctx context.Context, client kubernetes.Interface, namespace
 			refs = append(refs, r)
 		}
 		sort.Slice(refs, func(i, j int) bool { return wlLess(refs[i], refs[j]) })
-		targets = append(targets, ScanTarget{Image: img, Workloads: refs})
+		targets = append(targets, ScanTarget{Image: img, Workloads: refs, PullSecrets: imageSecrets[img]})
 	}
 	sort.Slice(targets, func(i, j int) bool { return targets[i].Image < targets[j].Image })
 

@@ -180,6 +180,55 @@ func TestRunClusterScanRecordsFailures(t *testing.T) {
 	}
 }
 
+func TestRunClusterScanPullSecretForbiddenOverridesReason(t *testing.T) {
+	r := &scanRecorder{}
+	targets := []services.ScanTarget{{Image: "ghcr.io/p/app:1"}, {Image: "ghcr.io/p/ok:1"}, {Image: "quay.io/p/x:1"}}
+	errs := map[string]error{
+		"ghcr.io/p/app:1": errors.New("GET https://ghcr.io/v2/p/app/manifests/1: UNAUTHORIZED: authentication required"),
+		"quay.io/p/x:1":   errors.New("GET https://quay.io/v2/p/x/manifests/1: UNAUTHORIZED: authentication required"),
+	}
+	d := fakeScanDeps(r, targets, nil, errs)
+	var sentCred []*services.RegistryCredential
+	d.resolveCred = func(ctx context.Context, t services.ScanTarget) (*services.RegistryCredential, string, string) {
+		switch t.Image {
+		case "ghcr.io/p/app:1", "ghcr.io/p/ok:1":
+			return nil, "", "pullSecretForbidden"
+		}
+		return &services.RegistryCredential{Username: "u", Password: "p"}, "p/quay-cred", ""
+	}
+	inner := d.scanImage
+	d.scanImage = func(ctx context.Context, image string, cred *services.RegistryCredential) (*models.TrivyScanResult, error) {
+		sentCred = append(sentCred, cred)
+		return inner(ctx, image, cred)
+	}
+	scan, err := runClusterScan(context.Background(), "id-ps", "c1", d, r.onProgress)
+	if err != nil {
+		t.Fatalf("runClusterScan: %v", err)
+	}
+	got := map[string]models.TrivyImageCoverage{}
+	for _, c := range scan.Images {
+		got[c.Image] = c
+	}
+	if c := got["ghcr.io/p/app:1"]; c.Status != "failed" || c.Reason != "pullSecretForbidden" || c.PullSecret != "" {
+		t.Errorf("forbidden+failed = %+v, want failed/pullSecretForbidden", c)
+	}
+	if c := got["ghcr.io/p/ok:1"]; c.Status != "scanned" || c.Reason != "" {
+		t.Errorf("forbidden+scanned (public image) = %+v, want scanned with no reason", c)
+	}
+	if c := got["quay.io/p/x:1"]; c.Status != "failed" || c.Reason != "auth" || c.PullSecret != "p/quay-cred" {
+		t.Errorf("rejected cred = %+v, want failed/auth with the secret name", c)
+	}
+	n := 0
+	for _, c := range sentCred {
+		if c != nil {
+			n++
+		}
+	}
+	if n != 1 {
+		t.Errorf("credentials sent = %d, want 1", n)
+	}
+}
+
 func TestRunClusterScanMisconfigFailureKeepsImages(t *testing.T) {
 	r := &scanRecorder{}
 	targets := []services.ScanTarget{{Image: "nginx:1"}}

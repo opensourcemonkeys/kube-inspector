@@ -27,8 +27,8 @@ type clusterScanDeps struct {
 	listTargets   func(ctx context.Context) ([]services.ScanTarget, []models.TrivyWorkload, error)
 	scanMisconfig func(ctx context.Context, onProgress func(phase string, cur, total int, msg string)) (*models.TrivyK8sScanResult, error)
 	scanImage     func(ctx context.Context, image string, cred *services.RegistryCredential) (*models.TrivyScanResult, error)
-	enrich        func(ctx context.Context, scan *models.TrivyClusterScan)                                                              // exposure and privilege facts
-	resolveCred   func(ctx context.Context, t services.ScanTarget) (*services.RegistryCredential, string /*secret*/, string /*reason*/) // Task 9; nil for now
+	enrich        func(ctx context.Context, scan *models.TrivyClusterScan) // exposure and privilege facts
+	resolveCred   func(ctx context.Context, t services.ScanTarget) (*services.RegistryCredential, string /*secret ns/name*/, string /*reason*/)
 	meta          func(ctx context.Context) (trivyVersion, dbUpdatedAt, apiServer, serverVersion string)
 	save          func(*models.TrivyClusterScan, models.TrivyScanMeta) error
 	now           func() time.Time
@@ -218,9 +218,10 @@ func scanOneImage(ctx context.Context, d clusterScanDeps, gate *scanProgress, t 
 	}
 
 	var cred *services.RegistryCredential
+	credReason := ""
 	if d.resolveCred != nil {
-		// The reason (pullSecretForbidden) is applied to a failed scan by Task 9.
-		cred, cov.PullSecret, _ = d.resolveCred(ctx, t)
+		// Only the secret's ns/name is kept; the credential goes to this scan alone.
+		cred, cov.PullSecret, credReason = d.resolveCred(ctx, t)
 	}
 
 	res, err := scanImageLocked(ctx, d, cred, t.Image, func() {
@@ -235,6 +236,10 @@ func scanOneImage(ctx context.Context, d clusterScanDeps, gate *scanProgress, t 
 	if err != nil {
 		cov.Status = "failed"
 		cov.Reason, cov.Message = services.ClassifyScanError(err)
+		if credReason == "pullSecretForbidden" {
+			// The pull secret could not be read, so "auth" would blame the wrong thing.
+			cov.Reason = credReason
+		}
 		return cov, nil, nil
 	}
 	if res == nil {
@@ -333,8 +338,8 @@ func RunClusterScan(ctx context.Context, id, clusterName string, onProgress func
 		enrich: func(ctx context.Context, scan *models.TrivyClusterScan) {
 			enrichWorkloads(ctx, client, scan)
 		},
-		resolveCred: func(context.Context, services.ScanTarget) (*services.RegistryCredential, string, string) {
-			return nil, "", ""
+		resolveCred: func(ctx context.Context, t services.ScanTarget) (*services.RegistryCredential, string, string) {
+			return services.ResolvePullCredential(ctx, client, t)
 		},
 		meta: func(context.Context) (string, string, string, string) {
 			serverVersion := ""
