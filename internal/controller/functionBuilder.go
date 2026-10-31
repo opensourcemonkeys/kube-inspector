@@ -2,6 +2,7 @@ package controller_app
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 	"strings"
@@ -931,6 +932,78 @@ func (a *App) TrivyStartK8sScan(scanId, clusterName, namespace string) error {
 func (a *App) TrivyStopK8sScan(scanId string) error {
 	k8sScanJobs.cancel(scanId)
 	return nil
+}
+
+// Cluster vulnerability scan — one per cluster, run and saved by the backend.
+// Events emitted (all suffixed with scanId):
+//
+//	"trivy:scan:progress:{scanId}"  → models.TrivyScanProgress
+//	"trivy:scan:done:{scanId}"      → scanId (load it with TrivyGetScan)
+//	"trivy:scan:error:{scanId}"     → string
+//	"trivy:scan:cancelled:{scanId}" → nil
+
+var trivyScans = newTrivyScanRegistry()
+
+// TrivyStartClusterScan starts a scan of every namespace of the cluster and
+// returns its id. If one is already running for the cluster it starts nothing
+// and returns that scan's id, so the caller attaches to it.
+func (a *App) TrivyStartClusterScan(clusterName string) (string, error) {
+	id, started, ctx, tok := trivyScans.begin(clusterName)
+	if !started {
+		return id, nil
+	}
+	safego.Go("controller.trivyClusterScan", func() {
+		// The default only survives a panic in the scan, which safego recovers:
+		// the deferred finish still runs, so the cluster is not left "running".
+		err := errors.New("scan aborted unexpectedly")
+		defer func() {
+			cancelled := ctx.Err() != nil
+			if !trivyScans.finish(id, tok) {
+				return
+			}
+			switch {
+			case err == nil:
+				a.emit("trivy:scan:done:"+id, id)
+			case cancelled:
+				a.emit("trivy:scan:cancelled:"+id, nil)
+			default:
+				a.emit("trivy:scan:error:"+id, err.Error())
+			}
+		}()
+		_, err = bussiness.RunClusterScan(ctx, id, clusterName, func(p models.TrivyScanProgress) {
+			if trivyScans.progress(id, p) {
+				a.emit("trivy:scan:progress:"+id, p)
+			}
+		})
+	})
+	return id, nil
+}
+
+// TrivyStopClusterScan cancels a running cluster scan. The scan reports
+// "stopping" until the image in flight lets go, then emits cancelled.
+func (a *App) TrivyStopClusterScan(scanId string) error {
+	if trivyScans.cancel(scanId) {
+		if p, ok := trivyScans.lastProgress(scanId); ok {
+			a.emit("trivy:scan:progress:"+scanId, p)
+		}
+	}
+	return nil
+}
+
+// TrivyGetRunningScan returns the cluster's running scan, or nil.
+func (a *App) TrivyGetRunningScan(clusterName string) *models.TrivyRunningScan {
+	return trivyScans.running(clusterName)
+}
+
+// TrivyListScans returns the cluster's saved scans, newest first.
+func (a *App) TrivyListScans(clusterName string) ([]models.TrivyScanMeta, error) {
+	return bussiness.ListTrivyScans(clusterName)
+}
+
+// TrivyGetScan loads one saved scan. Temporary: the redesigned screen reads a
+// computed view instead.
+func (a *App) TrivyGetScan(clusterName, scanId string) (*models.TrivyClusterScan, error) {
+	return bussiness.LoadTrivyScan(clusterName, scanId)
 }
 
 func (a *App) GetObjectYaml(clusterName, group, resource, namespace, name string) (string, error) {

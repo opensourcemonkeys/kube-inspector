@@ -28,16 +28,31 @@ var (
 // cache dirs (e.g. "image" vs "k8s") get different mutexes and still run in
 // parallel.
 func lockTrivyCache(cacheDir string) func() {
+	mu := trivyCacheMutex(cacheDir)
+	mu.Lock()
+	return mu.Unlock
+}
+
+// tryLockTrivyCache is lockTrivyCache without waiting: ok is false (and unlock
+// nil) when another scan holds the cache. The cluster scan uses it to report
+// "waitingCache" before it blocks.
+func tryLockTrivyCache(cacheDir string) (unlock func(), ok bool) {
+	mu := trivyCacheMutex(cacheDir)
+	if !mu.TryLock() {
+		return nil, false
+	}
+	return mu.Unlock, true
+}
+
+func trivyCacheMutex(cacheDir string) *sync.Mutex {
 	trivyCacheLocksMu.Lock()
+	defer trivyCacheLocksMu.Unlock()
 	mu, ok := trivyCacheLocks[cacheDir]
 	if !ok {
 		mu = &sync.Mutex{}
 		trivyCacheLocks[cacheDir] = mu
 	}
-	trivyCacheLocksMu.Unlock()
-
-	mu.Lock()
-	return mu.Unlock
+	return mu
 }
 
 // trivyCacheSubdir returns a Trivy cache directory scoped to a specific scan

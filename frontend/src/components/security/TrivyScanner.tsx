@@ -16,11 +16,11 @@ import { FilterMatchMode } from 'primereact/api';
 import { BrowserOpenURL, EventsOn } from '../../../wailsjs/runtime/runtime';
 
 import {
-    TrivyListPodImages,
     TrivyScanImage,
-    TrivyStartK8sScan,
-    TrivyStopK8sScan,
-    TrivyListPodImagesWithContext,
+    TrivyStartClusterScan,
+    TrivyStopClusterScan,
+    TrivyGetRunningScan,
+    TrivyGetScan,
     SaveReport,
 } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
@@ -73,23 +73,6 @@ type SecretRow = {
     severity: string;
     title: string;
     match: string;
-};
-
-// Matches models.TrivyK8sScanResult emitted via Wails event
-type K8sScanResult = {
-    misconfigs: Array<{
-        resourceKind: string; resourceName: string; namespace: string;
-        checkID: string; severity: string; title: string; message: string;
-        description: string; resolution: string; primaryURL: string; references: string[]; status: string;
-    }>;
-    secrets: Array<{
-        resourceKind: string; resourceName: string; namespace: string;
-        ruleID: string; category: string; severity: string; title: string; match: string;
-    }>;
-    misconfigSummary: Record<string, number>;
-    secretSummary: Record<string, number>;
-    resourceCount: number;
-    scannedAt: string;
 };
 
 type Progress = { current: number; total: number; image: string } | null;
@@ -571,6 +554,85 @@ function VulnTable({ rows, scanning, showImageColumn }: { rows: VulnRow[]; scann
 
 // ─── useK8sScan hook ──────────────────────────────────────────────────────────
 
+const NO_WORKLOAD: models.TrivyWorkloadRef = { kind: '', name: '', namespace: '' };
+
+function countBySeverity(rows: { severity: string }[]): Record<string, number> {
+    const out: Record<string, number> = {};
+    for (const r of rows) out[r.severity] = (out[r.severity] || 0) + 1;
+    return out;
+}
+
+// One vulnerability row per (scanned image × workload running it × finding):
+// the record stores each image's findings once, and the table shows them
+// against every workload the image affects.
+function vulnRowsFromScan(scan: models.TrivyClusterScan): VulnRow[] {
+    const out: VulnRow[] = [];
+    for (const img of scan.images || []) {
+        if (img.status !== 'scanned') continue;
+        const targets = scan.imageTargets?.[img.image] || [];
+        const workloads = img.workloads?.length ? img.workloads : [NO_WORKLOAD];
+        for (const w of workloads) {
+            for (const t of targets) {
+                (t.vulnerabilities || []).forEach((v, i) => {
+                    out.push({
+                        _uid: `${img.image}|${w.namespace}/${w.kind}/${w.name}|${t.target}|${v.vulnerabilityID}|${v.pkgName}|${i}`,
+                        image: img.image,
+                        resourceKind: w.kind || '',
+                        resourceName: w.name || '',
+                        resourceNs: w.namespace || '',
+                        target: t.target,
+                        vulnerabilityID: v.vulnerabilityID,
+                        pkgName: v.pkgName,
+                        installedVersion: v.installedVersion,
+                        fixedVersion: v.fixedVersion,
+                        severity: (v.severity || 'UNKNOWN').toUpperCase(),
+                        title: v.title,
+                        description: v.description || '',
+                        primaryURL: v.primaryURL,
+                        references: v.references || [],
+                        publishedDate: v.publishedDate || '',
+                    });
+                });
+            }
+        }
+    }
+    return out;
+}
+
+function misconfigRowsFromScan(scan: models.TrivyClusterScan): MisconfigRow[] {
+    return (scan.misconfigs || []).map((m, i) => ({
+        _uid: `mc|${m.resourceKind}|${m.resourceName}|${m.namespace}|${m.checkID}|${i}`,
+        resourceKind: m.resourceKind,
+        resourceName: m.resourceName,
+        namespace: m.namespace,
+        checkID: m.checkID,
+        severity: (m.severity || 'UNKNOWN').toUpperCase(),
+        title: m.title,
+        message: m.message,
+        description: m.description || '',
+        resolution: m.resolution,
+        primaryURL: m.primaryURL || '',
+        references: m.references || [],
+    }));
+}
+
+function secretRowsFromScan(scan: models.TrivyClusterScan): SecretRow[] {
+    return (scan.secrets || []).map((s, i) => ({
+        _uid: `sec|${s.resourceKind}|${s.resourceName}|${s.namespace}|${s.ruleID}|${i}`,
+        resourceKind: s.resourceKind,
+        resourceName: s.resourceName,
+        namespace: s.namespace,
+        ruleID: s.ruleID,
+        category: s.category,
+        severity: (s.severity || 'UNKNOWN').toUpperCase(),
+        title: s.title,
+        match: s.match,
+    }));
+}
+
+// The cluster scan runs in the backend (TrivyStartClusterScan); this hook only
+// follows it by id. Stop cancels the backend run itself, so no further image
+// starts — the old frontend loop kept scanning after Stop.
 function useK8sScan(clusterName: string, pushToast: PushToast) {
     const t = useT();
     const [misconfigRows, setMisconfigRows] = useState<MisconfigRow[]>([]);
@@ -580,61 +642,144 @@ function useK8sScan(clusterName: string, pushToast: PushToast) {
     const [secretSummary, setSecretSummary] = useState<Record<string, number>>({});
     const [vulnSummary, setVulnSummary] = useState<Record<string, number>>({});
     const [scanning, setScanning] = useState(false);
+    const [stopping, setStopping] = useState(false);
     const [log, setLog] = useState('');
     const [vulnProgress, setVulnProgress] = useState<Progress>(null);
     const [error, setError] = useState('');
 
-    // Stable scanId for the lifetime of this hook instance (one panel = one session)
-    const scanId = useMemo(() => Math.random().toString(36).slice(2), []);
+    // The scan this panel follows, and how to stop listening to it. A handler
+    // acts only while its id is still the active one, so a late event from an
+    // earlier scan (or a second end event) changes nothing.
+    const activeId = useRef<string | null>(null);
+    const unsubscribe = useRef<(() => void) | null>(null);
 
-    // Wire Wails event listeners once on mount
-    useEffect(() => {
-        const offProgress = EventsOn(`trivy:k8s:progress:${scanId}`, (p: { phase: string; current: number; total: number; message: string }) => {
-            setLog(`[${p.phase}] ${p.message} (${p.current}/${p.total})`);
-        });
+    const detach = () => {
+        unsubscribe.current?.();
+        unsubscribe.current = null;
+        activeId.current = null;
+    };
 
-        const offDone = EventsOn(`trivy:k8s:done:${scanId}`, (result: K8sScanResult) => {
-            const mc: MisconfigRow[] = (result.misconfigs || []).map((m, i) => ({
-                _uid: `mc|${m.resourceKind}|${m.resourceName}|${m.namespace}|${m.checkID}|${i}`,
-                resourceKind: m.resourceKind,
-                resourceName: m.resourceName,
-                namespace: m.namespace,
-                checkID: m.checkID,
-                severity: (m.severity || 'UNKNOWN').toUpperCase(),
-                title: m.title,
-                message: m.message,
-                description: m.description || '',
-                resolution: m.resolution,
-                primaryURL: m.primaryURL || '',
-                references: m.references || [],
-            }));
-            const sc: SecretRow[] = (result.secrets || []).map((s, i) => ({
-                _uid: `sec|${s.resourceKind}|${s.resourceName}|${s.namespace}|${s.ruleID}|${i}`,
-                resourceKind: s.resourceKind,
-                resourceName: s.resourceName,
-                namespace: s.namespace,
-                ruleID: s.ruleID,
-                category: s.category,
-                severity: (s.severity || 'UNKNOWN').toUpperCase(),
-                title: s.title,
-                match: s.match,
-            }));
-            setMisconfigRows(mc);
-            setSecretRows(sc);
-            setMisconfigSummary(result.misconfigSummary || {});
-            setSecretSummary(result.secretSummary || {});
-        });
+    const progressLine = (p: models.TrivyScanProgress): string => {
+        switch (p.phase) {
+            case 'targets': return t('panels:trivy.logListing');
+            case 'misconfig': return p.message || t('panels:trivy.logStartK8s');
+            case 'images':
+                return `${t('panels:trivy.logScanning', { image: p.message, current: p.current, total: p.total })}${p.current === 1 ? ` ${t('panels:trivy.logFirstRun')}` : ''}`;
+            case 'waitingCache': return t('panels:trivy.logWaitingCache', { image: p.message });
+            case 'enrich': return t('panels:trivy.logEnrich');
+            case 'saving': return t('panels:trivy.logSaving');
+            case 'stopping': return t('panels:trivy.logStopping');
+            default: return p.message;
+        }
+    };
 
-        const offError = EventsOn(`trivy:k8s:error:${scanId}`, (err: string) => {
-            setError(err);
-            pushToast('error', t('panels:trivy.toastK8sFailed'), err);
-        });
+    const showProgress = (p: models.TrivyScanProgress) => {
+        setLog(`[${p.phase}] ${progressLine(p)}`);
+        setStopping(p.phase === 'stopping');
+        const imagePhase = p.phase === 'images' || p.phase === 'waitingCache' || p.phase === 'stopping';
+        setVulnProgress(imagePhase && p.total > 0 ? { current: p.current, total: p.total, image: p.message } : null);
+    };
 
-        return () => { offProgress(); offDone(); offError(); };
-    }, [scanId]);
+    const ended = () => {
+        setScanning(false);
+        setStopping(false);
+        setVulnProgress(null);
+    };
 
-    const startScan = async (namespace: string) => {
+    const applyScan = (scan: models.TrivyClusterScan) => {
+        const vulns = vulnRowsFromScan(scan);
+        const mc = misconfigRowsFromScan(scan);
+        const sc = secretRowsFromScan(scan);
+        setVulnRows(vulns);
+        setMisconfigRows(mc);
+        setSecretRows(sc);
+        setVulnSummary(countBySeverity(vulns));
+        setMisconfigSummary(countBySeverity(mc));
+        setSecretSummary(countBySeverity(sc));
+        if (scan.misconfigError) setError(scan.misconfigError);
+
+        const images = scan.images || [];
+        const failed = images.filter((i) => i.status === 'failed').length;
+        const done = t('panels:trivy.logDone', { findings: vulns.length + mc.length + sc.length, images: images.length - failed });
+        setLog(failed > 0 ? `${done} ${t('panels:trivy.logImagesFailed', { count: failed })}` : done);
+    };
+
+    // finish takes ownership of the end of scan id exactly once, whichever of
+    // the end event or the post-subscribe check gets there first.
+    const finish = (id: string): boolean => {
+        if (activeId.current !== id) return false;
+        detach();
+        return true;
+    };
+
+    const loadScan = async (id: string) => {
+        try {
+            const scan = await TrivyGetScan(clusterName, id);
+            applyScan(scan);
+        } catch (e: any) {
+            setError(String(e));
+            pushToast('error', t('panels:trivy.toastK8sFailed'), String(e));
+        } finally {
+            ended();
+        }
+    };
+
+    const attach = (id: string) => {
+        detach();
+        activeId.current = id;
+        const offs = [
+            EventsOn(`trivy:scan:progress:${id}`, (p: models.TrivyScanProgress) => {
+                if (activeId.current === id) showProgress(p);
+            }),
+            EventsOn(`trivy:scan:done:${id}`, () => {
+                if (finish(id)) void loadScan(id);
+            }),
+            EventsOn(`trivy:scan:error:${id}`, (err: string) => {
+                if (!finish(id)) return;
+                ended();
+                setError(err);
+                pushToast('error', t('panels:trivy.toastK8sFailed'), err);
+            }),
+            EventsOn(`trivy:scan:cancelled:${id}`, () => {
+                if (!finish(id)) return;
+                ended();
+                setLog(t('panels:trivy.logCancelled'));
+            }),
+        ];
+        unsubscribe.current = () => offs.forEach((off) => off());
         setScanning(true);
+    };
+
+    // A short scan can end between TrivyStartClusterScan returning and the
+    // subscription above, so check once after subscribing: if the scan is no
+    // longer running, its saved record (if any) is the result.
+    const reconcile = async (id: string) => {
+        const running = await TrivyGetRunningScan(clusterName);
+        if (activeId.current !== id) return;
+        if (running && running.scanId === id) {
+            showProgress(running.progress);
+            return;
+        }
+        if (finish(id)) await loadScan(id);
+    };
+
+    // Re-attach to a scan already running for this cluster (the panel was
+    // closed and reopened, or another panel started it).
+    useEffect(() => {
+        let alive = true;
+        TrivyGetRunningScan(clusterName)
+            .then((running) => {
+                if (!alive || !running || activeId.current) return;
+                attach(running.scanId);
+                showProgress(running.progress);
+            })
+            .catch(() => { /* no running scan to show */ });
+        return () => { alive = false; detach(); };
+    }, [clusterName]);
+
+    const startScan = async () => {
+        setScanning(true);
+        setStopping(false);
         setError('');
         setMisconfigRows([]);
         setSecretRows([]);
@@ -643,67 +788,31 @@ function useK8sScan(clusterName: string, pushToast: PushToast) {
         setSecretSummary({});
         setVulnSummary({});
         setVulnProgress(null);
-
+        setLog(`[targets] ${t('panels:trivy.logListing')}`);
         try {
-            // Phase 1: misconfig + secret (async via events; runs concurrently with phase 2)
-            setLog(`[fetch] ${t('panels:trivy.logStartK8s')}`);
-            TrivyStartK8sScan(scanId, clusterName, namespace).catch((e: any) => {
-                setError(String(e));
-                pushToast('error', t('panels:trivy.toastK8sFailed'), String(e));
-            });
-
-            // Phase 2: vulnerability (sequential image scanning)
-            setLog(`[vuln] ${t('panels:trivy.logListing')}`);
-            let images: models.TrivyK8sImageInfo[] = [];
-            try {
-                images = await TrivyListPodImagesWithContext(clusterName, namespace);
-            } catch (e: any) {
-                pushToast('warn', t('panels:trivy.toastListFailed'), String(e));
-            }
-
-            if (images.length > 0) {
-                const acc: VulnRow[] = [];
-                const summ: Record<string, number> = {};
-                for (let i = 0; i < images.length; i++) {
-                    const imgInfo = images[i];
-                    setVulnProgress({ current: i + 1, total: images.length, image: imgInfo.image });
-                    setLog(`[vuln] ${t('panels:trivy.logScanning', { image: imgInfo.image, current: i + 1, total: images.length })}${i === 0 ? ` ${t('panels:trivy.logFirstRun')}` : ''}`);
-                    try {
-                        const res = await TrivyScanImage(clusterName, imgInfo.image);
-                        if (res.error) {
-                            pushToast('warn', t('panels:trivy.toastScanIssue', { image: imgInfo.image }), res.error);
-                        } else {
-                            const found = rowsFromResult(imgInfo, res);
-                            acc.push(...found);
-                            for (const r of found) summ[r.severity] = (summ[r.severity] || 0) + 1;
-                            setVulnRows([...acc]);
-                            setVulnSummary({ ...summ });
-                        }
-                    } catch (e: any) {
-                        pushToast('error', t('panels:trivy.toastScanFailed', { image: imgInfo.image }), String(e));
-                    }
-                }
-                setLog(`[vuln] ${t('panels:trivy.logDone', { findings: acc.length, images: images.length })}`);
-            } else {
-                setLog(`[vuln] ${t('panels:trivy.logNoImages')}`);
-            }
-        } finally {
-            setScanning(false);
-            setVulnProgress(null);
+            const id = await TrivyStartClusterScan(clusterName);
+            attach(id);
+            await reconcile(id);
+        } catch (e: any) {
+            detach();
+            ended();
+            setLog('');
+            setError(String(e));
+            pushToast('error', t('panels:trivy.toastK8sFailed'), String(e));
         }
     };
 
     const stopScan = () => {
-        TrivyStopK8sScan(scanId).catch(() => {});
-        setScanning(false);
-        setVulnProgress(null);
-        setLog(t('panels:trivy.logCancelled'));
+        const id = activeId.current;
+        if (!id) return;
+        showProgress({ phase: 'stopping', current: vulnProgress?.current ?? 0, total: vulnProgress?.total ?? 0, message: vulnProgress?.image ?? '' });
+        TrivyStopClusterScan(id).catch(() => { /* the cancelled event or the next check settles it */ });
     };
 
     return {
         misconfigRows, secretRows, vulnRows,
         misconfigSummary, secretSummary, vulnSummary,
-        scanning, log, vulnProgress, error,
+        scanning, stopping, log, vulnProgress, error,
         startScan, stopScan,
     };
 }
@@ -767,7 +876,7 @@ function K8sSecurityTab({
     const {
         misconfigRows, secretRows, vulnRows,
         misconfigSummary, secretSummary, vulnSummary,
-        scanning, log, vulnProgress, error,
+        scanning, stopping, log, vulnProgress, error,
         startScan, stopScan,
     } = scan;
 
@@ -778,9 +887,9 @@ function K8sSecurityTab({
             {/* Controls — always scans the whole cluster (all namespaces) */}
             <div className="flex flex-wrap align-items-center gap-2">
                 {!scanning ? (
-                    <Button label={t('panels:trivy.scanCluster')} icon={<VscPlay />} onClick={() => startScan('')} />
+                    <Button label={t('panels:trivy.scanCluster')} icon={<VscPlay />} onClick={() => void startScan()} />
                 ) : (
-                    <Button label={t('panels:trivy.stop')} icon={<VscStopCircle />} severity="danger" outlined onClick={stopScan} />
+                    <Button label={t('panels:trivy.stop')} icon={<VscStopCircle />} severity="danger" outlined disabled={stopping} onClick={stopScan} />
                 )}
                 <span className="trivy-muted">{t('panels:trivy.clusterHint')}</span>
             </div>

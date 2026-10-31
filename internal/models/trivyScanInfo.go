@@ -94,7 +94,7 @@ type TrivyK8sImageInfo struct {
 
 // TrivyScanProgress is sent via Wails events during a long scan.
 type TrivyScanProgress struct {
-	Phase   string `json:"phase"` // "fetch" | "misconfig" | "secret"
+	Phase   string `json:"phase"` // cluster scan: "targets" | "misconfig" | "images" | "waitingCache" | "enrich" | "saving" | "stopping"; legacy k8s scan: "fetch" | "misconfig"
 	Current int    `json:"current"`
 	Total   int    `json:"total"`
 	Message string `json:"message"`
@@ -179,4 +179,11 @@ type TrivyException struct {
 	Reason          string           `json:"reason"`
 	CreatedAt       string           `json:"createdAt"`
 	ExpiresAt       string           `json:"expiresAt"`
+}
+
+// TrivyRunningScan is the cluster scan currently running, with its latest
+// progress, so a reopened screen can re-attach to it.
+type TrivyRunningScan struct {
+	ScanID   string            `json:"scanId"`
+	Progress TrivyScanProgress `json:"progress"`
 }

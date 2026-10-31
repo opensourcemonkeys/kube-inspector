@@ -16,6 +16,7 @@ var trackedDeps = []string{
 	"github.com/creack/pty",
 	"sigs.k8s.io/yaml",
 	"github.com/wailsapp/mimetype",
+	"github.com/aquasecurity/trivy",
 }
 
 func GetAppInfo() models.AppInfo {
