@@ -433,7 +433,18 @@
     "toastAccepted_few": "{{count}} risks accepted",
     "toastAccepted_many": "{{count}} risks accepted",
     "toastAccepted_other": "{{count}} risks accepted",
-    "toastRemoveFailed": "Could not remove the accepted risk"
+    "toastRemoveFailed": "Could not remove the accepted risk",
+    "ai": {
+      "ask": "Ask AI",
+      "promptPackage": "Help me fix a vulnerability in cluster \"{{cluster}}\". Severity: {{severity}}. Package: {{package}}. InstalledVersion: {{installed}}. FixedVersion: {{fixed}}. Image: {{images}}.",
+      "promptBaseOS": "Help me fix an outdated base image in cluster \"{{cluster}}\". Severity: {{severity}}. Image: {{image}}. OS: {{os}}.",
+      "promptEosl": "This OS version is end of life.",
+      "promptMisconfig": "Help me fix a misconfiguration in cluster \"{{cluster}}\". Severity: {{severity}}. Check: {{checkId}} {{title}}. Resolution: {{resolution}}",
+      "promptVulns": "Vulnerabilities: {{ids}}",
+      "promptMore": "+{{count}} more",
+      "promptWorkloads": "Affected workloads: {{list}}",
+      "promptClose": "Explain the risk and give concrete steps to fix it. Do not change anything in the cluster yet."
+    }
   },
   "monitoring": {
     "switchTooltip": "Переключить Pods / нагрузки",

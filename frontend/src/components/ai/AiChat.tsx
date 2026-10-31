@@ -39,7 +39,7 @@ function fmtBytes(n?: number): string {
 
 export default function AiChat() {
     const t = useT();
-    const { open, setOpen, host, model, messages, setModel, setMessages, clear } = useAiChatStore();
+    const { open, setOpen, host, model, messages, setModel, setMessages, clear, pendingPrompt, takePendingPrompt } = useAiChatStore();
     const { getApi } = useTabContext();
     const { activeCluster } = useClusterContext();
 
@@ -75,6 +75,17 @@ export default function AiChat() {
     const liveTextRef = useRef('');
     const liveToolsRef = useRef<ToolLine[]>([]);
     const scrollRef = useRef<HTMLDivElement | null>(null);
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
+
+    // A prompt handed over by another screen (e.g. the fix plan) lands in the
+    // input for the user to read and send; it is never sent from here.
+    useEffect(() => {
+        if (pendingPrompt === null) return;
+        const text = takePendingPrompt();
+        if (!text) return;
+        setInput((draft) => (draft.trim() ? `${draft}\n${text}` : text));
+        window.setTimeout(() => inputRef.current?.focus(), 0);
+    }, [pendingPrompt, takePendingPrompt]);
 
     // ---- availability + model lists ----
     const checkAvailable = useCallback(() => {
@@ -466,6 +477,7 @@ export default function AiChat() {
 
                     <div className="ai-float__input">
                         <textarea
+                            ref={inputRef}
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
                             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}

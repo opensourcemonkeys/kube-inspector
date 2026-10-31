@@ -1,9 +1,11 @@
-import { VscPass } from 'react-icons/vsc';
+import { VscPass, VscHubot } from 'react-icons/vsc';
 import { Button } from 'primereact/button';
 import { models } from '../../../../wailsjs/go/models';
 import { useT } from '../../../i18n/useT';
 import { useSplitPane } from '../../../lib/useSplitPane';
 import { useTrivyState, useTrivyStore } from '../../../stores/trivyStore';
+import { useAiChatStore } from '../../../stores/aiChatStore';
+import { fixItemPrompt } from './fixPrompt';
 import StatusLamp from '../../shared/StatusLamp';
 import { SEVERITIES, SeverityTag } from './severity';
 import { WorkloadCell, workloadLabel } from './workloadNav';
@@ -49,6 +51,8 @@ function Detail({ clusterName, item, vulns, onAccept }: {
     const ids = item.vulnIds ?? [];
     const workloads = item.workloads ?? [];
     const images = item.images ?? [];
+    const aiSuggestions = useTrivyStore((s) => s.aiSuggestions);
+    const ask = useAiChatStore((s) => s.ask);
 
     const accept = () => {
         if (item.kind === 'misconfig') {
@@ -125,6 +129,10 @@ function Detail({ clusterName, item, vulns, onAccept }: {
 
             <div className="trivy-fix-detail__actions">
                 <Button label={t('panels:trivy.fix.accept')} icon={<VscPass className="mr-2" />} severity="secondary" outlined size="small" onClick={accept} />
+                {aiSuggestions && (
+                    <Button label={t('panels:trivy.ai.ask')} icon={<VscHubot className="mr-2" />} severity="secondary" size="small"
+                        onClick={() => ask(fixItemPrompt(item, clusterName, t))} />
+                )}
             </div>
         </div>
     );
