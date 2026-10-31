@@ -90,3 +90,25 @@ type TrivyScanProgress struct {
 	Total   int    `json:"total"`
 	Message string `json:"message"`
 }
+
+// TrivyWorkloadRef identifies a workload (Jobs owned by a CronJob appear as the CronJob).
+type TrivyWorkloadRef struct {
+	Kind      string `json:"kind"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
+
+// TrivyWorkload is a workload with the images it runs.
+type TrivyWorkload struct {
+	Kind       string   `json:"kind"`
+	Name       string   `json:"name"`
+	Namespace  string   `json:"namespace"`
+	Images     []string `json:"images"`
+	Exposure   []string `json:"exposure"`
+	Privileges []string `json:"privileges"`
+}
+
+// Ref returns the workload's identity.
+func (w TrivyWorkload) Ref() TrivyWorkloadRef {
+	return TrivyWorkloadRef{Kind: w.Kind, Name: w.Name, Namespace: w.Namespace}
+}

@@ -606,59 +606,6 @@ func ListPodImagesWithContext(client *kubernetes.Clientset, namespace string) ([
 	return out, nil
 }
 
-// ownedBy reports whether any of the given OwnerReferences has the given kind.
-func ownedBy(ownerRefs []metav1.OwnerReference, kind string) bool {
-	for _, ref := range ownerRefs {
-		if ref.Kind == kind {
-			return true
-		}
-	}
-	return false
-}
-
-// podOwner resolves the top-level owner kind and name from a pod's
-// OwnerReferences. ReplicaSets are unwrapped to Deployment.
-func podOwner(ownerRefs []metav1.OwnerReference, podName string) (kind, name string) {
-	if len(ownerRefs) == 0 {
-		return "Pod", podName
-	}
-	ref := ownerRefs[0]
-	k := ref.Kind
-	if k == "ReplicaSet" {
-		// Strip the hash suffix added by the Deployment controller
-		// e.g. "my-deploy-7d6c9b4f5" → "my-deploy"
-		n := ref.Name
-		if idx := lastHyphenIndex(n); idx >= 0 {
-			n = n[:idx]
-		}
-		return "Deployment", n
-	}
-	return k, ref.Name
-}
-
-// lastHyphenIndex finds the last '-' in s that is followed by a typical
-// pod-template hash (alphanumeric, 5-10 chars). Returns -1 if not found.
-func lastHyphenIndex(s string) int {
-	for i := len(s) - 1; i >= 0; i-- {
-		if s[i] == '-' {
-			suffix := s[i+1:]
-			if len(suffix) >= 5 && len(suffix) <= 10 && isAlphanumeric(suffix) {
-				return i
-			}
-		}
-	}
-	return -1
-}
-
-func isAlphanumeric(s string) bool {
-	for _, c := range s {
-		if !((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9')) {
-			return false
-		}
-	}
-	return true
-}
-
 // mapReport flattens a Trivy report into the frontend DTO.
 func mapReport(kind, ref string, report types.Report) *models.TrivyScanResult {
 	res := &models.TrivyScanResult{
