@@ -121,3 +121,62 @@ type TrivyWorkload struct {
 func (w TrivyWorkload) Ref() TrivyWorkloadRef {
 	return TrivyWorkloadRef{Kind: w.Kind, Name: w.Name, Namespace: w.Namespace}
 }
+
+// TrivyScanSchemaVersion is the on-disk version of a saved TrivyClusterScan.
+const TrivyScanSchemaVersion = 1
+
+// TrivyImageCoverage records whether one image was scanned and, if not, why.
+type TrivyImageCoverage struct {
+	Image      string             `json:"image"`
+	Workloads  []TrivyWorkloadRef `json:"workloads"`
+	Status     string             `json:"status"` // "scanned" | "failed"
+	Reason     string             `json:"reason"` // empty when scanned
+	Message    string             `json:"message"`
+	PullSecret string             `json:"pullSecret"` // "ns/name"
+	OS         *TrivyOSInfo       `json:"os"`
+}
+
+// TrivyClusterScan is one complete, persisted cluster scan.
+type TrivyClusterScan struct {
+	SchemaVersion  int                        `json:"schemaVersion"`
+	ID             string                     `json:"id"`
+	ClusterName    string                     `json:"clusterName"`
+	Scope          string                     `json:"scope"`
+	StartedAt      string                     `json:"startedAt"`
+	FinishedAt     string                     `json:"finishedAt"`
+	AppVersion     string                     `json:"appVersion"`
+	TrivyVersion   string                     `json:"trivyVersion"`
+	DBUpdatedAt    string                     `json:"dbUpdatedAt"`
+	APIServer      string                     `json:"apiServer"`
+	ServerVersion  string                     `json:"serverVersion"`
+	Images         []TrivyImageCoverage       `json:"images"`
+	ImageTargets   map[string][]TrivyTarget   `json:"imageTargets"`
+	Misconfigs     []TrivyK8sMisconfigFinding `json:"misconfigs"`
+	Secrets        []TrivyK8sSecretFinding    `json:"secrets"`
+	MisconfigError string                     `json:"misconfigError"`
+	ResourceCount  int                        `json:"resourceCount"`
+	Workloads      []TrivyWorkload            `json:"workloads"`
+}
+
+// TrivyScanMeta is the small summary stored beside each scan for listing.
+type TrivyScanMeta struct {
+	ID           string `json:"id"`
+	StartedAt    string `json:"startedAt"`
+	FinishedAt   string `json:"finishedAt"`
+	Critical     int    `json:"critical"`
+	High         int    `json:"high"`
+	ImagesFailed int    `json:"imagesFailed"`
+}
+
+// TrivyException accepts a finding so it is hidden from the results.
+type TrivyException struct {
+	ID              string           `json:"id"`
+	Kind            string           `json:"kind"` // "vuln" | "misconfig"
+	VulnerabilityID string           `json:"vulnerabilityId"`
+	ImageRepo       string           `json:"imageRepo"`
+	CheckID         string           `json:"checkId"`
+	Workload        TrivyWorkloadRef `json:"workload"`
+	Reason          string           `json:"reason"`
+	CreatedAt       string           `json:"createdAt"`
+	ExpiresAt       string           `json:"expiresAt"`
+}
