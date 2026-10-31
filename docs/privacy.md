@@ -48,6 +48,17 @@ the update check.
   list and the assistant's history live in local application storage and in
   `~/.kube-ins/`.
 
+## Scanning private images
+
+A cluster vulnerability scan reads the `imagePullSecrets` of each pod, then of its ServiceAccount, to scan images from private registries.
+
+- The credentials are read only while a scan runs. They are never written to disk, to the log, or sent to the screen. The scan history keeps only the secret's `namespace/name`.
+- Only the one credential that matches an image's registry is used, and it goes to that registry and its token server — nowhere else.
+- Before such a scan, Trivy's vulnerability databases are refreshed without credentials. The scan itself then runs with database updates off.
+- Trivy also falls back to your local Docker login (`~/.docker/config.json`) when no pull secret matches.
+
+Scan results are kept on your machine under `~/.kube-ins/trivy-history/` (the last 20 scans per cluster) and your accepted risks under `~/.kube-ins/trivy-exceptions/`.
+
 ## Local network surfaces
 
 The app runs local servers. All of them are bound to loopback and

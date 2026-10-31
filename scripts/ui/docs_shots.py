@@ -137,17 +137,37 @@ def terminal(d):
     time.sleep(5)
 
 
-def vulnerability_scan(d):
+def _open_cluster_scan(d):
+    """Open the Vulnerability Scan screen on a finished cluster scan.
+
+    The cluster tab is the default. It selects the newest saved scan by itself;
+    with no history yet it runs one and waits for the Summary tiles.
+    """
     capture.nav(d, "Vulnerability Scan"); time.sleep(2)
-    capture.js_click_text(d, ".p-tabview-nav-link", "Image Scan", exact=False)
-    time.sleep(0.5)
-    field = d.find_element(By.CSS_SELECTOR, ".p-tabview-panel:not([hidden]) input.p-inputtext")
-    field.clear(); field.send_keys("nginx:1.16")
-    capture.js_click_text(d, "button", "Scan image", exact=False)
-    for _ in range(90):  # the DB is local; a scan of one image takes well under this
-        time.sleep(2)
-        if d.find_elements(By.CSS_SELECTOR, ".p-tabview-panel:not([hidden]) .p-datatable-tbody > tr:not(.p-datatable-emptymessage)"):
-            break
+    if not d.find_elements(By.CSS_SELECTOR, ".trivy-tile"):
+        capture.js_click_text(d, ".trivy-toolbar button", "Scan cluster", exact=False)
+        for _ in range(180):  # the DB is local once cached; a cold cache can take minutes
+            time.sleep(5)
+            if d.find_elements(By.CSS_SELECTOR, ".trivy-tile"):
+                break
+    time.sleep(1.5)
+
+
+def vulnerability_scan(d):
+    # Summary section: counters with the change since the compared scan, the
+    # verdict line, riskiest workloads.
+    _open_cluster_scan(d)
+    capture.js_click_text(d, ".segmented__opt", "Summary")
+    time.sleep(1)
+
+
+def vulnerability_fix_plan(d):
+    # Fix plan section with the first item selected: list on the left, detail
+    # (facts, affected workloads, Accept risk) on the right.
+    _open_cluster_scan(d)
+    capture.js_click_text(d, ".segmented__opt", "Fix plan")
+    time.sleep(1)
+    d.execute_script("document.querySelector('.trivy-fix-item')?.click()")
     time.sleep(1.5)
 
 
@@ -198,6 +218,7 @@ SCENES = [
     ("split-view", split_view),
     ("terminal", terminal),
     ("vulnerability-scan", vulnerability_scan),
+    ("vulnerability-fix-plan", vulnerability_fix_plan),
     ("toolbox-health", toolbox_health),
     ("history-overview", history_overview),
     ("history-changes", history_changes),

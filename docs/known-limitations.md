@@ -106,11 +106,24 @@ persisted across restarts.
 
 **Vulnerability scanning needs network access on first use.** Trivy downloads
 its vulnerability database into `~/.kube-ins/trivy-cache/`; a scan started
-offline with a cold cache fails. Images in private registries are not scannable
-— the app does not collect registry credentials.
+offline with a cold cache fails.
 
-**Cluster scanning is image-by-image.** The scanner lists pod images and scans
-each one; there is no cluster misconfiguration scan.
+**Private registry images need a readable pull secret.** The scan uses the
+`imagePullSecrets` of the pod or its ServiceAccount. If the app may not read the
+secret, or no secret matches, the image is reported as not scanned in the
+Coverage section (Trivy still tries your local `docker login`).
+
+**Stop waits for the current layer.** Images still queued stop at once, but the
+image being downloaded finishes its current layer first, because Trivy does not
+let a running download be interrupted. A cancelled scan is not saved.
+
+**The fix plan does not name a new base image tag.** For an image whose OS
+packages are vulnerable it says to rebuild on a newer base of that OS and flags
+an end-of-life OS, but Trivy does not report which tag to move to.
+
+**Scan history keeps 20 scans per cluster.** Older ones are deleted as new ones
+finish. Single-image scans are not saved. There is no `trivy k8s` style scan of
+nodes or cluster infrastructure.
 
 ## Languages
 
