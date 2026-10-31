@@ -123,7 +123,7 @@ func (w TrivyWorkload) Ref() TrivyWorkloadRef {
 }
 
 // TrivyScanSchemaVersion is the on-disk version of a saved TrivyClusterScan.
-const TrivyScanSchemaVersion = 1
+const TrivyScanSchemaVersion = 2
 
 // TrivyImageCoverage records whether one image was scanned and, if not, why.
 type TrivyImageCoverage struct {

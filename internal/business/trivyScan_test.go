@@ -12,6 +12,8 @@ import (
 
 	"kube-ins/internal/models"
 	services "kube-ins/internal/services"
+
+	"k8s.io/client-go/kubernetes/fake"
 )
 
 // scanRecorder captures what the fake dependencies were asked to do.
@@ -411,5 +413,22 @@ func TestRunClusterScanMisconfigPanicStillSaves(t *testing.T) {
 	}
 	if len(r.saved) != 1 {
 		t.Errorf("save called %d times, want 1", len(r.saved))
+	}
+}
+
+func TestEnrichWorkloadsFillsFacts(t *testing.T) {
+	ref := models.TrivyWorkloadRef{Kind: "Deployment", Name: "api", Namespace: "shop"}
+	scan := &models.TrivyClusterScan{
+		Workloads: []models.TrivyWorkload{{Kind: ref.Kind, Name: ref.Name, Namespace: ref.Namespace}},
+		Misconfigs: []models.TrivyK8sMisconfigFinding{
+			{ResourceKind: "Deployment", ResourceName: "api", Namespace: "shop", CheckID: "KSV-0012"},
+		},
+	}
+	enrichWorkloads(context.Background(), fake.NewSimpleClientset(), scan)
+	if got := scan.Workloads[0].Privileges; len(got) != 1 || got[0] != "root" {
+		t.Fatalf("privileges = %v", got)
+	}
+	if scan.Workloads[0].Exposure != nil {
+		t.Fatalf("exposure = %v", scan.Workloads[0].Exposure)
 	}
 }

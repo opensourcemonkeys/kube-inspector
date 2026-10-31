@@ -13,6 +13,8 @@ import (
 	"github.com/aquasecurity/trivy-db/pkg/metadata"
 	"github.com/aquasecurity/trivy/pkg/db"
 
+	"k8s.io/client-go/kubernetes"
+	"kube-ins/internal/logging"
 	"kube-ins/internal/models"
 	repository "kube-ins/internal/repository"
 	"kube-ins/internal/safego"
@@ -25,7 +27,7 @@ type clusterScanDeps struct {
 	listTargets   func(ctx context.Context) ([]services.ScanTarget, []models.TrivyWorkload, error)
 	scanMisconfig func(ctx context.Context, onProgress func(phase string, cur, total int, msg string)) (*models.TrivyK8sScanResult, error)
 	scanImage     func(ctx context.Context, image string, cred *services.RegistryCredential) (*models.TrivyScanResult, error)
-	enrich        func(ctx context.Context, scan *models.TrivyClusterScan)                                                              // Task 5: exposure; no-op for now
+	enrich        func(ctx context.Context, scan *models.TrivyClusterScan)                                                              // exposure and privilege facts
 	resolveCred   func(ctx context.Context, t services.ScanTarget) (*services.RegistryCredential, string /*secret*/, string /*reason*/) // Task 9; nil for now
 	meta          func(ctx context.Context) (trivyVersion, dbUpdatedAt, apiServer, serverVersion string)
 	save          func(*models.TrivyClusterScan, models.TrivyScanMeta) error
@@ -328,7 +330,9 @@ func RunClusterScan(ctx context.Context, id, clusterName string, onProgress func
 		scanImage: func(ctx context.Context, image string, cred *services.RegistryCredential) (*models.TrivyScanResult, error) {
 			return services.ScanImage(ctx, image, imageCache, cred)
 		},
-		enrich: func(context.Context, *models.TrivyClusterScan) {},
+		enrich: func(ctx context.Context, scan *models.TrivyClusterScan) {
+			enrichWorkloads(ctx, client, scan)
+		},
 		resolveCred: func(context.Context, services.ScanTarget) (*services.RegistryCredential, string, string) {
 			return nil, "", ""
 		},
@@ -370,4 +374,20 @@ func trivyDBUpdatedAt(cacheDir string) string {
 		return ""
 	}
 	return m.UpdatedAt.UTC().Format(time.RFC3339)
+}
+
+// enrichWorkloads fills each workload's Exposure and Privileges. A failed
+// exposure lookup is logged and leaves Exposure nil; it never fails the scan.
+func enrichWorkloads(ctx context.Context, client kubernetes.Interface, scan *models.TrivyClusterScan) {
+	exposure, err := services.WorkloadExposure(ctx, client, "")
+	if err != nil {
+		logging.With("business.trivy").Warn("workload exposure lookup failed", "error", err)
+		exposure = nil
+	}
+	privileges := services.WorkloadPrivileges(scan.Misconfigs)
+	for i := range scan.Workloads {
+		ref := scan.Workloads[i].Ref()
+		scan.Workloads[i].Exposure = exposure[ref]
+		scan.Workloads[i].Privileges = privileges[ref]
+	}
 }

@@ -6,6 +6,7 @@ import (
 
 	"kube-ins/internal/models"
 
+	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -44,6 +45,20 @@ func workloadRefForPod(pod *corev1.Pod, jobOwner map[string]string) models.Trivy
 	return models.TrivyWorkloadRef{Kind: kind, Name: name, Namespace: pod.Namespace}
 }
 
+// cronJobOwners maps "ns/job" to the CronJob that owns it.
+func cronJobOwners(jobs []batchv1.Job) map[string]string {
+	out := map[string]string{}
+	for _, j := range jobs {
+		for _, ref := range j.OwnerReferences {
+			if ref.Kind == "CronJob" {
+				out[j.Namespace+"/"+j.Name] = ref.Name
+				break
+			}
+		}
+	}
+	return out
+}
+
 func podImages(pod *corev1.Pod) []string {
 	var out []string
 	for _, c := range pod.Spec.InitContainers {
@@ -70,17 +85,7 @@ func ListScanTargets(ctx context.Context, client kubernetes.Interface, namespace
 	if err != nil {
 		return nil, nil, err
 	}
-	jobOwner := map[string]string{}
-	for _, j := range jobs.Items {
-		if ownedBy(j.OwnerReferences, "CronJob") {
-			for _, ref := range j.OwnerReferences {
-				if ref.Kind == "CronJob" {
-					jobOwner[j.Namespace+"/"+j.Name] = ref.Name
-					break
-				}
-			}
-		}
-	}
+	jobOwner := cronJobOwners(jobs.Items)
 
 	imageWls := map[string]map[models.TrivyWorkloadRef]struct{}{}
 	wlImages := map[models.TrivyWorkloadRef]map[string]struct{}{}
