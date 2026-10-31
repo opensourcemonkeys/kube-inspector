@@ -206,3 +206,24 @@ func TestCredentialForRegistryBadAliasDoesNotHideGoodOne(t *testing.T) {
 		t.Fatalf("cred = %+v, err = %v", got, err)
 	}
 }
+
+func TestNormaliseRegistryHost(t *testing.T) {
+	cases := map[string]string{
+		"https://index.docker.io/v1/": "index.docker.io",
+		"registry-1.docker.io":        "index.docker.io",
+		"HTTP://Quay.io/":             "quay.io",
+		"ghcr.io/":                    "ghcr.io",
+		// Only a leading scheme is stripped: a "://" after the first "/" is
+		// part of the path, so this key belongs to evil.com.
+		"evil.com/x://ghcr.io": "evil.com",
+	}
+	for in, want := range cases {
+		if got := normaliseRegistryHost(in); got != want {
+			t.Errorf("normaliseRegistryHost(%q) = %q, want %q", in, got, want)
+		}
+	}
+	got, err := CredentialForRegistry([]byte(`{"auths":{"evil.com/x://ghcr.io":{"auth":"`+b64("u:p")+`"}}}`), "ghcr.io")
+	if err != nil || got != nil {
+		t.Fatalf("path-embedded scheme matched ghcr.io: %+v, %v", got, err)
+	}
+}

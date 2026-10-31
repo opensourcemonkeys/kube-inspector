@@ -16,6 +16,7 @@ import (
 
 	dbTypes "github.com/aquasecurity/trivy-db/pkg/types"
 	"github.com/aquasecurity/trivy/pkg/commands/artifact"
+	"github.com/aquasecurity/trivy/pkg/commands/operation"
 	"github.com/aquasecurity/trivy/pkg/db"
 	"github.com/aquasecurity/trivy/pkg/fanal/analyzer"
 	ftypes "github.com/aquasecurity/trivy/pkg/fanal/types"
@@ -31,19 +32,64 @@ import (
 
 // ScanImage scans a single container image for vulnerabilities using the Trivy
 // library. cacheDir is where the vulnerability DB and layer cache are stored.
-// A non-nil cred is sent as the one registry credential for this scan.
+// A non-nil cred is sent as the one registry credential for this scan, and only
+// to the image's own registry: see imageScanOptions.
 func ScanImage(ctx context.Context, imageRef, cacheDir string, cred *RegistryCredential) (*models.TrivyScanResult, error) {
-	opts := baseOptions(cacheDir)
-	opts.ScanOptions.Target = imageRef
 	if cred != nil {
-		opts.RegistryOptions.Credentials = []ftypes.Credential{{Username: cred.Username, Password: cred.Password}}
+		// Trivy hands the run's RegistryOpts() — credentials included — to the
+		// vulnerability and Java DB downloads too, which go to mirror.gcr.io and
+		// ghcr.io. So the DBs are brought up to date here without credentials,
+		// and the credentialed run below never updates them.
+		//
+		// A failed refresh (offline) is not fatal: the scan still runs with the
+		// updates skipped, on the cached DB if there is one, or fails with
+		// Trivy's "cannot skip on the first run" error if there is none.
+		_ = refreshDBs(ctx, cacheDir)
 	}
 
-	report, err := scanContainerImage(ctx, opts)
+	report, err := runImageScan(ctx, imageScanOptions(cacheDir, imageRef, cred))
 	if err != nil {
 		return nil, err
 	}
 	return mapReport("image", imageRef, report), nil
+}
+
+// Seams for tests; production code never reassigns them.
+var (
+	refreshDBs   = refreshDBsCredentialFree
+	runImageScan = scanContainerImage
+)
+
+// imageScanOptions builds the options for one image scan. With a credential it
+// carries exactly that one, and skips both DB updates: the DB repositories are
+// on other registries, and every registry Trivy contacts during the run gets
+// the run's credentials. Misconfig scanning (whose checks-bundle download has
+// the same problem), registry mirrors and a registry token stay off.
+func imageScanOptions(cacheDir, imageRef string, cred *RegistryCredential) flag.Options {
+	opts := baseOptions(cacheDir)
+	opts.ScanOptions.Target = imageRef
+	if cred != nil {
+		opts.RegistryOptions.Credentials = []ftypes.Credential{{Username: cred.Username, Password: cred.Password}}
+		opts.DBOptions.SkipDBUpdate = true
+		opts.DBOptions.SkipJavaDBUpdate = true
+	}
+	return opts
+}
+
+// refreshDBsCredentialFree brings the vulnerability DB and the Java DB in
+// cacheDir up to date with empty registry options, the same way an
+// uncredentialed scan would (each is downloaded only when Trivy considers it
+// stale). It stops at the first error.
+func refreshDBsCredentialFree(ctx context.Context, cacheDir string) error {
+	opts := baseOptions(cacheDir)
+	noCreds := ftypes.RegistryOptions{}
+	if err := operation.DownloadDB(ctx, opts.AppVersion, cacheDir, opts.DBRepositories, true, false, noCreds); err != nil {
+		return err
+	}
+	// javadb keeps one package-level updater, which the next runner replaces;
+	// Init + Update here downloads only when the cached Java DB is stale.
+	javadb.Init(cacheDir, opts.JavaDBRepositories, false, true, noCreds)
+	return javadb.Update()
 }
 
 // scanContainerImage mirrors the internal artifact.run() flow but returns the

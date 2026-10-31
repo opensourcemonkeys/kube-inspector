@@ -31,7 +31,9 @@ var (
 // folded into index.docker.io.
 func normaliseRegistryHost(s string) string {
 	s = strings.TrimSpace(s)
-	if i := strings.Index(s, "://"); i >= 0 {
+	// Only a leading scheme: a "://" after the first "/" belongs to the path
+	// ("evil.com/x://ghcr.io" is evil.com, not ghcr.io).
+	if i := strings.Index(s, "://"); i >= 0 && !strings.Contains(s[:i], "/") {
 		s = s[i+3:]
 	}
 	if i := strings.IndexByte(s, '/'); i >= 0 {
