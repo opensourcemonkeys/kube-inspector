@@ -1,6 +1,7 @@
 package services_k8sclient
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
 	"strings"
@@ -363,7 +364,7 @@ func TestDiffScans(t *testing.T) {
 	if len(v.Vulns) != 1 || !v.Vulns[0].IsNew {
 		t.Errorf("Vulns = %+v; want the CVE-B row marked new", v.Vulns)
 	}
-	if v.Summary.PrevVulns["HIGH"] != 1 || v.Summary.Vulns["CRITICAL"] != 1 {
+	if v.Summary.Delta["HIGH"] != -1 || v.Summary.Delta["CRITICAL"] != 1 || v.Summary.Vulns["CRITICAL"] != 1 {
 		t.Errorf("Summary = %+v", v.Summary)
 	}
 }
@@ -371,8 +372,8 @@ func TestDiffScans(t *testing.T) {
 func TestViewWithoutCompare(t *testing.T) {
 	scan, _ := acceptedFixture()
 	v := BuildScanView(scan, nil, nil, viewNow)
-	if v.Changes != nil || v.Summary.PrevVulns != nil || v.Summary.PrevMisconfigs != nil || v.Summary.PrevSecrets != nil {
-		t.Errorf("Changes=%v Prev=%v/%v/%v; want all nil", v.Changes, v.Summary.PrevVulns, v.Summary.PrevMisconfigs, v.Summary.PrevSecrets)
+	if v.Changes != nil || v.Summary.Delta != nil {
+		t.Errorf("Changes=%v Delta=%v; want both nil", v.Changes, v.Summary.Delta)
 	}
 	for _, r := range v.Vulns {
 		if r.IsNew {
@@ -489,5 +490,123 @@ func TestViewExposedCriticalNotTruncatedAndDistinct(t *testing.T) {
 	}
 	if len(v.TopWorkloads) != 10 {
 		t.Fatalf("fixture must exceed the ranked list: %d top workloads", len(v.TopWorkloads))
+	}
+}
+
+// ---- final review: deltas and changes agree on what each scan could see ----
+
+func TestSummaryDeltaIgnoresAnImageThatFailedInTheComparedScan(t *testing.T) {
+	front, db, fresh := wref("web", "Deployment", "front"), wref("data", "StatefulSet", "db"), wref("web", "Deployment", "fresh")
+	osT := func(vs ...models.TrivyVulnerability) []models.TrivyTarget {
+		return []models.TrivyTarget{{Class: "os-pkgs", Vulnerabilities: vs}}
+	}
+	prev := scanOf("p",
+		map[string][]models.TrivyWorkloadRef{"app:1": {front}, "db:1": {db}},
+		map[string][]models.TrivyTarget{"db:1": osT(vuln("CVE-H1", "a", "1", "2", "HIGH"))}, nil)
+	prev.Images[0].Status, prev.Images[0].Reason = "failed", "timeout" // app:1
+	cur := scanOf("c",
+		map[string][]models.TrivyWorkloadRef{"app:1": {front}, "db:1": {db}, "new:1": {fresh}},
+		map[string][]models.TrivyTarget{
+			// Seen for the first time only because the earlier scan failed: not a change.
+			"app:1": osT(vuln("CVE-C1", "a", "1", "2", "CRITICAL"), vuln("CVE-C2", "b", "1", "2", "CRITICAL")),
+			"db:1":  osT(vuln("CVE-H1", "a", "1", "2", "HIGH"), vuln("CVE-H2", "b", "1", "2", "HIGH")),
+			// An image the earlier scan never had is a cluster change.
+			"new:1": osT(vuln("CVE-C3", "c", "1", "2", "CRITICAL")),
+		}, nil)
+	v := BuildScanView(cur, prev, nil, viewNow)
+	if v.Summary.Vulns["CRITICAL"] != 3 || v.Summary.Vulns["HIGH"] != 2 {
+		t.Errorf("headline = %v; want the current scan's totals (3 critical, 2 high)", v.Summary.Vulns)
+	}
+	if v.Summary.Delta["CRITICAL"] != 1 || v.Summary.Delta["HIGH"] != 1 {
+		t.Errorf("Delta = %v; want CRITICAL +1 (new:1) and HIGH +1 (CVE-H2)", v.Summary.Delta)
+	}
+	var ids []string
+	for _, c := range v.Changes.New {
+		ids = append(ids, c.ID)
+	}
+	if strings.Join(ids, " ") != "CVE-H2 CVE-C3" {
+		t.Errorf("Changes.New = %v; want the same two findings the delta counts", ids)
+	}
+	// The other direction: the newer scan failed on app:1, so nothing of it closed.
+	back := BuildScanView(prev, cur, nil, viewNow)
+	if back.Summary.Delta["CRITICAL"] != -1 || back.Summary.Delta["HIGH"] != -1 {
+		t.Errorf("reverse Delta = %v; want CRITICAL -1, HIGH -1", back.Summary.Delta)
+	}
+}
+
+func TestSummaryDeltaLeavesOutMisconfigsWhenEitherMisconfigScanFailed(t *testing.T) {
+	front := wref("web", "Deployment", "front")
+	mis := func(id string) models.TrivyK8sMisconfigFinding {
+		return models.TrivyK8sMisconfigFinding{ResourceKind: "Deployment", ResourceName: "front", Namespace: "web", CheckID: id, Severity: "HIGH"}
+	}
+	sec := models.TrivyK8sSecretFinding{ResourceKind: "Deployment", ResourceName: "front", Namespace: "web", RuleID: "aws", Severity: "CRITICAL"}
+	prev := scanOf("p", map[string][]models.TrivyWorkloadRef{"app:1": {front}}, nil, nil)
+	prev.MisconfigError = "forbidden"
+	cur := scanOf("c", map[string][]models.TrivyWorkloadRef{"app:1": {front}}, nil, nil)
+	cur.Misconfigs = []models.TrivyK8sMisconfigFinding{mis("KSV001"), mis("KSV002")}
+	cur.Secrets = []models.TrivyK8sSecretFinding{sec}
+
+	v := BuildScanView(cur, prev, nil, viewNow)
+	if v.Summary.Misconfigs["HIGH"] != 2 || v.Summary.Secrets["CRITICAL"] != 1 {
+		t.Errorf("headline misconfigs/secrets = %v / %v", v.Summary.Misconfigs, v.Summary.Secrets)
+	}
+	if v.Summary.Delta == nil || v.Summary.Delta["HIGH"] != 0 || v.Summary.Delta["CRITICAL"] != 0 {
+		t.Errorf("Delta = %v; a failed misconfig scan in the compared scan changes nothing", v.Summary.Delta)
+	}
+	if back := BuildScanView(prev, cur, nil, viewNow); back.Summary.Delta["HIGH"] != 0 || back.Summary.Delta["CRITICAL"] != 0 {
+		t.Errorf("reverse Delta = %v; want 0", back.Summary.Delta)
+	}
+
+	prev.MisconfigError = ""
+	if v := BuildScanView(cur, prev, nil, viewNow); v.Summary.Delta["HIGH"] != 2 || v.Summary.Delta["CRITICAL"] != 1 {
+		t.Errorf("Delta = %v; with both misconfig scans fine, misconfigs and secrets count", v.Summary.Delta)
+	}
+}
+
+func TestDiffScansWorkloadWhoseNewImageFailedClosesNothing(t *testing.T) {
+	front := wref("web", "Deployment", "front")
+	osT := []models.TrivyTarget{{Class: "os-pkgs", Vulnerabilities: []models.TrivyVulnerability{vuln("CVE-A", "openssl", "1", "2", "CRITICAL")}}}
+	prev := scanOf("p", map[string][]models.TrivyWorkloadRef{"app:1": {front}}, map[string][]models.TrivyTarget{"app:1": osT}, nil)
+	// front moved to app:2, which could not be scanned: app:1 is simply gone.
+	cur := scanOf("c", map[string][]models.TrivyWorkloadRef{"app:2": {front}}, nil, nil)
+	cur.Images[0].Status, cur.Images[0].Reason = "failed", "auth"
+	if d := DiffScans(cur, prev); len(d.Closed) != 0 {
+		t.Errorf("Closed = %+v; front's image could not be scanned, so nothing of it is known closed", d.Closed)
+	}
+	if d := DiffScans(prev, cur); len(d.New) != 0 {
+		t.Errorf("New = %+v; want none against a scan that could not see front's image", d.New)
+	}
+	if v := BuildScanView(cur, prev, nil, viewNow); v.Summary.Delta["CRITICAL"] != 0 {
+		t.Errorf("Delta = %v; want 0, like the changes", v.Summary.Delta)
+	}
+	// A workload not touched by the failure still reports its closures.
+	other := wref("web", "Deployment", "other")
+	prev2 := scanOf("p", map[string][]models.TrivyWorkloadRef{"app:1": {front, other}}, map[string][]models.TrivyTarget{"app:1": osT}, nil)
+	cur2 := scanOf("c", map[string][]models.TrivyWorkloadRef{"app:1": {other}, "app:2": {front}}, nil, nil)
+	cur2.Images[1].Status = "failed" // app:2
+	d := DiffScans(cur2, prev2)
+	if len(d.Closed) != 1 || d.Closed[0].Workload != other {
+		t.Errorf("Closed = %+v; want CVE-A closed on other only", d.Closed)
+	}
+}
+
+func TestViewExposureFromSavedScans(t *testing.T) {
+	load := func(raw string) models.TrivyScanView {
+		t.Helper()
+		var s models.TrivyClusterScan
+		if err := json.Unmarshal([]byte(raw), &s); err != nil {
+			t.Fatal(err)
+		}
+		return BuildScanView(&s, nil, nil, viewNow)
+	}
+	// Saved before exposureError existed: schema 2 means the lookup succeeded.
+	if v := load(`{"schemaVersion":2,"id":"old"}`); !v.ExposureKnown || v.ExposureError != "" {
+		t.Errorf("schema-2 scan without exposureError: known=%v error=%q; want known", v.ExposureKnown, v.ExposureError)
+	}
+	if v := load(`{"schemaVersion":1,"id":"older"}`); v.ExposureKnown {
+		t.Error("schema-1 scan reported exposure as known")
+	}
+	if v := load(`{"schemaVersion":2,"id":"new","exposureError":"ingresses not readable"}`); v.ExposureKnown || v.ExposureError != "ingresses not readable" {
+		t.Errorf("failed lookup: known=%v error=%q", v.ExposureKnown, v.ExposureError)
 	}
 }

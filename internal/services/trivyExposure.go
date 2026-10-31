@@ -18,19 +18,21 @@ import (
 // WorkloadExposure maps each workload reachable from outside the cluster to the
 // objects exposing it: "LoadBalancer <ns>/<svc>", "NodePort <ns>/<svc>" and
 // "Ingress <ns>/<ing>" (via the Services the Ingress routes to). Sorted, unique.
-// An Ingress list that is Forbidden is skipped; other errors are returned.
-func WorkloadExposure(ctx context.Context, client kubernetes.Interface, namespace string) (map[models.TrivyWorkloadRef][]string, error) {
+// An Ingress list that is Forbidden is skipped and reported as partial = true:
+// the result then shows what the Services expose, but a workload missing from
+// it may still be reachable through an Ingress. Other errors are returned.
+func WorkloadExposure(ctx context.Context, client kubernetes.Interface, namespace string) (exposure map[models.TrivyWorkloadRef][]string, partial bool, err error) {
 	pods, err := client.CoreV1().Pods(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	svcs, err := client.CoreV1().Services(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	jobs, err := client.BatchV1().Jobs(namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	var ings []networkingv1.Ingress
 	il, err := client.NetworkingV1().Ingresses(namespace).List(ctx, metav1.ListOptions{})
@@ -38,8 +40,9 @@ func WorkloadExposure(ctx context.Context, client kubernetes.Interface, namespac
 	case err == nil:
 		ings = il.Items
 	case apierrors.IsForbidden(err):
+		partial = true
 	default:
-		return nil, err
+		return nil, false, err
 	}
 
 	jobOwner := cronJobOwners(jobs.Items)
@@ -105,7 +108,7 @@ func WorkloadExposure(ctx context.Context, client kubernetes.Interface, namespac
 			}
 		}
 	}
-	return sortedFacts(acc), nil
+	return sortedFacts(acc), partial, nil
 }
 
 func sortedFacts(acc map[models.TrivyWorkloadRef]map[string]struct{}) map[models.TrivyWorkloadRef][]string {

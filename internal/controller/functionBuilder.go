@@ -952,14 +952,17 @@ func (a *App) TrivyStartClusterScan(clusterName string) (string, error) {
 }
 
 // TrivyStopClusterScan cancels a running cluster scan. The scan reports
-// "stopping" until the image in flight lets go, then emits cancelled.
-func (a *App) TrivyStopClusterScan(scanId string) error {
-	if trivyScans.cancel(scanId) {
-		if p, ok := trivyScans.lastProgress(scanId); ok {
-			a.emit("trivy:scan:progress:"+scanId, p)
-		}
+// "stopping" until the image in flight lets go, then emits cancelled. It
+// reports whether the scan was still running: false means it had already
+// ended, and no end event will follow, so the caller must settle by itself.
+func (a *App) TrivyStopClusterScan(scanId string) (bool, error) {
+	if !trivyScans.cancel(scanId) {
+		return false, nil
 	}
-	return nil
+	if p, ok := trivyScans.lastProgress(scanId); ok {
+		a.emit("trivy:scan:progress:"+scanId, p)
+	}
+	return true, nil
 }
 
 // TrivyGetRunningScan returns the cluster's running scan, or nil.

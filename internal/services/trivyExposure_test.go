@@ -2,6 +2,7 @@ package services_k8sclient
 
 import (
 	"context"
+	"errors"
 	"reflect"
 	"testing"
 
@@ -9,8 +10,12 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	networkingv1 "k8s.io/api/networking/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/fake"
+	k8stesting "k8s.io/client-go/testing"
 )
 
 func exposurePod(name, rs string, lbls map[string]string) *corev1.Pod {
@@ -43,9 +48,9 @@ func TestWorkloadExposureLoadBalancerAndIngress(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := WorkloadExposure(context.Background(), c, "")
-	if err != nil {
-		t.Fatal(err)
+	got, partial, err := WorkloadExposure(context.Background(), c, "")
+	if err != nil || partial {
+		t.Fatalf("err=%v partial=%v", err, partial)
 	}
 	want := map[models.TrivyWorkloadRef][]string{
 		{Kind: "Deployment", Name: "api", Namespace: "shop"}: {"LoadBalancer shop/api"},
@@ -57,7 +62,7 @@ func TestWorkloadExposureLoadBalancerAndIngress(t *testing.T) {
 }
 
 func TestWorkloadExposureClusterIPOnlyIsNotExposed(t *testing.T) {
-	got, err := WorkloadExposure(context.Background(), exposureFixture(), "")
+	got, _, err := WorkloadExposure(context.Background(), exposureFixture(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,5 +94,23 @@ func TestWorkloadPrivileges(t *testing.T) {
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("got %v want %v", got, want)
+	}
+}
+
+func TestWorkloadExposureForbiddenIngressesIsPartial(t *testing.T) {
+	c := exposureFixture()
+	c.PrependReactor("list", "ingresses", func(k8stesting.Action) (bool, runtime.Object, error) {
+		return true, nil, apierrors.NewForbidden(schema.GroupResource{Group: "networking.k8s.io", Resource: "ingresses"}, "", errors.New("rbac"))
+	})
+	got, partial, err := WorkloadExposure(context.Background(), c, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !partial {
+		t.Error("partial = false with a Forbidden Ingress list")
+	}
+	// What the Services show is still reported.
+	if _, ok := got[models.TrivyWorkloadRef{Kind: "Deployment", Name: "api", Namespace: "shop"}]; !ok {
+		t.Errorf("LoadBalancer exposure lost: %v", got)
 	}
 }

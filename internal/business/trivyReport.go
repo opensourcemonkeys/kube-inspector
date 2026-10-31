@@ -22,8 +22,10 @@ var trivyReportTmpl string
 
 var severityOrder = []string{"CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"}
 
+// severityMarks match the app's SeverityTag (a StatusLamp): ■ for the danger
+// severities, ▲ warning, ◆ info, ○ for anything without a severity.
 var severityMarks = map[string]string{
-	"CRITICAL": "■", "HIGH": "▲", "MEDIUM": "◆", "LOW": "○", "UNKNOWN": "◇",
+	"CRITICAL": "■", "HIGH": "■", "MEDIUM": "▲", "LOW": "◆", "UNKNOWN": "○",
 }
 
 // reportCountRow is one severity line of the summary table.
@@ -78,13 +80,13 @@ func RenderTrivyReport(v models.TrivyScanView, labels map[string]string, imageMo
 	}
 	d := reportData{V: v, L: labels, ImageMode: imageMode, Generated: generatedAt.Format("2006-01-02 15:04 MST")}
 	s := v.Summary
-	d.Compared = s.PrevVulns != nil || s.PrevMisconfigs != nil || s.PrevSecrets != nil
+	d.Compared = s.Delta != nil
 	for _, sev := range severityOrder {
 		r := reportCountRow{Severity: sev, Vulns: s.Vulns[sev], Misconfigs: s.Misconfigs[sev], Secrets: s.Secrets[sev]}
 		r.Total = r.Vulns + r.Misconfigs + r.Secrets
 		if d.Compared {
 			r.HasDelta = true
-			r.Delta = r.Total - (s.PrevVulns[sev] + s.PrevMisconfigs[sev] + s.PrevSecrets[sev])
+			r.Delta = s.Delta[sev]
 		}
 		d.Counts = append(d.Counts, r)
 	}
@@ -108,7 +110,7 @@ func RenderTrivyReport(v models.TrivyScanView, labels map[string]string, imageMo
 			if m, ok := severityMarks[strings.ToUpper(sev)]; ok {
 				return m
 			}
-			return "◇"
+			return "○"
 		},
 		"sevLabel": func(sev string) string {
 			k := "sev" + strings.Title(strings.ToLower(sev)) //nolint:staticcheck // ASCII severity names

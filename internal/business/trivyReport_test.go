@@ -150,3 +150,47 @@ func TestWriteSampleReport(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestRenderTrivyReportSeverityMarksMatchTheApp(t *testing.T) {
+	out := renderFixture(t, false)
+	for _, want := range []string{"■ Critical", "■ High", "▲ Medium", "◆ Low"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("report lacks %q (the app's StatusLamp marks)", want)
+		}
+	}
+	for _, bad := range []string{"▲ High", "◆ Medium", "○ Low"} {
+		if strings.Contains(out, bad) {
+			t.Errorf("report still has the old mark %q", bad)
+		}
+	}
+}
+
+func TestRenderTrivyReportDeltaComesFromTheView(t *testing.T) {
+	v := services.BuildScanView(reportFixture(), nil, nil, reportNow)
+	v.Summary.Delta = map[string]int{"CRITICAL": 3, "HIGH": -2}
+	out, err := RenderTrivyReport(v, reportLabels(), false, reportNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "▲ 3") || !strings.Contains(out, "▼ 2") {
+		t.Error("report does not print the view's Delta")
+	}
+}
+
+func TestRenderTrivyReportExposureUnknown(t *testing.T) {
+	labels := reportLabels()
+	labels["exposureUnknown"] = "Exposure could not be determined"
+	scan := reportFixture()
+	scan.ExposureError = "ingresses not readable"
+	v := services.BuildScanView(scan, nil, nil, reportNow)
+	out, err := RenderTrivyReport(v, labels, false, reportNow)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(out, "Exposure could not be determined") || !strings.Contains(out, "ingresses not readable") {
+		t.Error("report does not say exposure is unknown, or why")
+	}
+	if out := renderFixture(t, false); strings.Contains(out, "exposureUnknown") {
+		t.Error("a scan with known exposure printed the unknown note")
+	}
+}

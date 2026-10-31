@@ -216,7 +216,7 @@ func TestGetTrivyScanView(t *testing.T) {
 	}
 
 	v, err = GetTrivyScanView("c1", "cur-1", "")
-	if err != nil || v.Changes != nil || v.Summary.PrevVulns != nil {
+	if err != nil || v.Changes != nil || v.Summary.Delta != nil {
 		t.Errorf("no-compare view = %+v, %v", v, err)
 	}
 	if _, err := GetTrivyScanView("c1", "missing", ""); err == nil {

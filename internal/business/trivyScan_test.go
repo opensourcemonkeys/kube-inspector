@@ -13,7 +13,11 @@ import (
 	"kube-ins/internal/models"
 	services "kube-ins/internal/services"
 
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/kubernetes/fake"
+	k8stesting "k8s.io/client-go/testing"
 )
 
 // scanRecorder captures what the fake dependencies were asked to do.
@@ -479,5 +483,49 @@ func TestEnrichWorkloadsFillsFacts(t *testing.T) {
 	}
 	if scan.Workloads[0].Exposure != nil {
 		t.Fatalf("exposure = %v", scan.Workloads[0].Exposure)
+	}
+}
+
+func TestEnrichWorkloadsRecordsAFailedExposureLookup(t *testing.T) {
+	c := fake.NewSimpleClientset()
+	c.PrependReactor("list", "services", func(k8stesting.Action) (bool, runtime.Object, error) {
+		return true, nil, errors.New("connection refused")
+	})
+	scan := &models.TrivyClusterScan{SchemaVersion: models.TrivyScanSchemaVersion,
+		Workloads: []models.TrivyWorkload{{Kind: "Deployment", Name: "api", Namespace: "shop"}}}
+	enrichWorkloads(context.Background(), c, scan)
+	if scan.ExposureError == "" {
+		t.Fatal("ExposureError empty after a failed lookup")
+	}
+	if v := services.BuildScanView(scan, nil, nil, time.Now()); v.ExposureKnown || v.ExposureError == "" {
+		t.Errorf("view ExposureKnown=%v ExposureError=%q; a failed lookup is not \"nothing exposed\"", v.ExposureKnown, v.ExposureError)
+	}
+}
+
+func TestEnrichWorkloadsForbiddenIngressesIsPartial(t *testing.T) {
+	c := fake.NewSimpleClientset()
+	c.PrependReactor("list", "ingresses", func(k8stesting.Action) (bool, runtime.Object, error) {
+		return true, nil, apierrors.NewForbidden(schema.GroupResource{Group: "networking.k8s.io", Resource: "ingresses"}, "", errors.New("rbac"))
+	})
+	scan := &models.TrivyClusterScan{SchemaVersion: models.TrivyScanSchemaVersion,
+		Workloads: []models.TrivyWorkload{{Kind: "Deployment", Name: "api", Namespace: "shop"}}}
+	enrichWorkloads(context.Background(), c, scan)
+	if scan.ExposureError != "ingresses not readable" {
+		t.Fatalf("ExposureError = %q", scan.ExposureError)
+	}
+	if v := services.BuildScanView(scan, nil, nil, time.Now()); v.ExposureKnown {
+		t.Error("ExposureKnown with unreadable ingresses")
+	}
+}
+
+func TestEnrichWorkloadsKnownExposure(t *testing.T) {
+	scan := &models.TrivyClusterScan{SchemaVersion: models.TrivyScanSchemaVersion,
+		Workloads: []models.TrivyWorkload{{Kind: "Deployment", Name: "api", Namespace: "shop"}}}
+	enrichWorkloads(context.Background(), fake.NewSimpleClientset(), scan)
+	if scan.ExposureError != "" {
+		t.Fatalf("ExposureError = %q", scan.ExposureError)
+	}
+	if v := services.BuildScanView(scan, nil, nil, time.Now()); !v.ExposureKnown {
+		t.Error("ExposureKnown false after a successful lookup")
 	}
 }

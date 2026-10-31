@@ -87,3 +87,28 @@ func TestClusterScanRegistryProgressAndCancel(t *testing.T) {
 		t.Error("progress accepted after finish")
 	}
 }
+
+// TrivyStopClusterScan tells the caller whether there was anything to stop, so
+// a panel that missed the scan's end event can settle instead of waiting for
+// a "cancelled" that will never come.
+func TestTrivyStopClusterScanReportsWhetherAScanWasRunning(t *testing.T) {
+	a := &App{}
+	if ok, err := a.TrivyStopClusterScan("no-such-scan"); err != nil || ok {
+		t.Fatalf("stop of an unknown scan = %v, %v; want false, nil", ok, err)
+	}
+	id, started, ctx, tok := trivyScans.begin("stop-test")
+	if !started {
+		t.Fatal("begin did not start a scan")
+	}
+	defer trivyScans.finish(id, tok)
+	if ok, err := a.TrivyStopClusterScan(id); err != nil || !ok {
+		t.Fatalf("stop of a running scan = %v, %v; want true, nil", ok, err)
+	}
+	if ctx.Err() == nil {
+		t.Error("stop did not cancel the scan's context")
+	}
+	trivyScans.finish(id, tok)
+	if ok, _ := a.TrivyStopClusterScan(id); ok {
+		t.Error("stop of a finished scan reported it running")
+	}
+}

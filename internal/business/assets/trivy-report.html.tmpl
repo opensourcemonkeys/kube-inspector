@@ -100,6 +100,7 @@ footer { margin-top: 40px; color: var(--ink-3); font-size: 12px; border-top: 1px
 
   {{if not .ImageMode}}
   <h3>{{label "topWorkloadsTitle"}}</h3>
+  {{if not .V.ExposureKnown}}<p class="note">{{label "exposureUnknown"}}{{with .V.ExposureError}} ({{.}}){{end}}</p>{{end}}
   {{if .V.TopWorkloads}}
   <table>
     <thead><tr><th>{{label "colWorkload"}}</th><th>{{label "colReasons"}}</th><th class="n">{{label "sevCritical"}}</th><th class="n">{{label "sevHigh"}}</th></tr></thead>

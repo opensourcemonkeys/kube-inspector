@@ -326,37 +326,55 @@ func uniqueKeys(n int, key func(int) *string) {
 
 // ---- comparison ----
 
+// scanBlindSpots is what a scan could not see: the images it failed on and the
+// workloads running one of them. A workload whose image failed is blind as a
+// whole, because a vulnerability's key names the workload, not the image — a
+// workload that moved from a scanned image to one that failed would otherwise
+// "close" everything the old image had.
+type scanBlindSpots struct {
+	images    map[string]bool
+	workloads map[models.TrivyWorkloadRef]bool
+}
+
+func blindSpots(s *models.TrivyClusterScan) scanBlindSpots {
+	b := scanBlindSpots{images: map[string]bool{}, workloads: map[models.TrivyWorkloadRef]bool{}}
+	for _, img := range s.Images {
+		if img.Status == "scanned" {
+			continue
+		}
+		b.images[img.Image] = true
+		for _, w := range img.Workloads {
+			if w != (models.TrivyWorkloadRef{}) {
+				b.workloads[w] = true
+			}
+		}
+	}
+	return b
+}
+
 // DiffScans lists the findings that appeared in cur and disappeared from prev,
 // by the comparison keys, plus the workloads cur has and prev did not.
 // A finding is not reported against a scan that could not have seen it: a
-// vulnerability of an image that failed in the other scan, or a misconfig or
-// secret when the other scan's misconfiguration scan failed.
+// vulnerability of an image that failed in the other scan or of a workload
+// whose image failed there, or a misconfig or secret when the other scan's
+// misconfiguration scan failed.
 func DiffScans(cur, prev *models.TrivyClusterScan) models.TrivyChanges {
 	curC, prevC := changeSet(cur), changeSet(prev)
-	failedIn := func(s *models.TrivyClusterScan) map[string]bool {
-		out := map[string]bool{}
-		for _, img := range s.Images {
-			if img.Status != "scanned" {
-				out[img.Image] = true
-			}
-		}
-		return out
-	}
-	curFailed, prevFailed := failedIn(cur), failedIn(prev)
-	visible := func(c change, failed map[string]bool, misconfigError string) bool {
+	curBlind, prevBlind := blindSpots(cur), blindSpots(prev)
+	visible := func(c change, other scanBlindSpots, misconfigError string) bool {
 		if c.Kind == "vuln" {
-			return !failed[c.image]
+			return !other.images[c.image] && !other.workloads[c.Workload]
 		}
 		return misconfigError == ""
 	}
 	out := models.TrivyChanges{New: []models.TrivyChange{}, Closed: []models.TrivyChange{}, NewWorkloads: []models.TrivyWorkloadRef{}}
 	for k, c := range curC {
-		if _, ok := prevC[k]; !ok && visible(c, prevFailed, prev.MisconfigError) {
+		if _, ok := prevC[k]; !ok && visible(c, prevBlind, prev.MisconfigError) {
 			out.New = append(out.New, c.TrivyChange)
 		}
 	}
 	for k, c := range prevC {
-		if _, ok := curC[k]; !ok && visible(c, curFailed, cur.MisconfigError) {
+		if _, ok := curC[k]; !ok && visible(c, curBlind, cur.MisconfigError) {
 			out.Closed = append(out.Closed, c.TrivyChange)
 		}
 	}
@@ -425,9 +443,19 @@ type severityCounts struct {
 	critHigh, critHighFixable  int
 }
 
-func countScan(s *models.TrivyClusterScan, ex *exceptionSet) severityCounts {
+// countBasis limits countScan to what two scans can both see; the zero value
+// counts everything.
+type countBasis struct {
+	skipImage      func(image string) bool
+	skipK8sResults bool // misconfigs and secrets
+}
+
+func countScan(s *models.TrivyClusterScan, ex *exceptionSet, basis countBasis) severityCounts {
 	c := severityCounts{vulns: map[string]int{}, misconfigs: map[string]int{}, secrets: map[string]int{}}
 	eachFinding(s.ImageTargets, s.Images, func(img models.TrivyImageCoverage, _ models.TrivyTarget, v models.TrivyVulnerability) {
+		if basis.skipImage != nil && basis.skipImage(img.Image) {
+			return
+		}
 		if ex.accepts(ex.vulnMatches(v.VulnerabilityID, img.Image)) {
 			return
 		}
@@ -440,6 +468,9 @@ func countScan(s *models.TrivyClusterScan, ex *exceptionSet) severityCounts {
 			}
 		}
 	})
+	if basis.skipK8sResults {
+		return c
+	}
 	for _, m := range s.Misconfigs {
 		if !ex.accepts(ex.misconfigMatches(m.CheckID, misconfigRef(m))) {
 			c.misconfigs[normSeverity(m.Severity)]++
@@ -449,6 +480,56 @@ func countScan(s *models.TrivyClusterScan, ex *exceptionSet) severityCounts {
 		c.secrets[normSeverity(sec.Severity)]++
 	}
 	return c
+}
+
+// deltaBasis is what the summary's change figures may count so they agree
+// with DiffScans: an image is compared only if neither scan failed on it and
+// no workload running it (in either scan) is blind in either scan, and
+// misconfigs and secrets only if neither misconfig scan failed. An image that
+// only one scan has is a change of the cluster and is counted.
+//
+// The exclusion is symmetric — the same images drop out of both sides — so a
+// coverage difference never shows up as a rise or a fall.
+func deltaBasis(cur, prev *models.TrivyClusterScan) countBasis {
+	curBlind, prevBlind := blindSpots(cur), blindSpots(prev)
+	skip := map[string]bool{}
+	for _, s := range []*models.TrivyClusterScan{cur, prev} {
+		for _, img := range s.Images {
+			if curBlind.images[img.Image] || prevBlind.images[img.Image] {
+				skip[img.Image] = true
+				continue
+			}
+			for _, w := range img.Workloads {
+				if curBlind.workloads[w] || prevBlind.workloads[w] {
+					skip[img.Image] = true
+					break
+				}
+			}
+		}
+	}
+	return countBasis{
+		skipImage:      func(image string) bool { return skip[image] },
+		skipK8sResults: cur.MisconfigError != "" || prev.MisconfigError != "",
+	}
+}
+
+// summaryDelta is severity → (cur − prev) over deltaBasis, all three kinds of
+// finding together, with a 0 entry for every severity either side has.
+func summaryDelta(cur, prev *models.TrivyClusterScan, ex *exceptionSet) map[string]int {
+	basis := deltaBasis(cur, prev)
+	c, p := countScan(cur, ex, basis), countScan(prev, ex, basis)
+	out := map[string]int{}
+	for _, m := range []map[string]int{c.vulns, c.misconfigs, c.secrets} {
+		for sev, n := range m {
+			out[sev] += n
+		}
+	}
+	for _, m := range []map[string]int{p.vulns, p.misconfigs, p.secrets} {
+		for sev, n := range m {
+			out[sev] -= n
+		}
+	}
+	return out
 }
 
 // exposedCritical counts the unaccepted CRITICAL findings that touch an
@@ -507,7 +588,8 @@ func BuildScanView(cur, prev *models.TrivyClusterScan, exc []models.TrivyExcepti
 		StartedAt: cur.StartedAt, FinishedAt: cur.FinishedAt,
 		AppVersion: cur.AppVersion, TrivyVersion: cur.TrivyVersion, DBUpdatedAt: cur.DBUpdatedAt,
 		APIServer: cur.APIServer, ServerVersion: cur.ServerVersion, MisconfigError: cur.MisconfigError,
-		ResourceCount: cur.ResourceCount, ExposureKnown: cur.SchemaVersion >= 2,
+		ResourceCount: cur.ResourceCount, ExposureKnown: cur.SchemaVersion >= 2 && cur.ExposureError == "",
+		ExposureError: cur.ExposureError,
 	}
 
 	newKeys := map[string]struct{}{}
@@ -528,7 +610,7 @@ func BuildScanView(cur, prev *models.TrivyClusterScan, exc []models.TrivyExcepti
 	v.Misconfigs = misconfigRows(cur, ex.acceptMisconfig, isNew)
 	v.Secrets = secretRows(cur, isNew)
 
-	c := countScan(cur, ex)
+	c := countScan(cur, ex, countBasis{})
 	v.Summary = models.TrivySummary{Vulns: c.vulns, Misconfigs: c.misconfigs, Secrets: c.secrets, FixableRatio: -1}
 	if c.critHigh > 0 {
 		v.Summary.FixableRatio = float64(c.critHighFixable) / float64(c.critHigh)
@@ -541,8 +623,7 @@ func BuildScanView(cur, prev *models.TrivyClusterScan, exc []models.TrivyExcepti
 	}
 	v.Summary.ExposedCritical = exposedCritical(cur, ex)
 	if prev != nil {
-		p := countScan(prev, ex)
-		v.Summary.PrevVulns, v.Summary.PrevMisconfigs, v.Summary.PrevSecrets = p.vulns, p.misconfigs, p.secrets
+		v.Summary.Delta = summaryDelta(cur, prev, ex)
 	}
 
 	v.TopWorkloads = topWorkloads(cur, v.Vulns)

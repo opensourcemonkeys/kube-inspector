@@ -148,6 +148,11 @@ type TrivyClusterScan struct {
 	MisconfigError string                     `json:"misconfigError"`
 	ResourceCount  int                        `json:"resourceCount"`
 	Workloads      []TrivyWorkload            `json:"workloads"`
+	// ExposureError says why the workloads' Exposure is incomplete (the
+	// lookup failed, or the Ingresses were not readable). "" means it is
+	// complete — which is also what a schema-2 scan saved before this field
+	// existed reads as.
+	ExposureError string `json:"exposureError"`
 }
 
 // TrivyScanMeta is the small summary stored beside each scan for listing.
@@ -181,17 +186,20 @@ type TrivyRunningScan struct {
 }
 
 // TrivySummary is the headline numbers of a scan view. Accepted findings are
-// not counted. The Prev* maps are nil when there is no comparison.
+// not counted.
 type TrivySummary struct {
-	Vulns          map[string]int `json:"vulns"` // severity → distinct findings
-	Misconfigs     map[string]int `json:"misconfigs"`
-	Secrets        map[string]int `json:"secrets"`
-	PrevVulns      map[string]int `json:"prevVulns"`
-	PrevMisconfigs map[string]int `json:"prevMisconfigs"`
-	PrevSecrets    map[string]int `json:"prevSecrets"`
-	FixableRatio   float64        `json:"fixableRatio"` // share of critical+high findings with a fixed version; -1 when there are none
-	ImagesTotal    int            `json:"imagesTotal"`
-	ImagesScanned  int            `json:"imagesScanned"`
+	Vulns      map[string]int `json:"vulns"` // severity → distinct findings
+	Misconfigs map[string]int `json:"misconfigs"`
+	Secrets    map[string]int `json:"secrets"`
+	// Delta is severity → the change in vulnerability, misconfig and secret
+	// findings against the compared scan, nil without one. It counts only what
+	// both scans could see (images neither scan failed on, misconfigs and
+	// secrets only when neither misconfig scan failed), so it agrees with the
+	// Changes list rather than with the difference of the two headline totals.
+	Delta         map[string]int `json:"delta"`
+	FixableRatio  float64        `json:"fixableRatio"` // share of critical+high findings with a fixed version; -1 when there are none
+	ImagesTotal   int            `json:"imagesTotal"`
+	ImagesScanned int            `json:"imagesScanned"`
 	// ExposedCritical is the unaccepted CRITICAL findings that touch a workload
 	// reachable from outside the cluster: distinct vulnerability findings of
 	// images such a workload runs, plus misconfig and secret rows on one.
@@ -324,7 +332,8 @@ type TrivyScanView struct {
 	ServerVersion    string                `json:"serverVersion"`
 	MisconfigError   string                `json:"misconfigError"`
 	ResourceCount    int                   `json:"resourceCount"`
-	ExposureKnown    bool                  `json:"exposureKnown"` // SchemaVersion >= 2
+	ExposureKnown    bool                  `json:"exposureKnown"` // SchemaVersion >= 2 and no ExposureError
+	ExposureError    string                `json:"exposureError"` // why exposure is unknown, if the lookup failed
 	Summary          TrivySummary          `json:"summary"`
 	TopWorkloads     []TrivyWorkloadRisk   `json:"topWorkloads"`
 	Changes          *TrivyChanges         `json:"changes"` // nil without a comparison

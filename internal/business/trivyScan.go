@@ -381,13 +381,22 @@ func trivyDBUpdatedAt(cacheDir string) string {
 	return m.UpdatedAt.UTC().Format(time.RFC3339)
 }
 
+// exposureIngressesUnreadable is the ExposureError of a scan whose Ingress
+// list was Forbidden: the Services' exposure is recorded, the Ingresses' not.
+const exposureIngressesUnreadable = "ingresses not readable"
+
 // enrichWorkloads fills each workload's Exposure and Privileges. A failed
-// exposure lookup is logged and leaves Exposure nil; it never fails the scan.
+// exposure lookup never fails the scan, but it is recorded in ExposureError,
+// so the view says "unknown" rather than "nothing exposed".
 func enrichWorkloads(ctx context.Context, client kubernetes.Interface, scan *models.TrivyClusterScan) {
-	exposure, err := services.WorkloadExposure(ctx, client, "")
-	if err != nil {
+	exposure, partial, err := services.WorkloadExposure(ctx, client, "")
+	switch {
+	case err != nil:
 		logging.With("business.trivy").Warn("workload exposure lookup failed", "error", err)
 		exposure = nil
+		scan.ExposureError = err.Error()
+	case partial:
+		scan.ExposureError = exposureIngressesUnreadable
 	}
 	privileges := services.WorkloadPrivileges(scan.Misconfigs)
 	for i := range scan.Workloads {
