@@ -5,6 +5,7 @@ package business
 
 import (
 	"context"
+	"errors"
 	"runtime/debug"
 	"sync"
 	"time"
@@ -127,8 +128,13 @@ func runClusterScan(ctx context.Context, id, clusterName string, d clusterScanDe
 	defer mcancel()
 	misconfigCh := make(chan misconfigOutcome, 1)
 	safego.Go("business.trivyMisconfigScan", func() {
+		// Sent from a defer so a panic in the scan (recovered by safego) still
+		// delivers an outcome; otherwise the run would wait on misconfigCh until
+		// Stop and the cluster would stay "running".
+		out := misconfigOutcome{err: errors.New("misconfig scan aborted unexpectedly")}
+		defer func() { misconfigCh <- out }()
 		res, err := d.scanMisconfig(mctx, gate.misconfig)
-		misconfigCh <- misconfigOutcome{res: res, err: err}
+		out = misconfigOutcome{res: res, err: err}
 	})
 
 	gate.setImagesActive(true)
@@ -215,17 +221,11 @@ func scanOneImage(ctx context.Context, d clusterScanDeps, gate *scanProgress, t 
 		cred, cov.PullSecret, _ = d.resolveCred(ctx, t)
 	}
 
-	unlock, err := acquireImageCache(ctx, d.imageCacheDir, func() {
+	res, err := scanImageLocked(ctx, d, cred, t.Image, func() {
 		gate.send("waitingCache", cur, total, t.Image)
+	}, func() {
+		gate.send("images", cur, total, t.Image)
 	})
-	if err != nil {
-		return cov, nil, err
-	}
-	gate.send("images", cur, total, t.Image)
-	ictx, cancel := context.WithTimeout(ctx, services.ImageScanTimeout)
-	res, err := d.scanImage(ictx, t.Image, cred)
-	cancel()
-	unlock()
 
 	if ctxErr := ctx.Err(); ctxErr != nil {
 		return cov, nil, ctxErr
@@ -241,6 +241,22 @@ func scanOneImage(ctx context.Context, d clusterScanDeps, gate *scanProgress, t 
 	cov.Status = "scanned"
 	cov.OS = res.OS
 	return cov, res, nil
+}
+
+// scanImageLocked runs one image scan holding the image cache lock, under its
+// own ImageScanTimeout that starts once the lock is held. The lock and the
+// timer are released by defers, so a panic in the scan (which safego recovers
+// further up) cannot leave the cache locked for every later scan.
+func scanImageLocked(ctx context.Context, d clusterScanDeps, cred *services.RegistryCredential, image string, onWait, onStart func()) (*models.TrivyScanResult, error) {
+	unlock, err := acquireImageCache(ctx, d.imageCacheDir, onWait)
+	if err != nil {
+		return nil, err
+	}
+	defer unlock()
+	onStart()
+	ictx, cancel := context.WithTimeout(ctx, services.ImageScanTimeout)
+	defer cancel()
+	return d.scanImage(ictx, image, cred)
 }
 
 // acquireImageCache takes the image cache lock, calling onWait once if it has

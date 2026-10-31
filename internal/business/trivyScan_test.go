@@ -330,3 +330,86 @@ func TestRunClusterScanCancelWhileWaitingCache(t *testing.T) {
 		t.Errorf("saved %d, scanned %v after cancel", len(r.saved), r.scanned)
 	}
 }
+
+// A panic in an image scan (recovered further up by safego) must not leave the
+// image cache locked: the Image tab and every later cluster scan queue on it.
+func TestRunClusterScanPanicReleasesImageCache(t *testing.T) {
+	r := &scanRecorder{}
+	d := fakeScanDeps(r, []services.ScanTarget{{Image: "a:1"}}, nil, nil)
+	d.imageCacheDir = "test-panic-cache-" + t.Name()
+	d.scanImage = func(context.Context, string, *services.RegistryCredential) (*models.TrivyScanResult, error) {
+		panic("trivy blew up")
+	}
+
+	func() {
+		defer func() {
+			if recover() == nil {
+				t.Fatal("scanImage panic did not propagate")
+			}
+		}()
+		_, _ = runClusterScan(context.Background(), "id-8", "c1", d, r.onProgress)
+	}()
+
+	unlock, ok := tryLockTrivyCache(d.imageCacheDir)
+	if !ok {
+		t.Fatal("image cache still locked after a panicking scan")
+	}
+	unlock()
+
+	// And a following scan of the same cache runs normally.
+	r2 := &scanRecorder{}
+	d2 := fakeScanDeps(r2, []services.ScanTarget{{Image: "b:1"}}, nil, nil)
+	d2.imageCacheDir = d.imageCacheDir
+	done := make(chan error, 1)
+	go func() {
+		_, err := runClusterScan(context.Background(), "id-9", "c1", d2, r2.onProgress)
+		done <- err
+	}()
+	select {
+	case err := <-done:
+		if err != nil {
+			t.Fatalf("second scan: %v", err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("second scan blocked on the image cache")
+	}
+}
+
+// A panic in the misconfig scan is recovered by safego in its goroutine; the
+// run must still complete and save, with the failure as MisconfigError.
+func TestRunClusterScanMisconfigPanicStillSaves(t *testing.T) {
+	r := &scanRecorder{}
+	targets := []services.ScanTarget{{Image: "a:1"}, {Image: "b:1"}}
+	d := fakeScanDeps(r, targets, nil, nil)
+	d.scanMisconfig = func(context.Context, func(string, int, int, string)) (*models.TrivyK8sScanResult, error) {
+		panic("misconfig blew up")
+	}
+
+	type outcome struct {
+		scan *models.TrivyClusterScan
+		err  error
+	}
+	done := make(chan outcome, 1)
+	go func() {
+		s, err := runClusterScan(context.Background(), "id-10", "c1", d, r.onProgress)
+		done <- outcome{s, err}
+	}()
+	var o outcome
+	select {
+	case o = <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("run hung after the misconfig scan panicked")
+	}
+	if o.err != nil {
+		t.Fatalf("runClusterScan: %v", o.err)
+	}
+	if o.scan.MisconfigError == "" {
+		t.Error("MisconfigError empty after a misconfig panic")
+	}
+	if len(r.scanned) != 2 || len(o.scan.Images) != 2 {
+		t.Errorf("scanned %v, coverage %d; want both images", r.scanned, len(o.scan.Images))
+	}
+	if len(r.saved) != 1 {
+		t.Errorf("save called %d times, want 1", len(r.saved))
+	}
+}
