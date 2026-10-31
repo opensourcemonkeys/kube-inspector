@@ -66,7 +66,9 @@ func TrivyScanImage(clusterName, imageRef string) (*models.TrivyScanResult, erro
 	}
 	unlock := lockTrivyCache(cacheDir)
 	defer unlock()
-	return services.ScanImage(context.Background(), imageRef, cacheDir)
+	ctx, cancel := context.WithTimeout(context.Background(), services.ImageScanTimeout)
+	defer cancel()
+	return services.ScanImage(ctx, imageRef, cacheDir, nil)
 }
 
 // TrivyListPodImages returns the distinct images used by pods in the given

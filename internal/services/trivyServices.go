@@ -60,14 +60,15 @@ func ListPodImages(client *kubernetes.Clientset, namespace string) ([]string, er
 	return images, nil
 }
 
-// scanTimeout is generous because the first scan downloads the vulnerability DB.
-const scanTimeout = 12 * time.Minute
-
 // ScanImage scans a single container image for vulnerabilities using the Trivy
 // library. cacheDir is where the vulnerability DB and layer cache are stored.
-func ScanImage(ctx context.Context, imageRef, cacheDir string) (*models.TrivyScanResult, error) {
+// A non-nil cred is sent as the one registry credential for this scan.
+func ScanImage(ctx context.Context, imageRef, cacheDir string, cred *RegistryCredential) (*models.TrivyScanResult, error) {
 	opts := baseOptions(cacheDir)
 	opts.ScanOptions.Target = imageRef
+	if cred != nil {
+		opts.RegistryOptions.Credentials = []ftypes.Credential{{Username: cred.Username, Password: cred.Password}}
+	}
 
 	report, err := scanContainerImage(ctx, opts)
 	if err != nil {
@@ -102,7 +103,7 @@ func baseOptions(cacheDir string) flag.Options {
 	return flag.Options{
 		GlobalOptions: flag.GlobalOptions{
 			CacheDir: cacheDir,
-			Timeout:  scanTimeout,
+			Timeout:  ImageScanTimeout,
 			Quiet:    true,
 		},
 		CacheOptions: flag.CacheOptions{
@@ -614,6 +615,9 @@ func mapReport(kind, ref string, report types.Report) *models.TrivyScanResult {
 		Summary:     map[string]int{},
 		ScannedAt:   time.Now().Format(time.RFC3339),
 	}
+	if osInfo := report.Metadata.OS; osInfo != nil {
+		res.OS = &models.TrivyOSInfo{Family: string(osInfo.Family), Name: osInfo.Name, EOSL: osInfo.Eosl}
+	}
 	for _, r := range report.Results {
 		t := models.TrivyTarget{
 			Target: r.Target,
@@ -641,6 +645,7 @@ func mapReport(kind, ref string, report types.Report) *models.TrivyScanResult {
 				PrimaryURL:       v.PrimaryURL,
 				References:       v.References,
 				PublishedDate:    published,
+				PkgPath:          v.PkgPath,
 			})
 			res.Summary[severity]++
 		}

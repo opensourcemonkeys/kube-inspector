@@ -12,6 +12,14 @@ type TrivyVulnerability struct {
 	PrimaryURL       string   `json:"primaryURL"`
 	References       []string `json:"references"`
 	PublishedDate    string   `json:"publishedDate"`
+	PkgPath          string   `json:"pkgPath"`
+}
+
+// TrivyOSInfo is the operating system Trivy detected in an image.
+type TrivyOSInfo struct {
+	Family string `json:"family"`
+	Name   string `json:"name"`
+	EOSL   bool   `json:"eosl"`
 }
 
 // TrivyTarget groups findings for one scan target (an OS layer, a language
@@ -32,6 +40,7 @@ type TrivyScanResult struct {
 	Summary     map[string]int `json:"summary"` // severity -> count
 	ScannedAt   string         `json:"scannedAt"`
 	Error       string         `json:"error"`
+	OS          *TrivyOSInfo   `json:"os"`
 }
 
 // TrivyK8sMisconfigFinding is one failing KSV* check from a filesystem scan.
