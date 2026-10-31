@@ -745,7 +745,7 @@ app.whenReady().then(async () => {
   if (devRPC) {
     // dev.cjs owns the Go process; we only attach. The dev build skips the
     // token check (devShell in internal/controller/dev_on.go), so any non-empty
-    // token gets the shell channel connected — SaveReport's native dialog
+    // token gets the shell channel connected — a.saveFile's native dialog
     // then works in dev too. No app:// handler: the page is served by Vite.
     serverURL = devRPC;
     shellToken = 'dev';
