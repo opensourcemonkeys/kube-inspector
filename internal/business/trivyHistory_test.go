@@ -177,3 +177,52 @@ func TestLoadTrivyScanExactID(t *testing.T) {
 		t.Error("partial id matched")
 	}
 }
+
+func TestGetTrivyScanView(t *testing.T) {
+	histHome(t)
+	base := time.Now().Add(-time.Hour)
+	prev, pm := mkScan("prev-1", base)
+	cur, cm := mkScan("cur-1", base.Add(time.Minute))
+	cur.SchemaVersion = models.TrivyScanSchemaVersion
+	img := models.TrivyImageCoverage{Image: "nginx:1.27", Status: "scanned",
+		Workloads: []models.TrivyWorkloadRef{{Kind: "Deployment", Name: "front", Namespace: "web"}}}
+	cur.Images = []models.TrivyImageCoverage{img}
+	cur.ImageTargets = map[string][]models.TrivyTarget{"nginx:1.27": {{Class: "os-pkgs", Vulnerabilities: []models.TrivyVulnerability{
+		{VulnerabilityID: "CVE-A", PkgName: "openssl", Severity: "CRITICAL", FixedVersion: "3.1"},
+		{VulnerabilityID: "CVE-B", PkgName: "zlib", Severity: "HIGH"},
+	}}}}
+	for _, s := range []struct {
+		scan *models.TrivyClusterScan
+		meta models.TrivyScanMeta
+	}{{prev, pm}, {cur, cm}} {
+		if err := SaveTrivyScan(s.scan, s.meta); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := AddTrivyException("c1", models.TrivyException{Kind: "vuln", VulnerabilityID: "CVE-A", ImageRepo: "nginx",
+		Reason: "r", ExpiresAt: time.Now().Add(time.Hour).UTC().Format(time.RFC3339)}); err != nil {
+		t.Fatal(err)
+	}
+
+	v, err := GetTrivyScanView("c1", "cur-1", "prev-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if v.ScanID != "cur-1" || v.CompareID != "prev-1" || v.Changes == nil || len(v.Changes.New) != 2 {
+		t.Errorf("compare view = id %q compare %q changes %+v", v.ScanID, v.CompareID, v.Changes)
+	}
+	if v.Summary.Vulns["CRITICAL"] != 0 || v.Summary.Vulns["HIGH"] != 1 || len(v.Exceptions) != 1 || v.Exceptions[0].Matches != 1 {
+		t.Errorf("exceptions not applied: summary %v exceptions %+v", v.Summary.Vulns, v.Exceptions)
+	}
+
+	v, err = GetTrivyScanView("c1", "cur-1", "")
+	if err != nil || v.Changes != nil || v.Summary.PrevVulns != nil {
+		t.Errorf("no-compare view = %+v, %v", v, err)
+	}
+	if _, err := GetTrivyScanView("c1", "missing", ""); err == nil {
+		t.Error("missing scan: want an error")
+	}
+	if _, err := GetTrivyScanView("c1", "cur-1", "missing"); err == nil {
+		t.Error("missing compare scan: want an error")
+	}
+}

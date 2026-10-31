@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 
 	"kube-ins/internal/models"
+	services "kube-ins/internal/services"
 )
 
 // trivyHistoryKeep is how many saved scans are retained per cluster.
@@ -314,4 +315,26 @@ func RemoveTrivyException(clusterName, id string) error {
 		}
 	}
 	return fmt.Errorf("exception %q not found", id)
+}
+
+// GetTrivyScanView loads a saved scan, the scan it is compared with (none when
+// compareID is empty) and the cluster's exceptions, and computes the view the
+// scan screen and the report show.
+func GetTrivyScanView(clusterName, scanID, compareID string) (*models.TrivyScanView, error) {
+	cur, err := LoadTrivyScan(clusterName, scanID)
+	if err != nil {
+		return nil, err
+	}
+	var prev *models.TrivyClusterScan
+	if compareID != "" {
+		if prev, err = LoadTrivyScan(clusterName, compareID); err != nil {
+			return nil, fmt.Errorf("comparison scan: %w", err)
+		}
+	}
+	exc, err := ListTrivyExceptions(clusterName)
+	if err != nil {
+		return nil, err
+	}
+	v := services.BuildScanView(cur, prev, exc, time.Now())
+	return &v, nil
 }

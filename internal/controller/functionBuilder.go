@@ -1006,6 +1006,27 @@ func (a *App) TrivyGetScan(clusterName, scanId string) (*models.TrivyClusterScan
 	return bussiness.LoadTrivyScan(clusterName, scanId)
 }
 
+// TrivyGetScanView returns the computed view of a saved scan (summary, fix
+// plan, findings, coverage, exceptions). An empty compareId means no comparison.
+func (a *App) TrivyGetScanView(clusterName, scanId, compareId string) (*models.TrivyScanView, error) {
+	return bussiness.GetTrivyScanView(clusterName, scanId, compareId)
+}
+
+// TrivyListExceptions returns the cluster's accepted findings.
+func (a *App) TrivyListExceptions(clusterName string) ([]models.TrivyException, error) {
+	return bussiness.ListTrivyExceptions(clusterName)
+}
+
+// TrivyAddException stores an accepted finding and returns it with its id.
+func (a *App) TrivyAddException(clusterName string, e models.TrivyException) (models.TrivyException, error) {
+	return bussiness.AddTrivyException(clusterName, e)
+}
+
+// TrivyRemoveException deletes an accepted finding.
+func (a *App) TrivyRemoveException(clusterName, id string) error {
+	return bussiness.RemoveTrivyException(clusterName, id)
+}
+
 func (a *App) GetObjectYaml(clusterName, group, resource, namespace, name string) (string, error) {
 	return bussiness.GetObjectYaml(clusterName, group, resource, namespace, name)
 }
