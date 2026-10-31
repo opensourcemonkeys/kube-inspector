@@ -81,7 +81,7 @@ export default function TrivyScanner({ clusterName }: { clusterName: string }) {
             <TabView className="trivy-tabs">
                 <TabPanel header={t('panels:trivy.tab.cluster')}>
                     <div className="trivy-cluster">
-                        <ScanToolbar scan={scan} scans={data.scans ?? []} scanId={data.scanId} compareId={data.compareId}
+                        <ScanToolbar clusterName={clusterName} view={view} pushToast={pushToast} scan={scan} scans={data.scans ?? []} scanId={data.scanId} compareId={data.compareId}
                             onSelect={data.select} onCompare={data.compare} />
                         {scan.error && <ErrorBanner message={scan.error} context={t('panels:trivy.toastK8sFailed')} />}
                         {data.notice && <Message severity="info" text={t('panels:trivy.scanEnded')} />}

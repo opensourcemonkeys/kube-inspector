@@ -4,12 +4,13 @@ import { Button } from 'primereact/button';
 import { Message } from 'primereact/message';
 import { InputText } from 'primereact/inputtext';
 import { ProgressBar } from 'primereact/progressbar';
-import { TrivyScanImage, SaveReport } from '../../../../wailsjs/go/controller_app/App';
+import { TrivyScanImage, TrivyExportImageReport } from '../../../../wailsjs/go/controller_app/App';
 import { models } from '../../../../wailsjs/go/models';
 import { useT } from '../../../i18n/useT';
 import { errText } from '../../../lib/errText';
-import { SEVERITIES, SEVERITY_ORDER, SeverityTag } from './severity';
-import FindingDetailDialog, { DetailFinding, vulnToFinding, vulnUrl } from './FindingDetailDialog';
+import { SEVERITIES, SeverityTag } from './severity';
+import { reportLabels } from './trivyModel';
+import FindingDetailDialog, { DetailFinding, vulnToFinding } from './FindingDetailDialog';
 import { VulnTable } from './findingTables';
 import type { PushToast } from './useClusterScan';
 
@@ -48,13 +49,11 @@ function rowsFromResult(image: string, res: models.TrivyScanResult): models.Triv
     return out;
 }
 
-const escapeHtml = (s: string) =>
-    String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
-
 /** The single-image scan's state, held by the root so it survives switching tabs. */
 export function useImageScanner(clusterName: string, pushToast: PushToast) {
     const t = useT();
     const [rows, setRows] = useState<models.TrivyVulnRow[]>([]);
+    const [results, setResults] = useState<models.TrivyScanResult[]>([]);
     const [scanning, setScanning] = useState(false);
     const [progress, setProgress] = useState<Progress>(null);
     const [log, setLog] = useState('');
@@ -65,9 +64,11 @@ export function useImageScanner(clusterName: string, pushToast: PushToast) {
         if (images.length === 0) { setError(t('panels:trivy.logNoImages')); return; }
         setError('');
         setRows([]);
+        setResults([]);
         setScanning(true);
         setLog(`$ trivy image  ${t('panels:trivy.logQueued', { count: images.length })}`);
         const acc: models.TrivyVulnRow[] = [];
+        const accResults: models.TrivyScanResult[] = [];
         try {
             for (let i = 0; i < images.length; i++) {
                 const image = images[i];
@@ -75,6 +76,8 @@ export function useImageScanner(clusterName: string, pushToast: PushToast) {
                 setLog(`${t('panels:trivy.logScanning', { image, current: i + 1, total: images.length })}${i === 0 ? ` ${t('panels:trivy.logFirstRun')}` : ''}`);
                 try {
                     const res = await TrivyScanImage(clusterName, image);
+                    accResults.push(res);
+                    setResults([...accResults]);
                     if (res.error) {
                         pushToast('warn', t('panels:trivy.toastScanIssue', { image }), res.error);
                     } else {
@@ -93,7 +96,7 @@ export function useImageScanner(clusterName: string, pushToast: PushToast) {
         }
     };
 
-    return { rows, scanning, progress, log, error, scanImages, imageInput, setImageInput };
+    return { rows, results, scanning, progress, log, error, scanImages, imageInput, setImageInput };
 }
 
 export default function ImageScanTab({ clusterName, scanner, pushToast }: {
@@ -110,15 +113,12 @@ export default function ImageScanTab({ clusterName, scanner, pushToast }: {
     };
 
     const exportHtml = async () => {
-        const sorted = [...scanner.rows].sort((a, b) => (SEVERITY_ORDER[b.severity] || 0) - (SEVERITY_ORDER[a.severity] || 0));
-        const body = sorted.map((r) => {
-            const url = vulnUrl(r.vulnerabilityID, r.primaryURL);
-            const id = url ? `<a href="${escapeHtml(url)}">${escapeHtml(r.vulnerabilityID)}</a>` : escapeHtml(r.vulnerabilityID);
-            return `<tr><td>${escapeHtml(r.severity)}</td><td>${id}</td><td>${escapeHtml(r.pkgName)}</td><td>${escapeHtml(r.installedVersion)}</td><td>${escapeHtml(r.fixedVersion) || '—'}</td><td>${escapeHtml(r.title)}</td></tr>`;
-        }).join('\n');
-        const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Vuln report</title></head><body><table><thead><tr><th>Severity</th><th>CVE</th><th>Package</th><th>Installed</th><th>Fixed</th><th>Title</th></tr></thead><tbody>${body}</tbody></table></body></html>`;
-        const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-        try { await SaveReport(`vuln-report-image-${clusterName}-${stamp}.html`, html); } catch { /* ignore */ }
+        try {
+            const path = await TrivyExportImageReport(clusterName, scanner.results, reportLabels(t, ''));
+            if (path) pushToast('success', t('panels:trivy.reportSaved'), path);
+        } catch (e) {
+            pushToast('error', t('panels:trivy.reportFailed'), errText(e));
+        }
     };
 
     const summary = useMemo(() => {
@@ -162,7 +162,7 @@ export default function ImageScanTab({ clusterName, scanner, pushToast }: {
 
             <div className="flex justify-content-end">
                 <Button label={t('panels:trivy.exportHtml')} icon={<VscExport />} outlined size="small"
-                    disabled={scanner.rows.length === 0} onClick={exportHtml} />
+                    disabled={scanner.results.length === 0} onClick={() => void exportHtml()} />
             </div>
 
             <VulnTable rows={scanner.rows} cluster={false}

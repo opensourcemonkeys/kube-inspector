@@ -88,9 +88,9 @@ func (a *App) CancelSelfUpdate(sessionId string) error {
 	return nil
 }
 
-// SaveReport prompts for a location and writes an HTML report to it. Returns the
-// saved path, or "" if the user cancelled.
-func (a *App) SaveReport(defaultName, content string) (string, error) {
+// saveTrivyReport asks where to save the rendered report and writes it. It
+// returns the saved path, or "" if the user cancelled.
+func (a *App) saveTrivyReport(defaultName, html string) (string, error) {
 	path, err := a.saveFile(SaveFileOptions{
 		Title:       "Save report",
 		DefaultName: defaultName,
@@ -103,12 +103,34 @@ func (a *App) SaveReport(defaultName, content string) (string, error) {
 	if !strings.HasSuffix(strings.ToLower(path), ".html") {
 		path += ".html"
 	}
-	return bussiness.SaveTextFile(path, content)
+	return bussiness.SaveTextFile(path, html)
+}
+
+// TrivyExportReport renders the three-section report of a saved cluster scan
+// (compareId may be empty) and saves it where the user picks. labels are the
+// frontend's translated static strings. Returns the saved path, "" on cancel.
+func (a *App) TrivyExportReport(clusterName, scanId, compareId string, labels map[string]string) (string, error) {
+	now := time.Now()
+	html, err := bussiness.ExportTrivyReport(clusterName, scanId, compareId, labels, now)
+	if err != nil {
+		return "", err
+	}
+	return a.saveTrivyReport(fmt.Sprintf("vuln-report-%s-%s.html", clusterName, now.Format("20060102-1504")), html)
+}
+
+// TrivyExportImageReport does the same for the single-image tab, whose
+// results only the frontend holds.
+func (a *App) TrivyExportImageReport(clusterName string, results []models.TrivyScanResult, labels map[string]string) (string, error) {
+	now := time.Now()
+	html, err := bussiness.RenderTrivyImageReport(clusterName, results, labels, now)
+	if err != nil {
+		return "", err
+	}
+	return a.saveTrivyReport(fmt.Sprintf("vuln-report-image-%s-%s.html", clusterName, now.Format("20060102-1504")), html)
 }
 
 // SaveText prompts for a location and writes plain text to it. Returns the saved
-// path, or "" if the user cancelled. Separate from SaveReport because that one
-// forces an .html extension; this is the terminal's "save output" path.
+// path, or "" if the user cancelled. This is the terminal's "save output" path.
 func (a *App) SaveText(defaultName, content string) (string, error) {
 	path, err := a.saveFile(SaveFileOptions{
 		Title:       "Save text",

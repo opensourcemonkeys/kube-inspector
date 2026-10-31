@@ -1,5 +1,6 @@
 import { models } from '../../../../wailsjs/go/models';
 import type { YamlPanelDef } from '../../../contexts/TabContext';
+import type { TFn } from '../../../i18n/useT';
 
 // Pure helpers for the scan screen: exception payloads, the summary's
 // arithmetic and where a workload's YAML opens. No React, no bindings.
@@ -132,4 +133,30 @@ export function workloadYamlTarget(kind: string): YamlTarget | null {
     if (TYPED[kind]) return { typed: TYPED[kind] };
     if (OBJECT[kind]) return { object: OBJECT[kind] };
     return null;
+}
+
+/** The one-sentence assessment shown on the Summary and printed in the report. */
+export function verdictText(t: TFn, view: models.TrivyScanView): string {
+    const { topItems, closes } = verdictParams(view.fixPlan);
+    const exposedCritical = view.exposureKnown
+        ? String(view.summary.exposedCritical ?? 0)
+        : t('panels:trivy.summary.unknown');
+    return topItems > 0
+        ? t('panels:trivy.summary.verdict', { exposedCritical, topItems, closes })
+        : t('panels:trivy.summary.verdictNoPlan', { exposedCritical });
+}
+
+/** The report's static strings, flat, plus the pre-rendered verdict ('' omits it). */
+export function reportLabels(t: TFn, verdict: string): Record<string, string> {
+    const raw = t('panels:trivy.report' as never, { returnObjects: true }) as unknown as Record<string, unknown>;
+    const out: Record<string, string> = {};
+    const walk = (o: Record<string, unknown>, prefix: string) => {
+        for (const [k, v] of Object.entries(o)) {
+            if (typeof v === 'string') out[prefix + k] = v;
+            else if (v && typeof v === 'object') walk(v as Record<string, unknown>, `${prefix}${k}.`);
+        }
+    };
+    walk(raw, '');
+    out.verdict = verdict;
+    return out;
 }

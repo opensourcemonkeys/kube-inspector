@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{label "title"}} - {{.V.ClusterName}}</title>
+<style>
+:root {
+  --paper: #ffffff; --ink: #1b2430; --ink-2: #4a5666; --ink-3: #5f6b7a;
+  --line: #d5dae1; --line-strong: #aab3bf; --wash: #f3f5f8;
+  --accent: #1f5f8b; --warn: #8a5300; --err: #a3262a;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0 auto; max-width: 1040px; padding: 32px 28px 56px; color: var(--ink); background: var(--paper);
+  font: 14px/1.5 var(--sans); }
+h1 { font-size: 24px; margin: 0 0 4px; }
+h2 { font-size: 18px; margin: 0 0 12px; padding-bottom: 6px; border-bottom: 2px solid var(--ink); }
+h3 { font-size: 14px; margin: 22px 0 8px; }
+p { margin: 0 0 10px; }
+.meta { color: var(--ink-2); margin: 0 0 24px; }
+.meta span + span::before { content: "·"; margin: 0 8px; color: var(--ink-3); }
+section { margin-top: 40px; }
+.num { color: var(--ink-3); font-weight: 400; margin-right: 6px; }
+.verdict { font-size: 16px; border-left: 4px solid var(--accent); padding: 8px 14px; background: var(--wash); margin: 16px 0; }
+.note { color: var(--ink-2); }
+.err { color: var(--err); }
+.warn { color: var(--warn); }
+table { border-collapse: collapse; width: 100%; margin: 8px 0 14px; font-size: 13px; }
+th, td { text-align: left; vertical-align: top; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+th { border-bottom: 1px solid var(--line-strong); color: var(--ink-2); font-weight: 600; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--mono); font-size: 12px; overflow-wrap: anywhere; }
+.sev { white-space: nowrap; font-weight: 600; }
+.sev-critical, .sev-high { color: var(--err); }
+.ttl { font-family: var(--sans); font-size: 13px; }
+.sev-medium { color: var(--warn); }
+.tiles { display: flex; flex-wrap: wrap; gap: 12px; margin: 12px 0; }
+.tile { flex: 1 1 180px; border: 1px solid var(--line-strong); padding: 10px 12px; }
+.tile b { display: block; font-size: 22px; font-variant-numeric: tabular-nums; }
+.tile span { color: var(--ink-2); font-size: 12px; }
+.item { border: 1px solid var(--line); padding: 10px 12px; margin: 0 0 10px; break-inside: avoid; }
+.item h4 { margin: 0 0 4px; font-size: 14px; }
+.item .row { color: var(--ink-2); font-size: 12px; margin: 2px 0; }
+dl.facts { display: grid; grid-template-columns: 200px 1fr; gap: 4px 16px; margin: 8px 0 16px; }
+dl.facts dt { color: var(--ink-2); }
+dl.facts dd { margin: 0; overflow-wrap: anywhere; }
+a { color: var(--accent); }
+tr { break-inside: avoid; }
+thead { display: table-header-group; }
+footer { margin-top: 40px; color: var(--ink-3); font-size: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+@page { margin: 16mm 14mm; }
+@media print {
+  body { max-width: none; padding: 0; font-size: 12px; }
+  section { margin-top: 0; break-before: page; }
+  section:first-of-type { break-before: auto; }
+  h2, h3 { break-after: avoid; }
+  a { color: inherit; text-decoration: none; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>{{label "title"}}</h1>
+  <p class="meta">
+    <span>{{.V.ClusterName}}</span>
+    {{if .V.Scope}}<span>{{.V.Scope}}</span>{{end}}
+    <span>{{label "scanned"}} {{when .V.StartedAt}}</span>
+    <span>{{label "generated"}} {{.Generated}}</span>
+  </p>
+</header>
+
+<section id="summary">
+  <h2><span class="num">1</span>{{label "summaryTitle"}}</h2>
+  {{with label "verdict"}}{{if ne . "verdict"}}{{if .}}<p class="verdict">{{.}}</p>{{end}}{{end}}{{end}}
+
+  <div class="tiles">
+    {{range .Counts}}{{if or (eq .Severity "CRITICAL") (eq .Severity "HIGH")}}
+    <div class="tile"><b class="sev sev-{{lower .Severity}}">{{sevMark .Severity}} {{.Total}}</b>
+      <span>{{sevLabel .Severity}}{{if .HasDelta}} · {{if gt .Delta 0}}▲ {{.Delta}}{{else if lt .Delta 0}}▼ {{absInt .Delta}}{{else}}{{label "deltaSame"}}{{end}}{{end}}</span></div>
+    {{end}}{{end}}
+    <div class="tile"><b>{{if .FixablePc}}{{.FixablePc}}{{else}}—{{end}}</b>
+      <span>{{if .FixablePc}}{{label "fixableHint"}}{{else}}{{label "fixableNone"}}{{end}}</span></div>
+    <div class="tile"><b>{{.V.Summary.ImagesScanned}}/{{.V.Summary.ImagesTotal}}</b><span>{{label "coverageHint"}}</span></div>
+  </div>
+
+  <table>
+    <thead><tr><th>{{label "colSeverity"}}</th><th class="n">{{label "colVulns"}}</th><th class="n">{{label "colMisconfigs"}}</th><th class="n">{{label "colSecrets"}}</th><th class="n">{{label "colTotal"}}</th>{{if .Compared}}<th class="n">{{label "colChange"}}</th>{{end}}</tr></thead>
+    <tbody>
+    {{range .Counts}}<tr>
+      <td class="sev sev-{{lower .Severity}}">{{sevMark .Severity}} {{sevLabel .Severity}}</td>
+      <td class="n">{{.Vulns}}</td><td class="n">{{.Misconfigs}}</td><td class="n">{{.Secrets}}</td><td class="n">{{.Total}}</td>
+      {{if $.Compared}}<td class="n">{{if gt .Delta 0}}▲ {{.Delta}}{{else if lt .Delta 0}}▼ {{absInt .Delta}}{{else}}0{{end}}</td>{{end}}
+    </tr>{{end}}
+    </tbody>
+  </table>
+  {{if .Compared}}<p class="note">{{label "comparedWith"}} {{when .V.CompareStartedAt}}</p>{{end}}
+
+  {{if not .ImageMode}}
+  <h3>{{label "topWorkloadsTitle"}}</h3>
+  {{if .V.TopWorkloads}}
+  <table>
+    <thead><tr><th>{{label "colWorkload"}}</th><th>{{label "colReasons"}}</th><th class="n">{{label "sevCritical"}}</th><th class="n">{{label "sevHigh"}}</th></tr></thead>
+    <tbody>
+    {{range .V.TopWorkloads}}<tr>
+      <td class="mono">{{ref .Workload}}</td>
+      <td>{{range .Exposure}}{{.}} {{end}}{{range .Privileges}}{{label (printf "privilege_%s" .)}} {{end}}</td>
+      <td class="n">{{index .Counts "CRITICAL"}}</td><td class="n">{{index .Counts "HIGH"}}</td>
+    </tr>{{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="note">{{label "noTopWorkloads"}}</p>{{end}}
+
+  {{with .V.Changes}}
+  <h3>{{label "changesTitle"}}</h3>
+  <p>{{label "changesNew"}}: {{len .New}} · {{label "changesClosed"}}: {{len .Closed}} · {{label "changesNewWorkloads"}}: {{len .NewWorkloads}}</p>
+  {{end}}
+  {{end}}
+</section>
+
+<section id="fixplan">
+  <h2><span class="num">2</span>{{label "fixPlanTitle"}}</h2>
+  {{if .V.FixPlan}}
+  {{range $i, $it := .V.FixPlan}}
+  <div class="item">
+    <h4>{{add $i 1}}.
+      {{if eq $it.Kind "package"}}{{label "fixUpgrade"}} <span class="mono">{{$it.Package}} {{$it.InstalledVersion}} → {{dash $it.FixedVersion}}</span>
+      {{else if eq $it.Kind "baseOS"}}{{label "fixRebuild"}} <span class="mono">{{$it.Image}}</span>{{with osName $it.OS}} ({{.}}){{end}}
+      {{else}}{{label "fixMisconfig"}} <span class="mono">{{$it.CheckID}}</span> {{$it.Title}}{{end}}
+    </h4>
+    <div class="row"><span class="sev sev-{{lower $it.Severity}}">{{sevMark $it.Severity}} {{sevLabel $it.Severity}}</span>
+      {{with sevCounts $it.Closes}} · {{label "fixCloses"}}: {{join . ", "}}{{end}}
+      · {{len $it.Workloads}} {{label "fixWorkloads"}}{{if $it.ExposedWorkloads}} ({{$it.ExposedWorkloads}} {{label "fixExposed"}}){{end}}</div>
+    {{if and $it.OS $it.OS.EOSL}}<div class="row err">{{label "fixEosl"}}</div>{{end}}
+    {{if $it.Resolution}}<div class="row">{{label "fixResolution"}}: {{$it.Resolution}}</div>{{end}}
+    {{if $it.Images}}<div class="row">{{label "fixImages"}}: <span class="mono">{{join $it.Images ", "}}</span></div>{{end}}
+    {{if $it.Workloads}}<div class="row">{{label "fixAffected"}}: <span class="mono">{{range $j, $w := $it.Workloads}}{{if $j}}, {{end}}{{ref $w}}{{end}}</span></div>{{end}}
+  </div>
+  {{end}}
+  {{else}}<p class="note">{{label "fixEmpty"}}</p>{{end}}
+  {{if .V.UnfixableCount}}<p class="note">{{.V.UnfixableCount}} {{label "fixUnfixable"}}</p>{{end}}
+</section>
+
+<section id="audit">
+  <h2><span class="num">3</span>{{label "auditTitle"}}</h2>
+  <dl class="facts">
+    <dt>{{label "factCluster"}}</dt><dd>{{.V.ClusterName}}</dd>
+    <dt>{{label "factStarted"}}</dt><dd>{{when .V.StartedAt}}</dd>
+    <dt>{{label "factFinished"}}</dt><dd>{{when .V.FinishedAt}}</dd>
+    <dt>{{label "factTrivy"}}</dt><dd>{{dash .V.TrivyVersion}}</dd>
+    <dt>{{label "factDb"}}</dt><dd>{{when .V.DBUpdatedAt}}</dd>
+    <dt>{{label "factApp"}}</dt><dd>{{dash .V.AppVersion}}</dd>
+    <dt>{{label "factApiServer"}}</dt><dd>{{dash .V.APIServer}}{{if .V.ServerVersion}} ({{.V.ServerVersion}}){{end}}</dd>
+    {{if not .ImageMode}}<dt>{{label "factResources"}}</dt><dd>{{.V.ResourceCount}}</dd>{{end}}
+    <dt>{{label "factCoverage"}}</dt><dd>{{.V.Summary.ImagesScanned}}/{{.V.Summary.ImagesTotal}}</dd>
+  </dl>
+  {{if .V.MisconfigError}}<p class="err">{{label "misconfigError"}}: {{.V.MisconfigError}}</p>{{end}}
+
+  <h3>{{label "failedTitle"}}</h3>
+  {{if .Failed}}
+  <table>
+    <thead><tr><th>{{label "colImage"}}</th><th>{{label "colReason"}}</th><th>{{label "colMessage"}}</th><th>{{label "colPullSecret"}}</th></tr></thead>
+    <tbody>
+    {{range .Failed}}<tr><td class="mono">{{.Image}}</td><td>{{reason .Reason}}</td><td>{{dash .Message}}</td><td class="mono">{{dash .PullSecret}}</td></tr>{{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="note">{{label "failedNone"}}</p>{{end}}
+
+  <h3>{{label "exceptionsTitle"}}</h3>
+  {{if .V.Exceptions}}
+  <table>
+    <thead><tr><th>{{label "colScope"}}</th><th>{{label "colReason"}}</th><th>{{label "colExpires"}}</th><th class="n">{{label "colMatches"}}</th></tr></thead>
+    <tbody>
+    {{range .V.Exceptions}}<tr>
+      <td class="mono">{{if eq .Exception.Kind "vuln"}}{{.Exception.VulnerabilityID}} · {{.Exception.ImageRepo}}{{else}}{{.Exception.CheckID}} · {{ref .Exception.Workload}}{{end}}</td>
+      <td>{{.Exception.Reason}}</td>
+      <td>{{when .Exception.ExpiresAt}}{{if .Expired}} <span class="warn">▲ {{label "expired"}}</span>{{end}}</td>
+      <td class="n">{{.Matches}}</td>
+    </tr>{{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="note">{{label "exceptionsNone"}}</p>{{end}}
+
+  <h3>{{label "findingsTitle"}}</h3>
+  <h3>{{label "vulnsTitle"}} ({{len .V.Vulns}})</h3>
+  {{if .V.Vulns}}
+  <table>
+    <thead><tr><th>{{label "colSeverity"}}</th><th>CVE</th><th>{{label "colPackage"}}</th><th>{{label "colInstalled"}}</th><th>{{label "colFixed"}}</th><th>{{label "colImage"}}</th>{{if not .ImageMode}}<th>{{label "colWorkload"}}</th>{{end}}</tr></thead>
+    <tbody>
+    {{range .V.Vulns}}<tr>
+      <td class="sev sev-{{lower .Severity}}">{{sevMark .Severity}} {{sevLabel .Severity}}</td>
+      <td class="mono">{{.VulnerabilityID}}{{if .IsNew}} <b>{{label "new"}}</b>{{end}}{{if .Accepted}} <i>{{label "accepted"}}</i>{{end}}<br><span class="ttl">{{.Title}}</span></td>
+      <td class="mono">{{.PkgName}}</td><td class="mono">{{.InstalledVersion}}</td><td class="mono">{{dash .FixedVersion}}</td>
+      <td class="mono">{{.Image}}</td>{{if not $.ImageMode}}<td class="mono">{{ref .Workload}}</td>{{end}}
+    </tr>{{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="note">{{label "none"}}</p>{{end}}
+
+  {{if or .V.Misconfigs (not .ImageMode)}}
+  <h3>{{label "misconfigsTitle"}} ({{len .V.Misconfigs}})</h3>
+  {{if .V.Misconfigs}}
+  <table>
+    <thead><tr><th>{{label "colSeverity"}}</th><th>{{label "colCheck"}}</th><th>{{label "colWorkload"}}</th><th>{{label "colMessage"}}</th></tr></thead>
+    <tbody>
+    {{range .V.Misconfigs}}<tr>
+      <td class="sev sev-{{lower .Severity}}">{{sevMark .Severity}} {{sevLabel .Severity}}</td>
+      <td class="mono">{{.CheckID}}{{if .IsNew}} <b>{{label "new"}}</b>{{end}}{{if .Accepted}} <i>{{label "accepted"}}</i>{{end}}<br><span class="ttl">{{.Title}}</span></td>
+      <td class="mono">{{.Namespace}}/{{.ResourceKind}}/{{.ResourceName}}</td><td>{{.Message}}</td>
+    </tr>{{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="note">{{label "none"}}</p>{{end}}
+
+  <h3>{{label "secretsTitle"}} ({{len .V.Secrets}})</h3>
+  {{if .V.Secrets}}
+  <table>
+    <thead><tr><th>{{label "colSeverity"}}</th><th>{{label "colRule"}}</th><th>{{label "colWorkload"}}</th><th>{{label "colMatch"}}</th></tr></thead>
+    <tbody>
+    {{range .V.Secrets}}<tr>
+      <td class="sev sev-{{lower .Severity}}">{{sevMark .Severity}} {{sevLabel .Severity}}</td>
+      <td class="mono">{{.RuleID}}{{if .IsNew}} <b>{{label "new"}}</b>{{end}}<br><span class="ttl">{{.Title}}</span></td>
+      <td class="mono">{{.Namespace}}/{{.ResourceKind}}/{{.ResourceName}}</td><td class="mono">{{.Match}}</td>
+    </tr>{{end}}
+    </tbody>
+  </table>
+  {{else}}<p class="note">{{label "none"}}</p>{{end}}
+  {{end}}
+</section>
+
+<footer>{{label "footer"}} · {{.Generated}}</footer>
+</body>
+</html>

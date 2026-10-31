@@ -5,7 +5,7 @@ import { absTime } from '../../../lib/time';
 import ErrorBanner from '../../shared/ErrorBanner';
 import { SeverityTag } from './severity';
 import { WorkloadCell } from './workloadNav';
-import { countDelta, sumSeverities, verdictParams } from './trivyModel';
+import { countDelta, sumSeverities, verdictText } from './trivyModel';
 
 const MAX_CHANGES = 6;
 
@@ -61,13 +61,7 @@ export default function SummaryView({ clusterName, view, onShowNew }: {
     const high = total('HIGH', false);
     const failed = s.imagesTotal - s.imagesScanned;
 
-    const { topItems, closes } = verdictParams(view.fixPlan);
-    const exposedCritical = view.exposureKnown
-        ? String(s.exposedCritical ?? 0)
-        : t('panels:trivy.summary.unknown');
-    const verdict = topItems > 0
-        ? t('panels:trivy.summary.verdict', { exposedCritical, topItems, closes })
-        : t('panels:trivy.summary.verdictNoPlan', { exposedCritical });
+    const verdict = verdictText(t, view);
 
     const top = view.topWorkloads ?? [];
     const changes = view.changes;
