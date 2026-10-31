@@ -48,5 +48,3 @@ graphify-out/cache/
 # shots). Regenerated on demand; only the scripts are tracked.
 /scripts/ui/out/
 
-# superpowers scratch (plan ledgers, review packages)
-/.superpowers/
