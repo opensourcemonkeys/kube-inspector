@@ -84,17 +84,9 @@ type TrivyK8sScanResult struct {
 	Error            string                     `json:"error"`
 }
 
-// TrivyK8sImageInfo enriches a plain image string with the resource that uses it.
-type TrivyK8sImageInfo struct {
-	Image        string `json:"image"`
-	ResourceKind string `json:"resourceKind"`
-	ResourceName string `json:"resourceName"`
-	Namespace    string `json:"namespace"`
-}
-
 // TrivyScanProgress is sent via Wails events during a long scan.
 type TrivyScanProgress struct {
-	Phase   string `json:"phase"` // cluster scan: "targets" | "misconfig" | "images" | "waitingCache" | "enrich" | "saving" | "stopping"; legacy k8s scan: "fetch" | "misconfig"
+	Phase   string `json:"phase"` // cluster scan: "targets" | "misconfig" | "images" | "waitingCache" | "enrich" | "saving" | "stopping"
 	Current int    `json:"current"`
 	Total   int    `json:"total"`
 	Message string `json:"message"`

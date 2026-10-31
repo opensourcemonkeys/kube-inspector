@@ -884,61 +884,11 @@ func (a *App) TrivyScanImage(clusterName, imageRef string) (*models.TrivyScanRes
 	return bussiness.TrivyScanImage(clusterName, imageRef)
 }
 
-func (a *App) TrivyListPodImages(clusterName, namespace string) ([]string, error) {
-	return bussiness.TrivyListPodImages(clusterName, namespace)
-}
-
-// TrivyListPodImagesWithContext returns pod images with owner resource context
-// (Deployment, StatefulSet, etc.) for the vulnerability tab.
-func (a *App) TrivyListPodImagesWithContext(clusterName, namespace string) ([]models.TrivyK8sImageInfo, error) {
-	return bussiness.TrivyListPodImagesWithContext(clusterName, namespace)
-}
-
-// K8s misconfig + secret scan — async, streams progress via Wails events.
-// Events emitted (all suffixed with scanId):
-//
-//	"trivy:k8s:progress:{scanId}" → models.TrivyScanProgress
-//	"trivy:k8s:done:{scanId}"     → *models.TrivyK8sScanResult
-//	"trivy:k8s:error:{scanId}"    → string
-
-var k8sScanJobs = newCancelRegistry()
-
-// TrivyStartK8sScan starts an async misconfig+secret cluster scan. Returns
-// immediately; results arrive via Wails events.
-func (a *App) TrivyStartK8sScan(scanId, clusterName, namespace string) error {
-	ctx, cancel := context.WithCancel(context.Background())
-	tok := k8sScanJobs.begin(scanId, cancel)
-
-	safego.Go("controller.trivyK8sScan", func() {
-		defer k8sScanJobs.done(scanId, tok)
-
-		onProgress := func(phase string, current, total int, msg string) {
-			a.emit("trivy:k8s:progress:"+scanId, models.TrivyScanProgress{
-				Phase: phase, Current: current, Total: total, Message: msg,
-			})
-		}
-
-		result, err := bussiness.TrivyScanK8sResources(ctx, clusterName, namespace, onProgress)
-		if err != nil {
-			a.emit("trivy:k8s:error:"+scanId, err.Error())
-			return
-		}
-		a.emit("trivy:k8s:done:"+scanId, result)
-	})
-	return nil
-}
-
-// TrivyStopK8sScan cancels an in-flight K8s scan.
-func (a *App) TrivyStopK8sScan(scanId string) error {
-	k8sScanJobs.cancel(scanId)
-	return nil
-}
-
 // Cluster vulnerability scan — one per cluster, run and saved by the backend.
 // Events emitted (all suffixed with scanId):
 //
 //	"trivy:scan:progress:{scanId}"  → models.TrivyScanProgress
-//	"trivy:scan:done:{scanId}"      → scanId (load it with TrivyGetScan)
+//	"trivy:scan:done:{scanId}"      → scanId (load it with TrivyGetScanView)
 //	"trivy:scan:error:{scanId}"     → string
 //	"trivy:scan:cancelled:{scanId}" → nil
 
@@ -998,12 +948,6 @@ func (a *App) TrivyGetRunningScan(clusterName string) *models.TrivyRunningScan {
 // TrivyListScans returns the cluster's saved scans, newest first.
 func (a *App) TrivyListScans(clusterName string) ([]models.TrivyScanMeta, error) {
 	return bussiness.ListTrivyScans(clusterName)
-}
-
-// TrivyGetScan loads one saved scan. Temporary: the redesigned screen reads a
-// computed view instead.
-func (a *App) TrivyGetScan(clusterName, scanId string) (*models.TrivyClusterScan, error) {
-	return bussiness.LoadTrivyScan(clusterName, scanId)
 }
 
 // TrivyGetScanView returns the computed view of a saved scan (summary, fix

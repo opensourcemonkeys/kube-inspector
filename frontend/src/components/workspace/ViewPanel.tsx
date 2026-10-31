@@ -38,7 +38,7 @@ const ServiceAccountListComponent = lazy(() => import('../serviceaccount/main'))
 const RoleListComponent = lazy(() => import('../role/main'));
 const RoleBindingListComponent = lazy(() => import('../rolebinding/main'));
 const SecurityRoleMap = lazy(() => import('../security/SecurityRoleMap'));
-const TrivyScanner = lazy(() => import('../security/TrivyScanner'));
+const TrivyScanner = lazy(() => import('../security/trivy/TrivyScanner'));
 const MonitoringDashboard = lazy(() => import('../monitoring/main'));
 const OverviewDashboard = lazy(() => import('../overview/main'));
 const CrdListComponent = lazy(() => import('../crd/main'));

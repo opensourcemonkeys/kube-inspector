@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -29,36 +28,6 @@ import (
 	_ "modernc.org/sqlite" // registers the "sqlite" driver used by Trivy's RPM/Java DB
 	sigsyaml "sigs.k8s.io/yaml"
 )
-
-// ListPodImages returns the distinct container images (including init and
-// ephemeral containers) used by pods in the given namespace. An empty
-// namespace lists across all namespaces.
-func ListPodImages(client *kubernetes.Clientset, namespace string) ([]string, error) {
-	pods, err := client.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-	set := map[string]struct{}{}
-	for _, p := range pods.Items {
-		for _, c := range p.Spec.InitContainers {
-			set[c.Image] = struct{}{}
-		}
-		for _, c := range p.Spec.Containers {
-			set[c.Image] = struct{}{}
-		}
-		for _, c := range p.Spec.EphemeralContainers {
-			set[c.Image] = struct{}{}
-		}
-	}
-	images := make([]string, 0, len(set))
-	for img := range set {
-		if img != "" {
-			images = append(images, img)
-		}
-	}
-	sort.Strings(images)
-	return images, nil
-}
 
 // ScanImage scans a single container image for vulnerabilities using the Trivy
 // library. cacheDir is where the vulnerability DB and layer cache are stored.
@@ -558,53 +527,6 @@ func ScanK8sFilesystem(
 
 	onProgress("misconfig", 1, 1, "Scan complete")
 	return mapK8sReport(report, clusterName, namespace, resources), nil
-}
-
-// ListPodImagesWithContext returns pod images together with the top-level
-// owner resource (Deployment, StatefulSet, DaemonSet, Job, CronJob, or Pod).
-// Only the first image from each unique (image, ownerKind, ownerName, ns)
-// combination is returned so the vulnerability tab can show resource context.
-func ListPodImagesWithContext(client *kubernetes.Clientset, namespace string) ([]models.TrivyK8sImageInfo, error) {
-	pods, err := client.CoreV1().Pods(namespace).List(context.Background(), metav1.ListOptions{})
-	if err != nil {
-		return nil, err
-	}
-
-	type key struct{ image, kind, name, ns string }
-	seen := map[key]struct{}{}
-	var out []models.TrivyK8sImageInfo
-
-	for _, p := range pods.Items {
-		ownerKind, ownerName := podOwner(p.OwnerReferences, p.Name)
-		allContainers := make([]string, 0)
-		for _, c := range p.Spec.InitContainers {
-			allContainers = append(allContainers, c.Image)
-		}
-		for _, c := range p.Spec.Containers {
-			allContainers = append(allContainers, c.Image)
-		}
-		for _, c := range p.Spec.EphemeralContainers {
-			allContainers = append(allContainers, c.Image)
-		}
-		for _, img := range allContainers {
-			if img == "" {
-				continue
-			}
-			k := key{img, ownerKind, ownerName, p.Namespace}
-			if _, ok := seen[k]; ok {
-				continue
-			}
-			seen[k] = struct{}{}
-			out = append(out, models.TrivyK8sImageInfo{
-				Image:        img,
-				ResourceKind: ownerKind,
-				ResourceName: ownerName,
-				Namespace:    p.Namespace,
-			})
-		}
-	}
-	sort.Slice(out, func(i, j int) bool { return out[i].Image < out[j].Image })
-	return out, nil
 }
 
 // mapReport flattens a Trivy report into the frontend DTO.

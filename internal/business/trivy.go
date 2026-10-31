@@ -10,7 +10,6 @@ import (
 	"sync"
 
 	"kube-ins/internal/models"
-	repository "kube-ins/internal/repository"
 	services "kube-ins/internal/services"
 )
 
@@ -84,48 +83,4 @@ func TrivyScanImage(clusterName, imageRef string) (*models.TrivyScanResult, erro
 	ctx, cancel := context.WithTimeout(context.Background(), services.ImageScanTimeout)
 	defer cancel()
 	return services.ScanImage(ctx, imageRef, cacheDir, nil)
-}
-
-// TrivyListPodImages returns the distinct images used by pods in the given
-// namespace (empty namespace = all namespaces) of the given cluster. The
-// frontend feeds these into TrivyScanImage one by one for cluster/namespace
-// scans.
-func TrivyListPodImages(clusterName, namespace string) ([]string, error) {
-	client, err := repository.NewK8sClientForCluster(clusterName)
-	if err != nil {
-		return nil, err
-	}
-	return services.ListPodImages(client, namespace)
-}
-
-// TrivyScanK8sResources fetches Kubernetes resource YAMLs and runs Trivy's
-// misconfig + secret scanners on them. No vulnerability DB download is needed.
-// Progress is reported via onProgress so the controller can stream events.
-func TrivyScanK8sResources(
-	ctx context.Context,
-	clusterName, namespace string,
-	onProgress func(phase string, current, total int, msg string),
-) (*models.TrivyK8sScanResult, error) {
-	client, err := repository.NewK8sClientForCluster(clusterName)
-	if err != nil {
-		return nil, err
-	}
-	cacheDir, err := trivyCacheSubdir("k8s")
-	if err != nil {
-		return nil, err
-	}
-	unlock := lockTrivyCache(cacheDir)
-	defer unlock()
-	return services.ScanK8sFilesystem(ctx, client, clusterName, namespace, cacheDir, onProgress)
-}
-
-// TrivyListPodImagesWithContext returns pod images together with the top-level
-// owner resource (Deployment, StatefulSet, DaemonSet, Job, CronJob, or Pod)
-// for use in the vulnerability tab's resource-context columns.
-func TrivyListPodImagesWithContext(clusterName, namespace string) ([]models.TrivyK8sImageInfo, error) {
-	client, err := repository.NewK8sClientForCluster(clusterName)
-	if err != nil {
-		return nil, err
-	}
-	return services.ListPodImagesWithContext(client, namespace)
 }

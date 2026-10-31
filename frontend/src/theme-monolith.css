@@ -2372,28 +2372,7 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
   .mon-drawer { width: 100%; max-height: none; }
 }
 
-/* ── Vulnerability scan: single-line console status above the progress bar ── */
-.trivy-console {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-family-mono);
-  font-size: 11.5px;
-  color: var(--ink-2);
-  background: var(--screen);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-pop);
-  padding: 6px 10px;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.trivy-console__prompt { flex: none; color: var(--accent); font-weight: 600; }
-.trivy-console__text { overflow: hidden; text-overflow: ellipsis; color: var(--ink); }
-/* A steady block, not a blinking one: the line itself changes as the scan
-   moves, which is the only movement it needs. */
-.trivy-console__caret { flex: none; width: 7px; height: 13px; background: var(--accent); }
-
+/* ── Vulnerability scan ─────────────────────────────────────────────────── */
 .trivy-root { display: flex; flex-direction: column; gap: 14px; height: 100%; overflow: auto; padding: 14px 16px; background: var(--screen); }
 .trivy-muted { color: var(--ink-3); font-size: 12px; }
 .trivy-progress.p-progressbar { height: 4px; }
@@ -2401,21 +2380,89 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .trivy-link:hover { text-decoration-color: var(--info); }
 .trivy-link--inline { display: inline-flex; align-items: center; gap: 4px; word-break: normal; }
 
-/* Summary readout: one row per finding category, one column per severity.
-   Zero counts recede; a non-zero count takes its severity's colour, and the
-   header's lamps carry the shape, so colour is never the only cue. */
-.trivy-summary { width: 100%; max-width: 760px; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
-.trivy-summary th, .trivy-summary td { padding: 6px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
-.trivy-summary thead th { font-weight: 500; color: var(--ink-2); border-bottom-color: var(--line-strong); }
-.trivy-summary thead th .lamp { justify-content: flex-end; }
-.trivy-summary th:first-child { text-align: left; padding-left: 0; }
-.trivy-summary tbody th { font-weight: 500; color: var(--ink); }
-.trivy-summary__n--zero { color: var(--ink-3); }
-.trivy-summary__n--danger { color: var(--err); font-weight: 500; }
-.trivy-summary__n--warning { color: var(--warn); font-weight: 500; }
-.trivy-summary__n--info { color: var(--info); font-weight: 500; }
-.trivy-summary__n--none { color: var(--ink); }
-.trivy-summary__n--total { color: var(--ink); font-weight: 600; border-left: 1px solid var(--line); }
+/* Cluster tab: toolbar, section switch, the section. */
+.trivy-cluster { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.trivy-toolbar-wrap { display: flex; flex-direction: column; gap: 6px; }
+.trivy-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.trivy-toolbar__select { min-width: 15rem; max-width: 22rem; }
+.trivy-toolbar__spacer { flex: 1; }
+.trivy-switch { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+/* One line of status; the bar appears only while images are counted, so
+   nothing moves unless the scan does. */
+.trivy-progress-line { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.trivy-progress-line__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-family-mono); font-size: 11.5px; color: var(--ink-2); }
+.trivy-empty { margin: 0; font-size: 13px; color: var(--ink-2); }
+.trivy-image-input { min-width: 280px; }
+
+/* Summary */
+.trivy-summary-view, .trivy-coverage { display: flex; flex-direction: column; gap: 12px; }
+.trivy-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.trivy-tile, .trivy-card { background: var(--bezel); border: 1px solid var(--line); border-radius: var(--radius-pop); min-width: 0; }
+.trivy-tile { padding: 10px 14px; }
+.trivy-tile__label { font-size: 12px; color: var(--ink-2); }
+.trivy-tile__value { margin-top: 2px; font-size: 26px; font-weight: 600; line-height: 1.2; color: var(--ink); }
+.trivy-tile__delta { margin-top: 2px; font-size: 12px; color: var(--ink-2); }
+/* The arrow says which way; the colour only agrees with it. */
+.trivy-tile__delta--up { color: var(--err); }
+.trivy-tile__delta--down { color: var(--ok); }
+.trivy-verdict { margin: 0; max-width: 72ch; font-size: 13.5px; line-height: 1.55; color: var(--ink); }
+.trivy-card { padding: 10px 14px 12px; }
+.trivy-card__title { margin: 0 0 8px; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.trivy-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.trivy-table th, .trivy-table td { padding: 5px 8px; border-bottom: 1px solid var(--line-strong); text-align: left; vertical-align: middle; }
+.trivy-table th { font-weight: 500; color: var(--ink-2); }
+.trivy-table td { color: var(--ink); }
+.trivy-table .trivy-table__n { width: 5rem; text-align: right; font-variant-numeric: tabular-nums; }
+.trivy-chips { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+.trivy-chip { display: inline-block; padding: 0 6px; border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); font-size: 11.5px; line-height: 18px; color: var(--ink-2); white-space: nowrap; }
+.trivy-chip--exposed { border-color: color-mix(in srgb, var(--err) 55%, transparent); color: var(--ink); }
+.trivy-chip--muted { border-style: dashed; color: var(--ink-3); }
+.trivy-workload { display: inline-flex; align-items: center; gap: 6px; min-width: 0; }
+.trivy-workload__kind { color: var(--ink-2); }
+.trivy-workload__name { overflow-wrap: anywhere; color: var(--ink); }
+.trivy-workload .p-button.p-button-icon-only { width: 22px; height: 22px; padding: 0; }
+.trivy-changes__counts { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin: 0 0 6px; font-size: 12.5px; color: var(--ink-2); }
+.trivy-linkbtn { padding: 0; border: 0; background: none; font: inherit; color: var(--info); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; text-decoration-color: color-mix(in srgb, var(--info) 45%, transparent); }
+.trivy-linkbtn:hover { text-decoration-color: var(--info); }
+.trivy-linkbtn:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: var(--radius-ctl); }
+.trivy-changes { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; }
+.trivy-changes li { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.trivy-changes__id { font-family: var(--font-family-mono); font-size: 12px; color: var(--ink); }
+.trivy-changes__where { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+
+/* Fix plan: items on the left, the selected one's detail on the right. The
+   panel scrolls as a whole, so the split gets a height of its own. */
+.trivy-fix-split { height: clamp(360px, 65vh, 760px); border: 1px solid var(--line); border-radius: var(--radius-pop); overflow: hidden; }
+.trivy-fix-list { display: flex; flex-direction: column; overflow: auto; background: var(--screen); }
+.trivy-fix-list__empty { margin: 0; padding: 12px; }
+.trivy-fix-list__unfixable { margin: 0; padding: 10px 12px; border-top: 1px solid var(--line-strong); font-size: 12px; color: var(--ink-2); }
+.trivy-fix-items { margin: 0; padding: 0; list-style: none; }
+.trivy-fix-item { display: flex; flex-direction: column; gap: 4px; width: 100%; padding: 8px 12px; border: 0; border-bottom: 1px solid var(--line); background: none; font: inherit; text-align: left; color: var(--ink); cursor: pointer; }
+.trivy-fix-item:hover { background: var(--bezel); }
+.trivy-fix-item.is-on { background: color-mix(in srgb, var(--accent) 10%, var(--screen)); box-shadow: inset 2px 0 0 var(--accent); }
+.trivy-fix-item:focus-visible { outline: none; box-shadow: inset var(--focus-ring); }
+.trivy-fix-item__head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.trivy-fix-item__title { overflow-wrap: anywhere; font-size: 13px; }
+.trivy-fix-item__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; padding-left: 18px; font-size: 12px; color: var(--ink-2); }
+.trivy-closes { display: inline-flex; flex-wrap: wrap; gap: 2px 10px; }
+.trivy-closes__item { display: inline-flex; align-items: center; gap: 4px; }
+.trivy-fix-detail { height: 100%; overflow: auto; display: flex; flex-direction: column; gap: 10px; padding: 12px 14px; background: var(--screen); font-size: 12.5px; }
+.trivy-fix-detail__head { display: flex; align-items: flex-start; gap: 8px; }
+.trivy-fix-detail__title { margin: 0; font-size: 14px; font-weight: 600; line-height: 1.4; color: var(--ink); overflow-wrap: anywhere; }
+.trivy-fix-detail__sub { margin: 6px 0 0; font-size: 12px; font-weight: 500; color: var(--ink-2); }
+.trivy-fix-detail__workloads { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.trivy-fix-detail__actions { display: flex; gap: 8px; padding-top: 4px; }
+
+/* Findings */
+.trivy-findings { display: flex; flex-direction: column; gap: 8px; }
+.trivy-findings__filters { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+/* Muted, not translucent: --ink-3 still clears AA on every row surface. */
+.p-datatable .p-datatable-tbody > tr.trivy-row--accepted > td { color: var(--ink-3); }
+
+/* Accept-risk dialog */
+.trivy-accept-dialog.p-dialog { width: min(34rem, calc(100vw - 32px)); }
+.trivy-accept__scope { margin: 0; padding-left: 16px; max-height: 12rem; overflow: auto; font-family: var(--font-family-mono); font-size: 12px; line-height: 1.6; color: var(--ink); overflow-wrap: anywhere; }
+.trivy-detail__accepted { margin-right: auto; align-self: center; }
 
 .trivy-tally { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px; font-size: 13px; }
 .trivy-tally__item { display: inline-flex; align-items: center; gap: 6px; }
