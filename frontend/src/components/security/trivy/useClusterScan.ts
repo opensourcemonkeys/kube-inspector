@@ -20,10 +20,21 @@ export type ScanEnd =
 const IMAGE_PHASES = new Set(['images', 'waitingCache', 'stopping']);
 
 /**
+ * How often a followed scan is re-checked against the backend. The end events
+ * travel over the /events socket, which reconnects on its own but drops what
+ * was sent while it was down; this is what settles a scan whose end was lost.
+ */
+export const RECONCILE_MS = 15_000;
+
+/**
  * Follows the cluster's backend scan by id: starts or re-attaches to it,
  * shows its progress and reports how it ended through `onEnd`. The result
  * itself is not loaded here — a finished scan is in the history, and the
  * screen loads its view like any other saved scan.
+ *
+ * An end event can be lost (the /events socket was down when it was sent),
+ * so the backend is also asked directly: once after subscribing, when Stop
+ * finds nothing to stop, and every RECONCILE_MS while a scan is followed.
  *
  * Three guards carried over from the first backend-scan screen:
  *  - a handler acts only while its id is the active one, so a late event from
@@ -127,7 +138,8 @@ export function useClusterScan(clusterName: string, pushToast: PushToast, onEnd:
     // A short scan can end between TrivyStartClusterScan returning and the
     // subscription above, so check once after subscribing. If it is no longer
     // running it ended unseen: done if it was saved, otherwise cancelled or
-    // failed — the screen sorts that out when it tries to load it.
+    // failed — the screen sorts that out when it tries to load it. The same
+    // check settles a scan whose end event was lost.
     const reconcile = async (id: string) => {
         const running = await TrivyGetRunningScan(clusterName);
         if (activeId.current !== id) return;
@@ -145,15 +157,29 @@ export function useClusterScan(clusterName: string, pushToast: PushToast, onEnd:
     useEffect(() => {
         let alive = true;
         TrivyGetRunningScan(clusterName)
-            .then((running) => {
+            .then(async (running) => {
                 if (!alive || !running || activeId.current) return;
                 attach(running.scanId);
                 showProgress(running.progress);
+                // It may have ended before the subscription was in place.
+                await reconcile(running.scanId);
             })
-            .catch(() => { /* no running scan to show */ });
+            .catch(() => { /* no running scan to show; the poll below retries a failed check */ });
         return () => { alive = false; detach(); };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [clusterName]);
+
+    // While a scan is followed, ask the backend now and then whether it is
+    // still running, in case its end event never arrived.
+    useEffect(() => {
+        if (!running) return;
+        const timer = window.setInterval(() => {
+            const id = activeId.current;
+            if (id) reconcile(id).catch(() => { /* backend unreachable: try again next tick */ });
+        }, RECONCILE_MS);
+        return () => window.clearInterval(timer);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [running, clusterName]);
 
     const start = async () => {
         setRunning(true);
@@ -179,7 +205,12 @@ export function useClusterScan(clusterName: string, pushToast: PushToast, onEnd:
         if (!id || stopLatched.current) return;
         const p = lastProgress.current;
         showProgress({ phase: 'stopping', current: p?.current ?? 0, total: p?.total ?? 0, message: p?.message ?? '' });
-        TrivyStopClusterScan(id).catch(() => { /* the cancelled event or the next check settles it */ });
+        TrivyStopClusterScan(id)
+            .then((wasRunning) => {
+                // Already over: no cancelled event will come, so settle now.
+                if (!wasRunning) return reconcile(id);
+            })
+            .catch(() => { /* the cancelled event or the next check settles it */ });
     };
 
     return { running, stopping, line, percent, error, start, stop };

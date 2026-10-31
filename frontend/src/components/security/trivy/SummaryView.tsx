@@ -5,7 +5,7 @@ import { absTime } from '../../../lib/time';
 import ErrorBanner from '../../shared/ErrorBanner';
 import { SeverityTag } from './severity';
 import { WorkloadCell } from './workloadNav';
-import { countDelta, sumSeverities, verdictText } from './trivyModel';
+import { severityDelta, sumSeverities, verdictText } from './trivyModel';
 
 const MAX_CHANGES = 6;
 
@@ -30,13 +30,15 @@ function Tile({ label, value, children }: { label: string; value: string | numbe
 }
 
 /** The reasons a workload ranks where it does, one chip each. */
-function Reasons({ w, exposureKnown }: { w: models.TrivyWorkloadRisk; exposureKnown: boolean }) {
+function Reasons({ w, exposureKnown, exposureError }: { w: models.TrivyWorkloadRisk; exposureKnown: boolean; exposureError: string }) {
     const t = useT();
     const exposure = w.exposure ?? [];
     const privileges = w.privileges ?? [];
     return (
         <span className="trivy-chips">
-            {!exposureKnown && <span className="trivy-chip trivy-chip--muted">{t('panels:trivy.summary.exposureUnknown')}</span>}
+            {!exposureKnown && (
+                <span className="trivy-chip trivy-chip--muted" title={exposureError || undefined}>{t('panels:trivy.summary.exposureUnknown')}</span>
+            )}
             {exposure.map((e) => <span key={e} className="trivy-chip trivy-chip--exposed">{e}</span>)}
             {privileges.map((p) => (
                 <span key={p} className="trivy-chip">{t(`panels:trivy.privilege.${p}` as never, { defaultValue: p })}</span>
@@ -52,13 +54,9 @@ export default function SummaryView({ clusterName, view, onShowNew }: {
 }) {
     const t = useT();
     const s = view.summary;
-    const compared = s.prevVulns != null || s.prevMisconfigs != null || s.prevSecrets != null;
     const since = absTime(view.compareStartedAt);
-    const total = (sev: string, prev: boolean) => prev
-        ? sumSeverities(sev, s.prevVulns, s.prevMisconfigs, s.prevSecrets)
-        : sumSeverities(sev, s.vulns, s.misconfigs, s.secrets);
-    const crit = total('CRITICAL', false);
-    const high = total('HIGH', false);
+    const crit = sumSeverities('CRITICAL', s.vulns, s.misconfigs, s.secrets);
+    const high = sumSeverities('HIGH', s.vulns, s.misconfigs, s.secrets);
     const failed = s.imagesTotal - s.imagesScanned;
 
     const verdict = verdictText(t, view);
@@ -73,10 +71,10 @@ export default function SummaryView({ clusterName, view, onShowNew }: {
 
             <div className="trivy-tiles">
                 <Tile label={t('panels:trivy.summary.critical')} value={crit}>
-                    <Delta delta={compared ? countDelta(crit, total('CRITICAL', true)) : null} since={since} />
+                    <Delta delta={severityDelta('CRITICAL', s.delta)} since={since} />
                 </Tile>
                 <Tile label={t('panels:trivy.summary.high')} value={high}>
-                    <Delta delta={compared ? countDelta(high, total('HIGH', true)) : null} since={since} />
+                    <Delta delta={severityDelta('HIGH', s.delta)} since={since} />
                 </Tile>
                 <Tile label={t('panels:trivy.summary.fixable')} value={s.fixableRatio < 0 ? '—' : `${Math.round(s.fixableRatio * 100)}%`}>
                     <div className="trivy-tile__delta">
@@ -110,7 +108,7 @@ export default function SummaryView({ clusterName, view, onShowNew }: {
                             {top.map((w) => (
                                 <tr key={`${w.workload.namespace}/${w.workload.kind}/${w.workload.name}`}>
                                     <td><WorkloadCell clusterName={clusterName} w={w.workload} /></td>
-                                    <td><Reasons w={w} exposureKnown={view.exposureKnown} /></td>
+                                    <td><Reasons w={w} exposureKnown={view.exposureKnown} exposureError={view.exposureError} /></td>
                                     <td className="trivy-table__n">{w.counts?.CRITICAL ?? 0}</td>
                                     <td className="trivy-table__n">{w.counts?.HIGH ?? 0}</td>
                                 </tr>

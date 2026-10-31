@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
+import i18n from 'i18next';
 import { models } from '../../../../wailsjs/go/models';
 import {
-    countDelta, defaultCompareId, defaultExpiryDate, endOfDayRFC3339,
-    fixItemExceptions, misconfigException, sumSeverities, verdictParams, vulnException, workloadYamlTarget,
+    defaultCompareId, defaultExpiryDate, endOfDayRFC3339, fixItemExceptions, misconfigException, olderScans,
+    severityDelta, sumSeverities, verdictParams, verdictText, vulnException, workloadYamlTarget,
 } from './trivyModel';
 
 const ref = (kind: string, name: string, namespace = 'default') => ({ kind, name, namespace }) as models.TrivyWorkloadRef;
@@ -81,10 +82,12 @@ describe('summary arithmetic', () => {
         expect(sumSeverities('CRITICAL', { CRITICAL: 2 }, null, { CRITICAL: 1, HIGH: 4 })).toBe(3);
     });
 
-    it('reports no delta without a comparison', () => {
-        expect(countDelta(5, null)).toBeNull();
-        expect(countDelta(5, 3)).toBe(2);
-        expect(countDelta(1, 3)).toBe(-2);
+    it('reads a severity\'s delta from the view, null without a comparison', () => {
+        expect(severityDelta('CRITICAL', null)).toBeNull();
+        expect(severityDelta('CRITICAL', undefined)).toBeNull();
+        expect(severityDelta('CRITICAL', { CRITICAL: 2, HIGH: -3 })).toBe(2);
+        expect(severityDelta('HIGH', { CRITICAL: 2, HIGH: -3 })).toBe(-3);
+        expect(severityDelta('HIGH', {})).toBe(0);
     });
 
     it('builds the verdict from the top three fix items', () => {
@@ -96,6 +99,37 @@ describe('summary arithmetic', () => {
         ] as unknown as models.TrivyFixItem[];
         expect(verdictParams(plan)).toEqual({ topItems: 3, closes: 6 });
         expect(verdictParams(null)).toEqual({ topItems: 0, closes: 0 });
+    });
+});
+
+describe('verdictText', () => {
+    const view = (p: { vulns?: Record<string, number>; misconfigs?: Record<string, number>; secrets?: Record<string, number>; fixPlan?: unknown[] }) => ({
+        exposureKnown: true,
+        fixPlan: p.fixPlan ?? [],
+        summary: { vulns: p.vulns ?? {}, misconfigs: p.misconfigs ?? {}, secrets: p.secrets ?? {}, exposedCritical: 0 },
+    }) as unknown as models.TrivyScanView;
+
+    it('says there is nothing open rather than that nothing has a fix', () => {
+        const text = verdictText(i18n.t, view({}));
+        expect(text).toBe(i18n.t('panels:trivy.summary.verdictClean'));
+        expect(text).not.toMatch(/fix/i);
+    });
+    it('keeps the no-fix wording while findings are open', () => {
+        expect(verdictText(i18n.t, view({ vulns: { LOW: 1 } }))).toMatch(/None of the open findings has a fix yet/);
+        expect(verdictText(i18n.t, view({ secrets: { HIGH: 1 } }))).toMatch(/None of the open findings has a fix yet/);
+    });
+});
+
+describe('olderScans', () => {
+    const scans = [{ id: 's3' }, { id: 's2' }, { id: 's1' }] as models.TrivyScanMeta[];
+    it('offers only scans older than the selected one', () => {
+        expect(olderScans(scans, 's3').map((s) => s.id)).toEqual(['s2', 's1']);
+        expect(olderScans(scans, 's2').map((s) => s.id)).toEqual(['s1']);
+        expect(olderScans(scans, 's1')).toEqual([]);
+    });
+    it('offers nothing when no scan is selected', () => {
+        expect(olderScans(scans, null)).toEqual([]);
+        expect(olderScans(scans, 'nope')).toEqual([]);
     });
 });
 

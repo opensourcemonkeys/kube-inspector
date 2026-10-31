@@ -49,6 +49,13 @@ function rowsFromResult(image: string, res: models.TrivyScanResult): models.Triv
     return out;
 }
 
+/** The result of an image whose scan call itself failed: no findings, only the reason. */
+export function failedImageResult(image: string, message: string): models.TrivyScanResult {
+    return models.TrivyScanResult.createFrom({
+        kind: 'image', artifactRef: image, targets: [], summary: {}, scannedAt: new Date().toISOString(), error: message,
+    });
+}
+
 /** The single-image scan's state, held by the root so it survives switching tabs. */
 export function useImageScanner(clusterName: string, pushToast: PushToast) {
     const t = useT();
@@ -86,6 +93,9 @@ export function useImageScanner(clusterName: string, pushToast: PushToast) {
                     }
                 } catch (e) {
                     pushToast('error', t('panels:trivy.toastScanFailed', { image }), errText(e));
+                    // Kept as a result so the report lists it as not scanned.
+                    accResults.push(failedImageResult(image, errText(e)));
+                    setResults([...accResults]);
                 }
             }
             setLog(t('panels:trivy.logDone', { findings: acc.length, images: images.length }));

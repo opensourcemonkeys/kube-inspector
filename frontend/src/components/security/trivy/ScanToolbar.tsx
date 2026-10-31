@@ -11,7 +11,7 @@ import { useT } from '../../../i18n/useT';
 import { absTime } from '../../../lib/time';
 import { useTrivyStore } from '../../../stores/trivyStore';
 import type { useClusterScan, PushToast } from './useClusterScan';
-import { reportLabels, verdictText } from './trivyModel';
+import { olderScans, reportLabels, verdictText } from './trivyModel';
 
 /**
  * Scan / Stop, which saved scan is shown and what it is compared with, the
@@ -47,6 +47,8 @@ export default function ScanToolbar({ clusterName, view, scan, scans, scanId, co
         }
     };
 
+    // The meta counts vulnerabilities only (the tiles add misconfigs and
+    // secrets), and the label says so.
     const option = (s: models.TrivyScanMeta) => ({
         value: s.id,
         label: t('panels:trivy.scanOption', { date: absTime(s.startedAt), critical: s.critical, high: s.high }),
@@ -54,7 +56,8 @@ export default function ScanToolbar({ clusterName, view, scan, scans, scanId, co
     const scanOptions = scans.map(option);
     const compareOptions = [
         { value: '', label: t('panels:trivy.noCompare') },
-        ...scans.filter((s) => s.id !== scanId).map(option),
+        // A scan is compared with an earlier one, never a newer one.
+        ...olderScans(scans, scanId).map(option),
     ];
 
     return (
@@ -70,7 +73,7 @@ export default function ScanToolbar({ clusterName, view, scan, scans, scanId, co
                     onChange={(e) => onSelect(e.value)} disabled={scans.length === 0}
                     placeholder={t('panels:trivy.noScansShort')} aria-label={t('panels:trivy.scanPicker')} />
                 <Dropdown className="trivy-toolbar__select p-inputtext-sm" value={compareId} options={compareOptions}
-                    onChange={(e) => onCompare(e.value)} disabled={scans.length < 2}
+                    onChange={(e) => onCompare(e.value)} disabled={compareOptions.length < 2}
                     aria-label={t('panels:trivy.comparePicker')} />
                 <span className="trivy-toolbar__spacer" />
                 <label className="trivy-switch">

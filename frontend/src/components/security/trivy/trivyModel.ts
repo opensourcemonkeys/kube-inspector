@@ -76,9 +76,22 @@ export function sumSeverities(sev: string, ...maps: SevMap[]): number {
     return maps.reduce<number>((n, m) => n + (m?.[sev] ?? 0), 0);
 }
 
-/** cur − prev, or null when there is nothing to compare with. */
-export function countDelta(cur: number, prev: number | null): number | null {
-    return prev == null ? null : cur - prev;
+/**
+ * One severity's change against the compared scan, or null when there is
+ * nothing to compare with. The backend computes it over what both scans could
+ * see, so it is not the difference of the two headline totals.
+ */
+export function severityDelta(sev: string, delta: SevMap): number | null {
+    return delta == null ? null : delta[sev] ?? 0;
+}
+
+/** Every open (unaccepted) finding of the view, whatever its severity. */
+function openFindings(s: models.TrivySummary): number {
+    let n = 0;
+    for (const m of [s.vulns, s.misconfigs, s.secrets]) {
+        for (const v of Object.values(m ?? {})) n += v;
+    }
+    return n;
 }
 
 /** The verdict's numbers: how many of the first fix items it names, and the critical+high findings they close. */
@@ -88,6 +101,12 @@ export function verdictParams(plan: models.TrivyFixItem[] | null): { topItems: n
         topItems: top.length,
         closes: top.reduce((n, it) => n + sumSeverities('CRITICAL', it.closes) + sumSeverities('HIGH', it.closes), 0),
     };
+}
+
+/** The scans `scanId` can be compared with: the ones before it (scans are newest first). */
+export function olderScans(scans: models.TrivyScanMeta[], scanId: string | null): models.TrivyScanMeta[] {
+    const i = scanId ? scans.findIndex((s) => s.id === scanId) : -1;
+    return i < 0 ? [] : scans.slice(i + 1);
 }
 
 /** The scan a scan is compared with by default: the one before it (scans are newest first). */
@@ -137,6 +156,7 @@ export function workloadYamlTarget(kind: string): YamlTarget | null {
 
 /** The one-sentence assessment shown on the Summary and printed in the report. */
 export function verdictText(t: TFn, view: models.TrivyScanView): string {
+    if (openFindings(view.summary) === 0) return t('panels:trivy.summary.verdictClean');
     const { topItems, closes } = verdictParams(view.fixPlan);
     const exposedCritical = view.exposureKnown
         ? String(view.summary.exposedCritical ?? 0)
