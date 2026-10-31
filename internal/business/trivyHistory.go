@@ -23,6 +23,8 @@ const trivyHistoryKeep = 20
 const (
 	trivyScanSuffix = ".json"
 	trivyMetaSuffix = ".meta.json"
+	// trivyStampLen is len("20060102T150405Z-"): the filename prefix before the id.
+	trivyStampLen = 17
 )
 
 var (
@@ -184,7 +186,7 @@ func LoadTrivyScan(clusterName, id string) (*models.TrivyClusterScan, error) {
 	}
 	for _, e := range entries {
 		n := e.Name()
-		if e.IsDir() || strings.HasSuffix(n, trivyMetaSuffix) || !strings.HasSuffix(n, "-"+id+trivyScanSuffix) {
+		if e.IsDir() || strings.HasSuffix(n, trivyMetaSuffix) || len(n) <= trivyStampLen || n[trivyStampLen-1] != '-' || n[trivyStampLen:] != id+trivyScanSuffix {
 			continue
 		}
 		data, err := os.ReadFile(filepath.Join(dir, n))
@@ -266,14 +268,15 @@ func AddTrivyException(clusterName string, e models.TrivyException) (models.Triv
 	if strings.TrimSpace(e.Reason) == "" {
 		return e, errors.New("a reason is required")
 	}
-	if e.ExpiresAt != "" {
-		t, err := time.Parse(time.RFC3339, e.ExpiresAt)
-		if err != nil {
-			return e, fmt.Errorf("invalid expiry: %w", err)
-		}
-		if !t.After(time.Now()) {
-			return e, errors.New("the expiry must be in the future")
-		}
+	if strings.TrimSpace(e.ExpiresAt) == "" {
+		return e, errors.New("an expiry is required")
+	}
+	t, err := time.Parse(time.RFC3339, e.ExpiresAt)
+	if err != nil {
+		return e, fmt.Errorf("invalid expiry: %w", err)
+	}
+	if !t.After(time.Now()) {
+		return e, errors.New("the expiry must be in the future")
 	}
 	path, err := trivyExceptionsPath(clusterName)
 	if err != nil {

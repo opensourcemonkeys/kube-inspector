@@ -120,6 +120,8 @@ func TestAddTrivyExceptionValidates(t *testing.T) {
 		{Kind: "misconfig", CheckID: "KSV1", Reason: "x"},
 		{Kind: "vuln", VulnerabilityID: "CVE-1", ImageRepo: "r", Reason: "  "},
 		{Kind: "vuln", VulnerabilityID: "CVE-1", ImageRepo: "r", Reason: "x", ExpiresAt: past},
+		{Kind: "vuln", VulnerabilityID: "CVE-1", ImageRepo: "r", Reason: "x"},
+		{Kind: "vuln", VulnerabilityID: "CVE-1", ImageRepo: "r", Reason: "x", ExpiresAt: "tomorrow"},
 	}
 	for i, e := range bad {
 		if _, err := AddTrivyException("c1", e); err == nil {
@@ -137,7 +139,7 @@ func TestAddTrivyExceptionValidates(t *testing.T) {
 
 func TestRemoveTrivyException(t *testing.T) {
 	histHome(t)
-	e, err := AddTrivyException("c1", models.TrivyException{Kind: "vuln", VulnerabilityID: "CVE-1", ImageRepo: "r", Reason: "x"})
+	e, err := AddTrivyException("c1", models.TrivyException{Kind: "vuln", VulnerabilityID: "CVE-1", ImageRepo: "r", Reason: "x", ExpiresAt: time.Now().Add(time.Hour).UTC().Format(time.RFC3339)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,5 +151,29 @@ func TestRemoveTrivyException(t *testing.T) {
 	}
 	if err := RemoveTrivyException("c1", "nope"); err == nil {
 		t.Error("unknown id accepted")
+	}
+}
+
+func TestLoadTrivyScanExactID(t *testing.T) {
+	histHome(t)
+	now := time.Now()
+	a, am := mkScan("abc-123", now)
+	b, bm := mkScan("123", now.Add(time.Second))
+	for i, p := range []struct {
+		s *models.TrivyClusterScan
+		m models.TrivyScanMeta
+	}{{a, am}, {b, bm}} {
+		if err := SaveTrivyScan(p.s, p.m); err != nil {
+			t.Fatal(i, err)
+		}
+	}
+	for _, id := range []string{"abc-123", "123"} {
+		got, err := LoadTrivyScan("c1", id)
+		if err != nil || got.ID != id {
+			t.Fatalf("%s: %v %v", id, got, err)
+		}
+	}
+	if _, err := LoadTrivyScan("c1", "23"); err == nil {
+		t.Error("partial id matched")
 	}
 }
