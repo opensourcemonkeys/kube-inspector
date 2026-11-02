@@ -43,9 +43,10 @@ the update check.
 - **The AI assistant's conversation.** It runs against a local Ollama server.
   Prompts, cluster data pulled in by tools, and replies stay between the app and
   that host. If you point it at a remote Ollama, that is where they go — your
-  choice, your host.
+  choice, your host. Secret values the assistant reads are hashed first, so
+  the model sees which keys exist, never their contents.
 - **Your preferences.** Theme, language, update channel, open panels, the events
-  list and the assistant's history live in local application storage and in
+  list and the assistant's history (one conversation per cluster) live in local application storage and in
   `~/.kube-ins/`.
 
 ## Scanning private images

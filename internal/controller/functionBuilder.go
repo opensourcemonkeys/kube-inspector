@@ -1307,8 +1307,11 @@ func (a *App) StopAiPull(model string) error {
 
 // StartAiChat runs the streaming chat + tool loop for one user turn. Tokens,
 // tool activity, confirmation requests and completion are pushed to the frontend
-// via ai:token/ai:tool/ai:confirm/ai:done/ai:error events suffixed with sessionId.
-func (a *App) StartAiChat(sessionId, host, model, clusterName, messagesJSON, contextJSON string) error {
+// via ai:token/ai:retract/ai:tool/ai:confirm/ai:done/ai:error events suffixed
+// with sessionId. Each assistant tab is pinned to clusterName; readOnly withholds every
+// mutating tool from the model. ai:done carries {reason}: "" for a final
+// answer, "toolLimit" when the loop hit its cap.
+func (a *App) StartAiChat(sessionId, host, model, clusterName, messagesJSON, contextJSON string, readOnly bool) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	sess := &aiSession{cancel: cancel, confirms: map[string]chan bool{}}
 
@@ -1334,13 +1337,18 @@ func (a *App) StartAiChat(sessionId, host, model, clusterName, messagesJSON, con
 		}()
 
 		emitToken := func(s string) { a.emit("ai:token:"+sessionId, s) }
+		// Takes back the last n UTF-16 units of streamed text: a tool call
+		// the model wrote as prose is recognised only once it is complete.
+		emitRetract := func(n int) { a.emit("ai:retract:"+sessionId, n) }
 		emitTool := func(ev ai.ToolEvent) { a.emit("ai:tool:"+sessionId, ev) }
-		awaitConfirm := func(id, name string, args map[string]any) bool {
+		awaitConfirm := func(id, name string, args map[string]any, preview *models.AiActionPreview) bool {
 			ch := make(chan bool, 1)
 			sess.mu.Lock()
 			sess.confirms[id] = ch
 			sess.mu.Unlock()
-			a.emit("ai:confirm:"+sessionId, map[string]any{"id": id, "name": name, "args": args})
+			// The cluster rides along so the card can say where the change
+			// lands, not just what it is.
+			a.emit("ai:confirm:"+sessionId, map[string]any{"id": id, "name": name, "args": args, "cluster": clusterName, "preview": preview})
 			select {
 			case ok := <-ch:
 				return ok
@@ -1349,11 +1357,15 @@ func (a *App) StartAiChat(sessionId, host, model, clusterName, messagesJSON, con
 			}
 		}
 
-		if err := bussiness.RunAiChat(ctx, host, model, clusterName, messagesJSON, contextJSON, emitToken, emitTool, awaitConfirm); err != nil {
+		err := bussiness.RunAiChat(ctx, host, model, clusterName, messagesJSON, contextJSON, readOnly, emitToken, emitRetract, emitTool, awaitConfirm)
+		switch {
+		case errors.Is(err, ai.ErrToolLimit):
+			a.emit("ai:done:"+sessionId, map[string]any{"reason": "toolLimit"})
+		case err != nil:
 			a.emit("ai:error:"+sessionId, err.Error())
-			return
+		default:
+			a.emit("ai:done:"+sessionId, map[string]any{"reason": ""})
 		}
-		a.emit("ai:done:"+sessionId, "")
 	})
 
 	return nil

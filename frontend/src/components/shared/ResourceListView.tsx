@@ -8,12 +8,13 @@ import { Dialog } from 'primereact/dialog';
 import { Toast } from 'primereact/toast';
 import { Menu } from 'primereact/menu';
 import type { MenuItem } from 'primereact/menuitem';
-import { VscInfo, VscArrowSwap, VscKebabVertical, VscHistory } from 'react-icons/vsc';
+import { VscInfo, VscArrowSwap, VscKebabVertical, VscHistory, VscHubot } from 'react-icons/vsc';
 import { useResourceList, ResourceRow } from '../../lib/useResourceList';
 import { useT } from '../../i18n/useT';
 import { useTabContext } from '../../contexts/TabContext';
 import { useToolboxStatus, useToolboxStatusStore } from '../../stores/toolboxStatusStore';
 import { historyUnavailable } from '../toolbox/history/HistoryButton';
+import { useAskAi } from '../ai/useAskAi';
 import ErrorBanner from './ErrorBanner';
 import { ListSkeleton } from './PanelSkeleton';
 import { ROW_HEIGHT } from '../../lib/tableMetrics';
@@ -343,6 +344,8 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
         toastRef,
     });
 
+    const askAi = useAskAi();
+
     const buildRowMenu = (row: T): MenuItem[] => {
         const items: MenuItem[] = [];
         if (describeResource) {
@@ -376,6 +379,17 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                         namespace: row.namespace ?? '',
                         referencePanel: `${describeResource}:${clusterName}`,
                     }),
+            });
+        }
+        if (describeResource) {
+            // The object rides along as a chip; the prompt waits in the
+            // cluster's assistant for the user to read and send.
+            items.push({
+                label: t('panels:ai.ask.label'),
+                icon: <VscHubot size={13} />,
+                command: () => askAi(clusterName, t('panels:ai.ask.object'), [
+                    { resource: describeResource, namespace: row.namespace ?? '', name: row.name },
+                ]),
             });
         }
         if (portForward) {

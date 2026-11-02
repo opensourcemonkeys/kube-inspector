@@ -49,26 +49,10 @@ func IsAvailable(ctx context.Context, host string) bool {
 
 // SupportsTools reports whether a local model advertises the "tools" capability.
 // Models without it cannot do function calling, so the assistant's actions won't work.
+// The answer is cached per process (see facts), so the frontend's check and
+// the loop's own check cost one Show between them.
 func SupportsTools(host, model string) bool {
-	if model == "" {
-		return false
-	}
-	client, err := newClient(host)
-	if err != nil {
-		return false
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-	resp, err := client.Show(ctx, &api.ShowRequest{Model: model})
-	if err != nil || resp == nil {
-		return false
-	}
-	for _, c := range resp.Capabilities {
-		if string(c) == "tools" {
-			return true
-		}
-	}
-	return false
+	return facts(context.Background(), host, model).tools
 }
 
 // ModelCatalog returns the downloadable model catalog (registry recommendations,

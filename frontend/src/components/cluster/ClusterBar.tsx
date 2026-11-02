@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
     VscAdd, VscEdit,
-    VscTypeHierarchySub, VscTools, VscWarning,
+    VscTypeHierarchySub, VscTools, VscWarning, VscHubot,
 } from 'react-icons/vsc';
 import { Dropdown } from 'primereact/dropdown';
 import { OverlayPanel } from 'primereact/overlaypanel';
@@ -16,7 +16,7 @@ import { useT } from '../../i18n/useT';
 export default function ClusterBar() {
     const t = useT();
     const { clusters, activeCluster, loaded, connectionError, refreshClusters, selectCluster } = useClusterContext();
-    const { openClusterResourceView, openToolbox } = useTabContext();
+    const { openClusterResourceView, openToolbox, openAiAssistant } = useTabContext();
     const [modalOpen, setModalOpen] = useState(false);
     const [editingCluster, setEditingCluster] = useState<string | null>(null);
     const initialCheckDone = useRef(false);
@@ -110,6 +110,9 @@ export default function ClusterBar() {
                             </button>
                             <button className="cluster-header__icon-btn" onClick={() => openToolbox(activeCluster)} title={t('panels:cluster.toolbox')}>
                                 <VscTools size={14} />
+                            </button>
+                            <button className="cluster-header__icon-btn" onClick={() => openAiAssistant(activeCluster)} title={t('panels:cluster.ai')} aria-label={t('panels:cluster.ai')}>
+                                <VscHubot size={14} />
                             </button>
                         </>
                     )}

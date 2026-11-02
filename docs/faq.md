@@ -101,7 +101,19 @@ No. They bind `127.0.0.1` only, with no setting to change it.
 No. It talks to a local [Ollama](https://ollama.com) server (default
 `http://localhost:11434`). Models are downloaded from Ollama's registry; prompts
 and any cluster data the assistant's tools pull in go to your Ollama host and
-nowhere else. Without Ollama running, the assistant is simply unavailable.
+nowhere else. Secret values are replaced by a hash before they reach the model.
+Without Ollama running, the assistant is simply unavailable.
+
+### Can the AI assistant change my cluster?
+
+Only if you let it, one cluster at a time. The assistant opens as a tab per
+cluster (the robot button next to the Toolbox button, or **Open ▸ AI
+Assistant**). Each one starts **Read-only**, which means the model is not even
+offered a tool that changes anything. Switch that cluster's tab to **Can
+change** and it may propose a delete, scale, restart or apply. The API server
+checks each proposal with a dry run first, and the result is shown as a diff
+against the live object, naming the cluster. Nothing is changed until you
+press **Approve**.
 
 ## Using it
 

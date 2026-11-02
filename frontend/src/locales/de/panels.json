@@ -13,7 +13,8 @@
     "describe": "{{name}} beschreiben",
     "toolbox": "Toolbox",
     "clusterHistory": "Cluster-Verlauf",
-    "objectHistory": "Verlauf {{name}}"
+    "objectHistory": "Verlauf {{name}}",
+    "ai": "KI-Assistent"
   },
   "portForward": {
     "startedSummary": "Port-Weiterleitung gestartet",
@@ -506,7 +507,8 @@
     "graph": "Ressourcengraph",
     "connectionErrorTitle": "Verbindungsfehler",
     "connectionError": "Verbindungsfehler",
-    "toolbox": "Toolbox"
+    "toolbox": "Toolbox",
+    "ai": "KI-Assistent"
   },
   "clusterModal": {
     "closeOverlay": "Dialog schließen",
@@ -1039,11 +1041,9 @@
     "backToChat": "Zurück zum Chat",
     "models": "Modelle",
     "refresh": "Aktualisieren",
-    "assistant": "Assistent",
     "modelPlaceholder": "Modell",
     "manageModels": "Modelle verwalten",
     "clearChat": "Chat leeren",
-    "close": "Schließen",
     "ollamaMissingTitle": "Ollama nicht gefunden",
     "ollamaMissing": "Der Assistent läuft auf einem lokalen Ollama-Server, der unter <1>{{host}}</1> nicht erreichbar ist. Installieren Sie Ollama (oder starten Sie es, falls bereits installiert) und versuchen Sie es erneut.",
     "installOllama": "Ollama installieren",
@@ -1062,9 +1062,7 @@
     "noModelsMatch": "Keine passenden Modelle.",
     "noToolSupport": "<1>{{model}}</1> unterstützt Tool-Aufrufe nicht nativ — es wird ein Kompatibilitätsmodus verwendet, der weniger zuverlässig sein kann. Öffnen Sie für beste Ergebnisse <3>Modelle verwalten</3> und wählen Sie ein tool-fähiges Modell (z. B. <5>llama3.1</5>, <7>qwen2.5</7>).",
     "noModelsInstalled": "Keine Modelle installiert. Öffnen Sie <1>Modelle verwalten</1> (das Download-Symbol), um ein tool-fähiges Modell wie <3>llama3.1</3> zu holen.",
-    "emptyChat": "Fragen Sie nach Ihrem Cluster — z. B. „liste die Pods in kube-system auf“ oder „warum stürzt Pod X ab?“. Mit Ihrer Zustimmung kann ich auch löschen, skalieren und anwenden.",
-    "working": "arbeitet",
-    "workingEllipsis": "arbeitet…",
+    "emptyChat": "Fragen Sie zu {{cluster}}, z. B. „Warum stürzt Pod X ab?“. Löschen, Skalieren, Neustarten und Anwenden werden zuerst als Dry-Run geprüft und warten auf Ihre Zustimmung.",
     "approveAction": "Aktion freigeben:",
     "deny": "Ablehnen",
     "approve": "Freigeben",
@@ -1084,6 +1082,31 @@
       "done": "Fertig",
       "declined": "Abgelehnt",
       "error": "Fehlgeschlagen"
+    },
+    "mode": "Was der Assistent darf",
+    "readOnly": "Nur lesen",
+    "allowChanges": "Darf ändern",
+    "readOnlyHint": "Der Assistent kann diesen Cluster nur lesen. Wählen Sie in der Werkzeugleiste „Darf ändern“, damit er Änderungen vorschlagen kann – jede braucht weiterhin Ihre Zustimmung.",
+    "emptyChatReadOnly": "Fragen Sie zu {{cluster}}, z. B. „Warum stürzt Pod X ab?“. Der Assistent darf hier nur lesen: schauen, nicht ändern.",
+    "toolLimit": "Nach zu vielen Werkzeugaufrufen in einem Durchgang angehalten. Stellen Sie eine engere Frage, um fortzufahren.",
+    "removeRef": "{{ref}} entfernen",
+    "confirmOn": "auf {{cluster}}",
+    "dryRunPassed": "Der API-Server hat einen Dry-Run dieser Änderung akzeptiert. Noch wurde nichts geändert.",
+    "starter": {
+      "unhealthy": "Welche Pods sind fehlerhaft, und warum?",
+      "usage": "Was verbraucht am meisten CPU und Speicher?",
+      "changes": "Was hat sich in der letzten Stunde geändert?"
+    },
+    "verb": {
+      "create": "Erstellen",
+      "update": "Ändern",
+      "delete": "Löschen"
+    },
+    "ask": {
+      "label": "KI fragen",
+      "object": "Stimmt mit diesem Objekt etwas nicht? Prüfe Status, Events und Logs und erkläre, was du findest.",
+      "logs": "Erkläre die Fehler und Warnungen in diesen Logs und nenne eine wahrscheinliche Ursache.",
+      "event": "Erkläre dieses Event und was zu tun ist: {{reason}} — {{message}}"
     }
   },
   "metrics": {

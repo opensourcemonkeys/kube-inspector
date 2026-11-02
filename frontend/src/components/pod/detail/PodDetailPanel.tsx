@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DockviewPanelApi } from 'dockview';
 import { Menu } from 'primereact/menu';
 import type { MenuItem } from 'primereact/menuitem';
-import { VscClose, VscEdit, VscListFlat, VscTerminal, VscTrash } from 'react-icons/vsc';
+import { VscClose, VscEdit, VscHubot, VscListFlat, VscTerminal, VscTrash } from 'react-icons/vsc';
 import { DeletePod, GetPodContainerUsage, GetPodDetail } from '../../../../wailsjs/go/controller_app/App';
 import { models } from '../../../../wailsjs/go/models';
 import { useTabContext } from '../../../contexts/TabContext';
@@ -19,6 +19,7 @@ import ContainerSection from './ContainerSection';
 import UsageChart, { type UsagePoint } from './UsageChart';
 import RowAction from '../../shared/RowAction';
 import HistoryButton from '../../toolbox/history/HistoryButton';
+import { useAskAi } from '../../ai/useAskAi';
 import Spinner from '../../shared/Spinner';
 import StatusLamp from '../../shared/StatusLamp';
 
@@ -105,6 +106,7 @@ export default function PodDetailPanel({ clusterName, name, namespace, reference
         return () => window.removeEventListener('keydown', onKey);
     }, [onClose, confirmDelete]);
 
+    const askAi = useAskAi();
     const containers = detail?.containers ?? [];
     const regular = containers.filter((c) => !c.init);
     const init = containers.filter((c) => c.init);
@@ -129,6 +131,8 @@ export default function PodDetailPanel({ clusterName, name, namespace, reference
                 <RowAction icon={<VscListFlat size={15} />} label={t('resources:pod.detail.logs')}
                     onClick={() => openLogPanel({ clusterName, resourceKind: 'pod', name, namespace, referencePanel })} />
                 <HistoryButton variant="icon" def={{ clusterName, resource: 'pods', group: 'core', name, namespace, referencePanel: `pods:${clusterName}` }} />
+                <RowAction icon={<VscHubot size={15} />} label={t('panels:ai.ask.label')}
+                    onClick={() => askAi(clusterName, t('panels:ai.ask.object'), [{ resource: 'pods', namespace, name }])} />
                 <RowAction icon={<VscEdit size={15} />} label={t('resources:pod.detail.edit')}
                     onClick={() => openYamlPanel({ clusterName, resourceKind: 'pod', name, namespace, referencePanel })} />
                 <RowAction icon={<VscTrash size={15} />} label={t('action.delete')} severity="danger" onClick={() => setConfirmDelete(true)} />

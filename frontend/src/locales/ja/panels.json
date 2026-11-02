@@ -13,7 +13,8 @@
     "describe": "{{name}} を Describe",
     "toolbox": "Toolbox",
     "clusterHistory": "クラスター履歴",
-    "objectHistory": "履歴 {{name}}"
+    "objectHistory": "履歴 {{name}}",
+    "ai": "AI アシスタント"
   },
   "portForward": {
     "startedSummary": "ポートフォワードを開始しました",
@@ -500,7 +501,8 @@
     "graph": "リソースグラフ",
     "connectionErrorTitle": "接続エラー",
     "connectionError": "接続エラー",
-    "toolbox": "Toolbox"
+    "toolbox": "Toolbox",
+    "ai": "AI アシスタント"
   },
   "clusterModal": {
     "closeOverlay": "ダイアログを閉じる",
@@ -1018,11 +1020,9 @@
     "backToChat": "チャットに戻る",
     "models": "モデル",
     "refresh": "更新",
-    "assistant": "アシスタント",
     "modelPlaceholder": "モデル",
     "manageModels": "モデルを管理",
     "clearChat": "チャットを消去",
-    "close": "閉じる",
     "ollamaMissingTitle": "Ollama が見つかりません",
     "ollamaMissing": "アシスタントはローカルの Ollama サーバー上で動作しますが、<1>{{host}}</1> に接続できません。Ollama をインストール（インストール済みなら起動）してから再試行してください。",
     "installOllama": "Ollama をインストール",
@@ -1041,9 +1041,7 @@
     "noModelsMatch": "一致するモデルはありません。",
     "noToolSupport": "<1>{{model}}</1> はツール呼び出しをネイティブにサポートしていないため、信頼性の劣る互換モードを使用しています。最良の結果を得るには <3>モデルを管理</3> を開き、ツール対応のモデル（例: <5>llama3.1</5>、<7>qwen2.5</7>）を選んでください。",
     "noModelsInstalled": "モデルが 1 つもインストールされていません。<3>llama3.1</3> のようなツール対応モデルを入手するには <1>モデルを管理</1>（ダウンロードアイコン）を開いてください。",
-    "emptyChat": "クラスターについて質問してください — 例:「kube-system の pod を一覧して」「なぜ pod X はクラッシュしているの？」。承認をいただければ、削除・スケール・適用も行えます。",
-    "working": "処理中",
-    "workingEllipsis": "処理中…",
+    "emptyChat": "{{cluster}} について質問してください。例：「pod X がクラッシュするのはなぜ？」。削除・スケール・再起動・適用はまず dry-run され、承認を待ちます。",
     "approveAction": "操作を承認:",
     "deny": "拒否",
     "approve": "承認",
@@ -1063,6 +1061,31 @@
       "done": "完了",
       "declined": "拒否",
       "error": "失敗"
+    },
+    "mode": "アシスタントにできること",
+    "readOnly": "読み取り専用",
+    "allowChanges": "変更可",
+    "readOnlyHint": "アシスタントはこのクラスターを読み取ることしかできません。変更を提案させるにはツールバーで「変更可」を選んでください。各変更には引き続き承認が必要です。",
+    "emptyChatReadOnly": "{{cluster}} について質問してください。例：「pod X がクラッシュするのはなぜ？」。ここではアシスタントは読み取り専用です。見ることはできても変更はできません。",
+    "toolLimit": "1 回のターンでツール呼び出しが多すぎたため停止しました。続けるには、より絞った質問をしてください。",
+    "removeRef": "{{ref}} を削除",
+    "confirmOn": "対象: {{cluster}}",
+    "dryRunPassed": "API サーバーはこの変更の dry-run を受け入れました。まだ何も変更されていません。",
+    "starter": {
+      "unhealthy": "異常な pod はどれ？原因は？",
+      "usage": "CPU とメモリを最も使っているのは？",
+      "changes": "直近 1 時間で何が変わった？"
+    },
+    "verb": {
+      "create": "作成",
+      "update": "変更",
+      "delete": "削除"
+    },
+    "ask": {
+      "label": "AI に聞く",
+      "object": "このオブジェクトに問題はある？ステータス、イベント、ログを確認して、わかったことを説明して。",
+      "logs": "これらのログのエラーと警告を説明し、考えられる原因を挙げて。",
+      "event": "このイベントと対処方法を説明して：{{reason}} — {{message}}"
     }
   },
   "metrics": {

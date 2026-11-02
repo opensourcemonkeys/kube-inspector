@@ -12,7 +12,6 @@ import { CheckForUpdate, SetUpdateChannel } from '../../../wailsjs/go/controller
 import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import { useClusterContext } from '../../contexts/ClusterContext';
-import { useAiChatStore } from '../../stores/aiChatStore';
 import { useThemeStore, THEMES } from '../../stores/themeStore';
 import { useLocaleStore, LOCALES } from '../../stores/localeStore';
 import { useT } from '../../i18n/useT';
@@ -43,11 +42,9 @@ function TitleBar({ onToggleSidebar, sidebarOpen = true, onToggleCli }: TitleBar
     // read and cleared — so a later 6-hourly re-check comes back with the field
     // empty and would otherwise pull the notice out from under the user.
     const [failedUpdate, setFailedUpdate] = useState('');
-    const { openTerminal, openApplyYaml, openDiagnostics, openPortForwards } = useTabContext();
+    const { openTerminal, openApplyYaml, openDiagnostics, openPortForwards, openAiAssistant } = useTabContext();
     const { activeCluster } = useClusterContext();
     const { startNextStep } = useNextStep();
-    const toggleAi = useAiChatStore((s) => s.toggle);
-    const aiOpen = useAiChatStore((s) => s.open);
     const theme = useThemeStore((s) => s.theme);
     const setTheme = useThemeStore((s) => s.setTheme);
     const locale = useLocaleStore((s) => s.locale);
@@ -107,10 +104,12 @@ function TitleBar({ onToggleSidebar, sidebarOpen = true, onToggleCli }: TitleBar
                 { label: t('nav:menu.portForwards'), icon: <VscArrowSwap size={13} />, command: () => openPortForwards() },
                 { separator: true },
                 {
+                    // The assistant is a tab per cluster now; this opens the
+                    // selected cluster's, like the ClusterBar button.
                     label: t('nav:menu.aiAssistant'),
                     icon: <VscHubot size={13} />,
-                    className: aiOpen ? 'tb-menu-active' : undefined,
-                    command: () => toggleAi(),
+                    disabled: !activeCluster,
+                    command: () => openAiAssistant(activeCluster),
                 },
                 {
                     label: t('settings:theme.label'),

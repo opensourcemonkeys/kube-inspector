@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo, type ReactNode } from 'react';
 import {
     VscListFlat, VscPinned, VscWordWrap, VscWatch, VscHistory, VscSymbolColor,
-    VscClearAll, VscCopy, VscSave, VscRefresh,
+    VscClearAll, VscCopy, VscSave, VscRefresh, VscHubot,
 } from 'react-icons/vsc';
 import { IDockviewPanelProps } from 'dockview';
 import { LazyLog } from '@melloware/react-logviewer';
@@ -28,6 +28,9 @@ import { formatLogLevel } from '../../lib/logLevel';
 import { writeClipboard } from '../../lib/clipboard';
 import { errText } from '../../lib/errText';
 import { usePanelActive } from '../../lib/usePanelActive';
+import { useAskAi } from '../ai/useAskAi';
+import { parseObjectRef } from '../ai/refs';
+import type { AiRef } from '../../stores/aiChatStore';
 import { useLogViewerStore, TAIL_OPTIONS, SINCE_OPTIONS } from '../../stores/logViewerStore';
 
 export type WorkloadKind = 'pod' | 'deployment' | 'statefulset' | 'replicaset' | 'daemonset' | 'job' | 'cronjob';
@@ -389,6 +392,17 @@ export default function LogViewerPanel({ params, api }: IDockviewPanelProps<LogV
         />
     );
 
+    // "Ask AI" about what is on screen: the pod (and container) being read,
+    // or the workload when every pod is. The assistant reads the logs itself.
+    const askAi = useAskAi();
+    const askAboutLogs = () => {
+        const pod = !isWorkload ? name : selectedPod && selectedPod !== ALL_PODS ? selectedPod : '';
+        const ref: AiRef | null = pod
+            ? { resource: 'pods', namespace, name: pod, container: selectedContainer || undefined }
+            : parseObjectRef(`${resourceKind}/${namespace}/${name}`);
+        askAi(cn, t('panels:ai.ask.logs'), ref ? [ref] : []);
+    };
+
     const action = (icon: ReactNode, label: string, onClick: () => void) => (
         <Button
             icon={icon}
@@ -465,6 +479,7 @@ export default function LogViewerPanel({ params, api }: IDockviewPanelProps<LogV
                     {action(<VscClearAll size={15} />, t('panels:logs.clear'), clear)}
                     {action(<VscCopy size={15} />, t('panels:logs.copy'), copy)}
                     {action(<VscSave size={15} />, t('panels:logs.save'), () => void save())}
+                    {action(<VscHubot size={15} />, t('panels:ai.ask.label'), askAboutLogs)}
                 </div>
             </div>
 

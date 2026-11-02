@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import { VscWarning, VscClearAll } from 'react-icons/vsc';
+import { VscWarning, VscClearAll, VscHubot } from 'react-icons/vsc';
 import { DataTable, DataTableFilterMeta } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import StatusLamp from '../shared/StatusLamp';
@@ -20,6 +20,8 @@ import { ListSkeleton } from '../shared/PanelSkeleton';
 import { ROW_HEIGHT } from '../../lib/tableMetrics';
 import { useT } from '../../i18n/useT';
 import CountCell from '../shared/CountCell';
+import { useAskAi } from '../ai/useAskAi';
+import { parseObjectRef } from '../ai/refs';
 
 type TagSeverity = 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast';
 
@@ -47,6 +49,7 @@ const formatTime = (ts: string): string => {
 
 export default function EventListComponent({ clusterName, api }: { clusterName: string; api?: DockviewPanelApi }) {
     const t = useT();
+    const askAi = useAskAi();
     // Whether this panel is the foreground tab. When backgrounded we tear down
     // the table DOM and pause polling; the latest data lives in the persisted
     // store, so returning to the foreground rebuilds instantly from it.
@@ -338,6 +341,22 @@ export default function EventListComponent({ clusterName, api }: { clusterName: 
                 }
                 visible={!!selectedEvent}
                 className="event-dialog"
+                footer={ev && (
+                    <div className="dlg-actions">
+                        <Button
+                            label={t('panels:ai.ask.label')}
+                            icon={<VscHubot size={14} />}
+                            severity="secondary"
+                            size="small"
+                            onClick={() => {
+                                // The event's object rides along when we know its kind.
+                                const ref = parseObjectRef(`${ev.object_kind}/${ev.namespace}/${ev.object}`);
+                                setSelectedEvent(null);
+                                askAi(clusterName, t('panels:ai.ask.event', { reason: ev.reason, message: ev.message }), ref ? [ref] : []);
+                            }}
+                        />
+                    </div>
+                )}
                 modal
                 onHide={() => setSelectedEvent(null)}
             >

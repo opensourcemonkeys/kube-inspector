@@ -26,6 +26,7 @@ import json
 import os
 import sys
 import time
+from pathlib import Path
 
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
@@ -293,30 +294,48 @@ def cluster_dropdown(d, shot):
     shot(0.8)
 
 
-AI_LOG = {
-    "state": {
-        "host": "http://localhost:11434",
-        "model": "",
-        "messages": [
-            {"role": "user", "content": "Why is the container-tester pod restarting?"},
-            {"role": "assistant", "content": "The pod is in CrashLoopBackOff. Its init container exits with status 1 after printing \"Hata oluştu, konteyner kapanıyor\", so the main container never starts.",
-             "tools": [
-                 {"id": "1", "name": "list_pods", "status": "done"},
-                 {"id": "2", "name": "get_pod_logs", "status": "done"},
-             ]},
-            {"role": "user", "content": "Delete it so the deployment recreates it."},
-            {"role": "assistant", "content": "",
-             "tools": [{"id": "3", "name": "delete_pod", "status": "declined", "mutating": True}],
-             "error": "The request was cancelled."},
-        ],
-    },
-    "version": 1,
-}
+# A conversation as the assistant stores it: one per cluster (store v2), so it
+# is keyed by the active cluster the capture runs against. The second turn
+# shows a delete that was dry-run, shown with its diff and declined.
+AI_TURNS = [
+    {"role": "user", "content": "Why is the container-tester pod restarting?",
+     "refs": [{"resource": "pods", "namespace": "default", "name": "container-tester"}]},
+    {"role": "assistant", "content": "`pod/default/container-tester` is in CrashLoopBackOff. Its init container exits with status 1 after printing \"Hata oluştu, konteyner kapanıyor\", so the main container never starts.",
+     "tools": [
+         {"id": "1", "name": "describe_object", "status": "done", "args": {"resource": "pods", "namespace": "default", "name": "container-tester"}},
+         {"id": "2", "name": "get_pod_logs", "status": "done", "args": {"namespace": "default", "pod": "container-tester"}},
+     ]},
+    {"role": "user", "content": "Delete it so the deployment recreates it."},
+    {"role": "assistant", "content": "Understood, I won't delete it. Fixing the init container's command is the real cure; deleting the pod would only restart the same loop.",
+     "tools": [{"id": "3", "name": "delete_object", "status": "declined", "mutating": True,
+                "args": {"resource": "pods", "namespace": "default", "name": "container-tester"}}]},
+]
+
+
+def active_cluster():
+    try:
+        return (Path.home() / ".kube-ins" / ".active").read_text().strip()
+    except OSError:
+        return ""
+
+
+def ai_store(cluster):
+    return {
+        "state": {
+            "host": "http://localhost:11434",
+            "model": "",
+            "chats": {cluster: AI_TURNS},
+            "readOnly": {cluster: False},
+        },
+        "version": 2,
+    }
 
 
 def ai_log(d, shot):
     # Seeded into this Selenium profile only, then the page reloads to pick it up.
-    d.execute_script("localStorage.setItem('kube-ins-ai-chat-store', arguments[0]);", json.dumps(AI_LOG))
+    cluster = active_cluster()
+    need(cluster, "no active cluster")
+    d.execute_script("localStorage.setItem('kube-ins-ai-chat-store', arguments[0]);", json.dumps(ai_store(cluster)))
     d.get(URL)
     time.sleep(6)
     need(menu(d, "Open", "AI Assistant"), "no AI Assistant item")

@@ -182,6 +182,7 @@ interface TabContextValue {
     openPortForwards: () => void;
     openClusterResourceView: (clusterName: string) => void;
     openToolbox: (clusterName: string) => void;
+    openAiAssistant: (clusterName: string) => void;
     openClusterHistory: (clusterName: string, referencePanel?: string) => void;
     openObjectHistory: (def: ObjectHistoryDef) => void;
     openReceivedPanel: (panel: ReceivedPanel) => void;
@@ -623,6 +624,28 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
         });
     }, [t]);
 
+    // The AI assistant, one tab per cluster: its conversation and every tool
+    // it runs are pinned to the cluster it was opened for, like any panel.
+    const openAiAssistant = useCallback((clusterName: string) => {
+        const api = apiRef.current;
+        if (!api || !clusterName) return;
+
+        const panelId = `ai:${clusterName}`;
+        const existing = api.getPanel(panelId);
+        if (existing) {
+            existing.focus();
+            return;
+        }
+
+        const titleParams = { titleKey: 'panels:title.ai', titleVars: { suffix: clusterName } };
+        api.addPanel({
+            id: panelId,
+            component: 'aiAssistant',
+            title: renderPanelTitle(t, titleParams),
+            params: { clusterName, ...titleParams },
+        });
+    }, [t]);
+
     // One object's recorded timeline (toolbox). Opened from the places an
     // object is looked at — a list row, its YAML, Describe, the pod detail —
     // so it lands beside whichever panel asked.
@@ -807,6 +830,9 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
             case 'toolbox':
                 openToolbox(cn);
                 break;
+            case 'aiAssistant':
+                openAiAssistant(cn);
+                break;
             case 'clusterHistory':
                 openClusterHistory(cn);
                 break;
@@ -838,10 +864,10 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
                 openDiagnostics();
                 break;
         }
-    }, [openReceivedSession, openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openToolbox, openClusterHistory, openObjectHistory, openApplyYaml, openDiagnostics, openPortForwards]);
+    }, [openReceivedSession, openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openToolbox, openAiAssistant, openClusterHistory, openObjectHistory, openApplyYaml, openDiagnostics, openPortForwards]);
 
     return (
-        <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openNodeShellPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openToolbox, openClusterHistory, openObjectHistory, openDiagnostics, openPortForwards, openReceivedPanel }}>
+        <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openNodeShellPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openToolbox, openAiAssistant, openClusterHistory, openObjectHistory, openDiagnostics, openPortForwards, openReceivedPanel }}>
             {children}
         </TabContext.Provider>
     );

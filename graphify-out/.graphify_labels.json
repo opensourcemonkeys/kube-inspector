@@ -662,5 +662,17 @@
   "660": "12",
   "661": "2",
   "662": "ring",
-  "663": "ToolboxError"
+  "663": "ToolboxError",
+  "664": "Tool",
+  "665": "General",
+  "666": "ModelTags",
+  "667": "messages.go",
+  "668": "none",
+  "669": "16",
+  "670": "1",
+  "671": "3",
+  "672": "foreground",
+  "673": "muted-foreground",
+  "674": "primary",
+  "675": "primary-hover"
 }

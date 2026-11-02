@@ -49,22 +49,25 @@ export function parseInline(src: string): InlineNode[] {
 /** Only web links open; anything else (javascript:, file:, relative) renders as its text. */
 const isWebLink = (href: string) => /^https?:\/\//i.test(href);
 
-export function renderInline(nodes: InlineNode[], onLink: (href: string) => void): ReactNode {
+/** Renders a `code` span; return undefined to fall back to plain <code>. */
+export type CodeRenderer = (text: string, key: number) => ReactNode | undefined;
+
+export function renderInline(nodes: InlineNode[], onLink: (href: string) => void, renderCode?: CodeRenderer): ReactNode {
     return nodes.map((n, i) => {
         if (typeof n === 'string') return <Fragment key={i}>{n}</Fragment>;
         switch (n.kind) {
-            case 'code': return <code key={i}>{n.text}</code>;
-            case 'strong': return <strong key={i}>{renderInline(n.children, onLink)}</strong>;
-            case 'em': return <em key={i}>{renderInline(n.children, onLink)}</em>;
+            case 'code': return renderCode?.(n.text, i) ?? <code key={i}>{n.text}</code>;
+            case 'strong': return <strong key={i}>{renderInline(n.children, onLink, renderCode)}</strong>;
+            case 'em': return <em key={i}>{renderInline(n.children, onLink, renderCode)}</em>;
             case 'link':
                 return isWebLink(n.href)
-                    ? <a key={i} href={n.href} onClick={(e) => { e.preventDefault(); onLink(n.href); }}>{renderInline(n.children, onLink)}</a>
-                    : <Fragment key={i}>{renderInline(n.children, onLink)}</Fragment>;
+                    ? <a key={i} href={n.href} onClick={(e) => { e.preventDefault(); onLink(n.href); }}>{renderInline(n.children, onLink, renderCode)}</a>
+                    : <Fragment key={i}>{renderInline(n.children, onLink, renderCode)}</Fragment>;
         }
     });
 }
 
 /** Parses and renders one line of inline Markdown. */
-export function InlineMarkdown({ text, onLink }: { text: string; onLink: (href: string) => void }) {
-    return <>{renderInline(parseInline(text), onLink)}</>;
+export function InlineMarkdown({ text, onLink, renderCode }: { text: string; onLink: (href: string) => void; renderCode?: CodeRenderer }) {
+    return <>{renderInline(parseInline(text), onLink, renderCode)}</>;
 }

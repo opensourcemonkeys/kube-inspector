@@ -13,7 +13,8 @@
     "describe": "{{name}} Describe",
     "toolbox": "Toolbox",
     "clusterHistory": "Cluster Geçmişi",
-    "objectHistory": "Geçmiş {{name}}"
+    "objectHistory": "Geçmiş {{name}}",
+    "ai": "AI Asistanı"
   },
   "portForward": {
     "startedSummary": "Port yönlendirme başlatıldı",
@@ -506,7 +507,8 @@
     "graph": "Kaynak Grafiği",
     "connectionErrorTitle": "Bağlantı hatası",
     "connectionError": "Bağlantı Hatası",
-    "toolbox": "Toolbox"
+    "toolbox": "Toolbox",
+    "ai": "AI Asistanı"
   },
   "clusterModal": {
     "closeOverlay": "Pencereyi kapat",
@@ -1039,11 +1041,9 @@
     "backToChat": "Sohbete dön",
     "models": "Modeller",
     "refresh": "Yenile",
-    "assistant": "Asistan",
     "modelPlaceholder": "model",
     "manageModels": "Modelleri yönet",
     "clearChat": "Sohbeti temizle",
-    "close": "Kapat",
     "ollamaMissingTitle": "Ollama bulunamadı",
     "ollamaMissing": "Asistan yerel bir Ollama sunucusunda çalışır ve <1>{{host}}</1> adresinden erişilemiyor. Ollama'yı kurun (ya da kuruluysa başlatın), sonra yeniden deneyin.",
     "installOllama": "Ollama'yı kur",
@@ -1062,9 +1062,7 @@
     "noModelsMatch": "Eşleşen model yok.",
     "noToolSupport": "<1>{{model}}</1> araç çağırmayı yerel olarak desteklemiyor — daha az güvenilir olabilecek bir uyumluluk modu kullanılıyor. En iyi sonuç için <3>Modelleri yönet</3>'i açıp araç destekli bir model seçin (örn. <5>llama3.1</5>, <7>qwen2.5</7>).",
     "noModelsInstalled": "Kurulu model yok. <3>llama3.1</3> gibi araç destekli bir model edinmek için <1>Modelleri yönet</1> (indirme simgesi) bölümünü açın.",
-    "emptyChat": "Etkin küme hakkında soru sorun, örneğin \"kube-system içindeki pod'ları listele\" ya da \"X pod'u neden çöküyor?\". Silme, ölçekleme ve uygulama işlemleri onayınızı bekler.",
-    "working": "çalışıyor",
-    "workingEllipsis": "çalışıyor…",
+    "emptyChat": "{{cluster}} hakkında sorun, örneğin \"X pod'u neden çöküyor?\". Silme, ölçekleme, yeniden başlatma ve uygulama önce dry-run ile denenir ve onayınızı bekler.",
     "approveAction": "İşlemi onayla:",
     "deny": "Reddet",
     "approve": "Onayla",
@@ -1084,6 +1082,31 @@
       "done": "Tamamlandı",
       "declined": "Reddedildi",
       "error": "Başarısız"
+    },
+    "mode": "Asistanın yapabilecekleri",
+    "readOnly": "Salt okunur",
+    "allowChanges": "Değiştirebilir",
+    "readOnlyHint": "Asistan bu cluster'ı yalnızca okuyabilir. Değişiklik önerebilmesi için araç çubuğunda \"Değiştirebilir\"i seçin; her değişiklik yine onayınızı bekler.",
+    "emptyChatReadOnly": "{{cluster}} hakkında sorun, örneğin \"X pod'u neden çöküyor?\". Asistan burada salt okunur: bakabilir, değiştiremez.",
+    "toolLimit": "Bir turda çok fazla araç çağrısı yapıldığı için durdu. Devam etmek için daha dar bir soru sorun.",
+    "removeRef": "{{ref}} kaldır",
+    "confirmOn": "{{cluster}} üzerinde",
+    "dryRunPassed": "API sunucusu bu değişikliğin dry-run denemesini kabul etti. Henüz hiçbir şey değişmedi.",
+    "starter": {
+      "unhealthy": "Hangi pod'lar sağlıksız ve neden?",
+      "usage": "En çok CPU ve bellek kullanan ne?",
+      "changes": "Son bir saatte ne değişti?"
+    },
+    "verb": {
+      "create": "Oluştur",
+      "update": "Değiştir",
+      "delete": "Sil"
+    },
+    "ask": {
+      "label": "AI'a sor",
+      "object": "Bu objede bir sorun var mı? Durumuna, olaylarına ve loglarına bakıp bulduklarını açıkla.",
+      "logs": "Bu loglardaki hata ve uyarıları açıkla, olası nedeni öner.",
+      "event": "Bu olayı ve ne yapılması gerektiğini açıkla: {{reason}} — {{message}}"
     }
   },
   "metrics": {

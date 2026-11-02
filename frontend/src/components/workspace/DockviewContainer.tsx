@@ -42,6 +42,7 @@ const rawComponents = {
     policyViewer: lazy(() => import('../networkpolicy/PolicyViewerPanel')),
     clusterResource: lazy(() => import('../clusterresource/ClusterResourcePanel')),
     toolbox: lazy(() => import('../toolbox/ToolboxPanel')),
+    aiAssistant: lazy(() => import('../ai/AiAssistantPanel')),
     clusterHistory: lazy(() => import('../toolbox/history/ClusterHistoryPanel')),
     objectHistory: lazy(() => import('../toolbox/history/ObjectHistoryPanel')),
     configMapEditor: lazy(() => import('../configmap/ConfigMapEditorPanel')),

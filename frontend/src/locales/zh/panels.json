@@ -13,7 +13,8 @@
     "describe": "Describe {{name}}",
     "toolbox": "Toolbox",
     "clusterHistory": "集群历史",
-    "objectHistory": "历史 {{name}}"
+    "objectHistory": "历史 {{name}}",
+    "ai": "AI 助手"
   },
   "portForward": {
     "startedSummary": "端口转发已启动",
@@ -500,7 +501,8 @@
     "graph": "资源关系图",
     "connectionErrorTitle": "连接错误",
     "connectionError": "连接错误",
-    "toolbox": "Toolbox"
+    "toolbox": "Toolbox",
+    "ai": "AI 助手"
   },
   "clusterModal": {
     "closeOverlay": "关闭对话框",
@@ -1018,11 +1020,9 @@
     "backToChat": "返回聊天",
     "models": "模型",
     "refresh": "刷新",
-    "assistant": "助手",
     "modelPlaceholder": "模型",
     "manageModels": "管理模型",
     "clearChat": "清空聊天",
-    "close": "关闭",
     "ollamaMissingTitle": "未找到 Ollama",
     "ollamaMissing": "助手运行在本地 Ollama 服务上，但在 <1>{{host}}</1> 无法连接。请安装 Ollama（若已安装则启动它），然后重试。",
     "installOllama": "安装 Ollama",
@@ -1041,9 +1041,7 @@
     "noModelsMatch": "没有匹配的模型。",
     "noToolSupport": "<1>{{model}}</1> 原生不支持工具调用 — 正在使用可靠性较低的兼容模式。为获得最佳效果，请打开 <3>管理模型</3> 并选择支持工具的模型（例如 <5>llama3.1</5>、<7>qwen2.5</7>）。",
     "noModelsInstalled": "尚未安装任何模型。打开 <1>管理模型</1>（下载图标）以获取像 <3>llama3.1</3> 这样支持工具的模型。",
-    "emptyChat": "问问你的集群 — 例如“列出 kube-system 中的 pod”或“为什么 pod X 一直崩溃？”。经你确认后，我也可以执行删除、伸缩和应用操作。",
-    "working": "处理中",
-    "workingEllipsis": "处理中…",
+    "emptyChat": "询问关于 {{cluster}} 的问题，例如“为什么 pod X 一直崩溃？”。删除、扩缩、重启和应用都会先进行 dry-run，并等待您的批准。",
     "approveAction": "确认操作：",
     "deny": "拒绝",
     "approve": "同意",
@@ -1063,6 +1061,31 @@
       "done": "完成",
       "declined": "已拒绝",
       "error": "失败"
+    },
+    "mode": "助手可以做什么",
+    "readOnly": "只读",
+    "allowChanges": "可修改",
+    "readOnlyHint": "助手只能读取此集群。在工具栏中选择“可修改”即可让它提出更改——每项更改仍需您批准。",
+    "emptyChatReadOnly": "询问关于 {{cluster}} 的问题，例如“为什么 pod X 一直崩溃？”。助手在此为只读：只能查看，不能修改。",
+    "toolLimit": "单轮工具调用过多，已停止。请提出更具体的问题以继续。",
+    "removeRef": "移除 {{ref}}",
+    "confirmOn": "于 {{cluster}}",
+    "dryRunPassed": "API 服务器已接受此更改的 dry-run。尚未进行任何更改。",
+    "starter": {
+      "unhealthy": "哪些 pod 不健康？原因是什么？",
+      "usage": "什么占用的 CPU 和内存最多？",
+      "changes": "过去一小时发生了什么变化？"
+    },
+    "verb": {
+      "create": "创建",
+      "update": "修改",
+      "delete": "删除"
+    },
+    "ask": {
+      "label": "询问 AI",
+      "object": "这个对象有问题吗？检查它的状态、事件和日志，并说明你的发现。",
+      "logs": "解释这些日志中的错误和警告，并给出可能的原因。",
+      "event": "解释此事件以及应如何处理：{{reason}} — {{message}}"
     }
   },
   "metrics": {

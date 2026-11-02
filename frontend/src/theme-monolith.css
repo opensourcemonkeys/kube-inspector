@@ -2481,44 +2481,22 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .trivy-rec { display: flex; flex-direction: column; gap: 4px; padding: 2px 0 2px 12px; border-left: 2px solid var(--info); }
 
 /* ============================================================================
-   AI Assistant — floating chat window + title-bar toggle
+   AI Assistant — one Dockview tab per cluster
    ============================================================================ */
-/* Active state for menubar items (e.g. AI assistant while its panel is open) */
-.tb-actions .p-menuitem.tb-menu-active > .p-menuitem-content .p-menuitem-link .p-menuitem-text,
-.tb-actions .p-menuitem.tb-menu-active > .p-menuitem-content .p-menuitem-link .p-menuitem-icon {
-  color: var(--accent);
-}
-
-.ai-float {
-  position: fixed; right: 18px; bottom: 18px; z-index: 4000;
-  width: 400px; height: 560px; max-height: calc(100vh - 80px);
-  display: flex; flex-direction: column;
-  background: var(--bezel); color: var(--ink);
-  border: 1px solid var(--line-strong); border-radius: var(--radius-dlg);
-  box-shadow: var(--shadow-3);
-  overflow: hidden;
-}
-.ai-float__head {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 10px; cursor: move; user-select: none;
-  background: var(--bezel-raised); border-bottom: 1px solid var(--line);
-}
-.ai-float__logo { color: var(--ink-3); flex: none; }
-.ai-float__title { font-size: 13px; font-weight: 600; flex: none; }
-.ai-float__model { margin-left: auto; min-width: 130px; max-width: 180px; height: 26px; }
-.ai-float__model .p-dropdown-label { line-height: 24px; font-size: 11.5px; }
-/* Dropdown panel is appended to <body>; lift it above the floating window (z 4000). */
-.ai-model-dropdown { z-index: 5000 !important; }
+.ai-panel { height: 100%; display: flex; flex-direction: column; min-height: 0; background: var(--bezel); color: var(--ink); }
+.ai-panel .panel-toolbar__label { overflow: visible; }
+.ai-panel__model { min-width: 140px; max-width: 220px; height: 26px; }
+.ai-panel__model .p-dropdown-label { line-height: 24px; font-size: 11.5px; }
 .ai-model-dropdown .p-dropdown-items .p-dropdown-item { font-size: 12px; }
 
-.ai-float__hint { padding: 8px 12px; font-size: 12px; line-height: 1.5; color: var(--ink-2); border-bottom: 1px solid var(--line); border-left: 2px solid var(--warn); }
-.ai-float__hint code, .ai-float__warn code, .ai-install__text code { font-family: var(--font-family-mono); font-size: 11.5px; background: var(--bezel-high); padding: 0 4px; border-radius: var(--radius-ctl); }
-.ai-float__warn { padding: 2px 0 2px 10px; font-size: 12px; line-height: 1.5; color: var(--ink-2); border-left: 2px solid var(--warn); }
+.ai-panel__hint { padding: 8px 12px; font-size: 12px; line-height: 1.5; color: var(--ink-2); border-bottom: 1px solid var(--line); border-left: 2px solid var(--warn); }
+.ai-panel__hint code, .ai-panel__warn code, .ai-install__text code { font-family: var(--font-family-mono); font-size: 11.5px; background: var(--bezel-high); padding: 0 4px; border-radius: var(--radius-ctl); }
+.ai-panel__warn { padding: 2px 0 2px 10px; font-size: 12px; line-height: 1.5; color: var(--ink-2); border-left: 2px solid var(--warn); }
 
-.ai-float__body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 14px; background: var(--screen); }
-.ai-float__empty { color: var(--ink-3); font-size: 12.5px; line-height: 1.55; margin: auto 0; padding: 0 14px; max-width: 46ch; }
-.ai-float__empty--fill { flex: 1; display: flex; align-items: center; justify-content: center; }
-.ai-float__push { margin-left: auto; display: flex; }
+.ai-panel__body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px 18px; display: flex; flex-direction: column; gap: 14px; background: var(--screen); }
+.ai-panel__empty { color: var(--ink-3); font-size: 12.5px; line-height: 1.55; margin: auto 0; padding: 0 14px; max-width: 60ch; }
+.ai-panel__empty p { margin: 0 0 12px; }
+.ai-panel__empty--fill { flex: 1; display: flex; align-items: center; justify-content: center; }
 
 /* The conversation as a console log on the screen surface: no bubbles, one
    column, left-aligned. A user turn is set off by the accent notch and a
@@ -2533,6 +2511,38 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .ai-msg__error { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px; line-height: 1.5; color: var(--ink-2); word-break: break-word; }
 .ai-msg__error > .lamp { flex-shrink: 0; }
 
+/* Assistant prose: paragraphs a line at a time, fenced code as a dark well.
+   Object references are buttons that read as code. */
+.ai-msg__text .ai-msg__para + .ai-msg__para,
+.ai-msg__text .ai-msg__para + .ai-msg__code,
+.ai-msg__text .ai-msg__code + .ai-msg__para { margin-top: 8px; }
+.ai-msg__text code { font-family: var(--font-family-mono); font-size: 12px; background: var(--bezel-high); padding: 0 4px; border-radius: var(--radius-ctl); }
+.ai-msg__code { margin: 0; padding: 8px 10px; font-family: var(--font-family-mono); font-size: 12px; line-height: 1.5; white-space: pre; overflow-x: auto; color: var(--ink-2); background: var(--well); border: 1px solid var(--line); border-radius: var(--radius-ctl); }
+.ai-msg__note { font-size: 12px; color: var(--ink-3); }
+.ai-ref {
+  font-family: var(--font-family-mono); font-size: 12px; color: var(--info);
+  background: transparent; border: none; padding: 0; cursor: pointer;
+  text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--info) 45%, transparent); text-underline-offset: 2px;
+}
+.ai-ref:hover { text-decoration-color: currentColor; }
+.ai-tool__ref { font-size: 11.5px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Starter prompts on an empty chat: they fill the input, never send. */
+.ai-starters { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-starter { font-family: var(--font-family); font-size: 12px; color: var(--ink-2); background: var(--bezel); border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); padding: 5px 10px; cursor: pointer; }
+.ai-starter:hover { color: var(--ink); border-color: var(--accent); }
+
+/* Chips: objects handed to the next turn (removable), and the read-only mark. */
+.ai-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ai-chip { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; font-family: var(--font-family-mono); font-size: 11.5px; color: var(--ink); background: var(--screen); border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); padding: 2px 4px 2px 8px; }
+button.ai-chip { padding: 2px 8px; cursor: pointer; }
+.ai-chip__open { font: inherit; color: inherit; background: none; border: none; padding: 0; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-chip__open:hover, button.ai-chip:hover { color: var(--info); }
+.ai-chip__remove { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; color: var(--ink-3); background: none; border: none; border-radius: var(--radius-ctl); cursor: pointer; }
+.ai-chip__remove:hover { color: var(--ink); background: var(--bezel-high); }
+.ai-chip--mode { font-family: var(--font-family); color: var(--ink-2); padding-right: 8px; }
+.ai-chips--sent .ai-chip { background: transparent; }
+
 /* "Working (4 s)": a counting line, not an animation. */
 .ai-working { font-size: 12px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
 
@@ -2543,21 +2553,32 @@ body.dv-dragging, body.dv-dragging * { user-select: none !important; -webkit-use
 .ai-tool__status { margin-left: auto; font-family: var(--font-family); color: var(--ink-3); }
 
 /* A mutating tool waiting for approval: a hold in the log, ruled in warn. */
-.ai-confirm { margin: 0 12px 10px; padding: 10px 12px; background: var(--bezel-raised); border: 1px solid var(--line-strong); border-left: 2px solid var(--warn); border-radius: var(--radius-pop); }
-.ai-confirm__title { font-size: 12.5px; margin-bottom: 6px; color: var(--ink-2); }
+.ai-confirm { display: flex; flex-direction: column; gap: 8px; max-height: 60%; overflow-y: auto; margin: 0 12px 10px; padding: 10px 12px; background: var(--bezel-raised); border: 1px solid var(--line-strong); border-left: 2px solid var(--warn); border-radius: var(--radius-pop); }
+.ai-confirm__title { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; font-size: 12.5px; color: var(--ink-2); }
 .ai-confirm__title b { font-family: var(--font-family-mono); font-weight: 500; color: var(--ink); }
-.ai-confirm__args { font-family: var(--font-family-mono); font-size: 11.5px; color: var(--ink-2); background: var(--well); border: 1px solid var(--line); border-radius: var(--radius-ctl); padding: 8px 10px; margin: 0 0 10px; max-height: 160px; overflow: auto; }
+.ai-confirm__args { font-family: var(--font-family-mono); font-size: 11.5px; color: var(--ink-2); background: var(--well); border: 1px solid var(--line); border-radius: var(--radius-ctl); padding: 8px 10px; margin: 0; max-height: 160px; overflow: auto; }
 .ai-confirm__btns { display: flex; gap: 8px; justify-content: flex-end; }
+.ai-confirm__cluster { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink); }
+.ai-confirm__dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; background: var(--dot, var(--ink-3)); }
+.ai-confirm__note { font-size: 12px; color: var(--ink-2); }
+.ai-confirm__item { display: flex; flex-direction: column; gap: 4px; }
+.ai-confirm__obj { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.ai-confirm__verb { font-size: 11px; font-weight: 600; padding: 0 5px; border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); color: var(--ink-2); }
+.ai-confirm__verb--delete { color: var(--err); border-color: color-mix(in srgb, var(--err) 50%, transparent); }
+.ai-confirm__verb--create { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 50%, transparent); }
+.ai-confirm__ref { font-family: var(--font-family-mono); color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-confirm__diff { height: 220px; border: 1px solid var(--line); border-radius: var(--radius-ctl); overflow: hidden; display: flex; align-items: center; justify-content: center; }
 
-.ai-float__input { display: flex; align-items: flex-end; gap: 8px; padding: 10px; border-top: 1px solid var(--line); background: var(--bezel-raised); }
-.ai-float__input textarea {
+.ai-panel__compose { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-top: 1px solid var(--line); background: var(--bezel-raised); }
+.ai-panel__input { display: flex; align-items: flex-end; gap: 8px; }
+.ai-panel__input textarea {
   flex: 1; resize: none; font-family: var(--font-family); font-size: 12.5px; line-height: 1.4;
   background: var(--screen); color: var(--ink); border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); padding: 8px 10px;
   max-height: 120px;
 }
-.ai-float__input textarea:focus { outline: none; border-color: var(--accent); }
-.ai-float__input textarea::placeholder { color: var(--ink-3); }
-.ai-float__send.p-button { width: 36px; height: 36px; flex: none; }
+.ai-panel__input textarea:focus { outline: none; border-color: var(--accent); }
+.ai-panel__input textarea::placeholder { color: var(--ink-3); }
+.ai-panel__send.p-button { width: 36px; height: 36px; flex: none; }
 
 /* Install / not-available gate */
 .ai-install { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 22px; gap: 10px; }

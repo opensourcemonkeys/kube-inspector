@@ -62,6 +62,7 @@ function getComponentType(panelId: string): string {
     if (panelId.startsWith('object-yaml:')) return 'objectYaml';
     if (panelId.startsWith('cluster-resource-view')) return 'clusterResource';
     if (panelId.startsWith('toolbox:')) return 'toolbox';
+    if (panelId.startsWith('ai:')) return 'aiAssistant';
     if (panelId.startsWith('cluster-history:')) return 'clusterHistory';
     if (panelId.startsWith('object-history:')) return 'objectHistory';
     return 'view';
