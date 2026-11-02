@@ -52,7 +52,7 @@
     "eslint": "^9.39.5",
     "eslint-plugin-i18next": "^6.1.5",
     "eslint-plugin-react-hooks": "^5.2.0",
-    "globals": "^15.15.0",
+    "globals": "^17.13.0",
     "jsdom": "^25.0.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.72.1",
