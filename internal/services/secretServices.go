@@ -60,38 +60,6 @@ func UpdateSecretYaml(namespace, name, yamlContent string, client *kubernetes.Cl
 	return err
 }
 
-func GetSecretData(namespace, name string, client *kubernetes.Clientset) (map[string]string, error) {
-	if namespace == "" || name == "" {
-		return nil, errNamespaceNameRequired
-	}
-	s, err := client.CoreV1().Secrets(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	result := make(map[string]string, len(s.Data))
-	for k, v := range s.Data {
-		result[k] = string(v)
-	}
-	return result, nil
-}
-
-func UpdateSecretData(namespace, name string, data map[string]string, client *kubernetes.Clientset) error {
-	if namespace == "" || name == "" {
-		return errNamespaceNameRequired
-	}
-	s, err := client.CoreV1().Secrets(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	newData := make(map[string][]byte, len(data))
-	for k, v := range data {
-		newData[k] = []byte(v)
-	}
-	s.Data = newData
-	_, err = client.CoreV1().Secrets(namespace).Update(context.Background(), s, metav1.UpdateOptions{})
-	return err
-}
-
 func secretToInfo(s corev1.Secret) models.SecretInfo {
 	return models.SecretInfo{
 		Name:      s.Name,

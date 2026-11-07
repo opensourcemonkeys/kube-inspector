@@ -8,9 +8,11 @@ import type React from 'react';
  * `storageKey` and survives restarts; both sides keep at least `minPane`.
  *
  * With `axis: 'y'` the pane is below the main area instead and `width` is
- * its height (the object history's diff under its timeline).
+ * its height (the object history's diff under its timeline). With
+ * `from: 'start'` the sized pane is the one on the left (or top) instead —
+ * the ConfigMap/Secret editor's key list.
  */
-export function useSplitPane(storageKey: string, defaultWidth: number, minPane: number, axis: 'x' | 'y' = 'x') {
+export function useSplitPane(storageKey: string, defaultWidth: number, minPane: number, axis: 'x' | 'y' = 'x', from: 'start' | 'end' = 'end') {
     const splitRef = useRef<HTMLDivElement>(null);
     const [width, setWidth] = useState<number>(() => {
         try {
@@ -28,8 +30,11 @@ export function useSplitPane(storageKey: string, defaultWidth: number, minPane: 
         handle.setPointerCapture(e.pointerId);
         let next = width;
         const move = (ev: PointerEvent) => {
-            const [far, pos, span] = axis === 'x' ? [box.right, ev.clientX, box.width] : [box.bottom, ev.clientY, box.height];
-            next = Math.round(Math.min(Math.max(far - pos, minPane), span - minPane));
+            const [near, far, pos, span] = axis === 'x'
+                ? [box.left, box.right, ev.clientX, box.width]
+                : [box.top, box.bottom, ev.clientY, box.height];
+            const size = from === 'end' ? far - pos : pos - near;
+            next = Math.round(Math.min(Math.max(size, minPane), span - minPane));
             setWidth(next);
         };
         const up = () => {

@@ -18,6 +18,8 @@ import {
     windowAtCursor,
 } from '../../lib/shellWindows';
 import { isWindowOnly, prepareWindowHandoff } from '../../lib/terminalHandoff';
+import { isDirty } from '../../lib/unsavedChanges';
+import ConfirmActionDialog from '../shared/ConfirmActionDialog';
 
 
 // How far the pointer must travel before a press counts as a drag rather than
@@ -73,6 +75,16 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
     const { instances, selfInfo, transferTab } = useInstanceContext();
     const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null);
     const [siblingWindows, setSiblingWindows] = useState<ShellWindow[]>([]);
+    // A panel with unsaved edits (lib/unsavedChanges) asks before it closes
+    // or moves: neither carries the draft along. Resolves true to go ahead.
+    const [discardAsk, setDiscardAsk] = useState<((ok: boolean) => void) | null>(null);
+    const confirmDiscard = useCallback((): Promise<boolean> => {
+        if (!isDirty(api.id)) return Promise.resolve(true);
+        return new Promise(resolve => setDiscardAsk(() => resolve));
+    }, [api.id]);
+    const closeTab = async () => {
+        if (await confirmDiscard()) api.close();
+    };
     const tabRef = useRef<HTMLDivElement>(null);
 
     const componentType = getComponentType(api.id);
@@ -229,6 +241,7 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
             // so that is a no-op. Decided before the hand-off below, which must
             // only run for a panel that really leaves.
             if (targetWindow === null && containerApi.totalPanels <= 1) { endGhost(); return; }
+            if (!(await confirmDiscard())) { endGhost(); return; }
 
             const panel = await prepareWindowHandoff(serialize());
             // Send the panel BEFORE ending the ghost: the target places it
@@ -254,7 +267,7 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
             el.removeEventListener('pointerdown', onPointerDown);
             onCancel();
         };
-    }, [api, canTransfer, serialize]);
+    }, [api, canTransfer, serialize, confirmDiscard]);
 
     // --- Middle-click close -------------------------------------------------
     //
@@ -272,7 +285,7 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
         if (e.button !== 1) return;
         e.preventDefault();
         e.stopPropagation();
-        api.close();
+        void closeTab();
     };
 
     // --- Right-click menu ---------------------------------------------------
@@ -286,6 +299,7 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
     };
 
     const handleSelect = async (target: TabTarget) => {
+        if (!(await confirmDiscard())) return;
         const panel = target.kind === 'instance' ? serialize() : await prepareWindowHandoff(serialize());
         switch (target.kind) {
             case 'undock':
@@ -330,11 +344,23 @@ export default function FloatableTab({ api, containerApi, params }: IDockviewPan
 
             <button
                 title={t('panels:tabMenu.close')}
-                onClick={e => { e.stopPropagation(); api.close(); }}
+                onClick={e => { e.stopPropagation(); void closeTab(); }}
                 className="tab-close-btn"
             >
                 <VscClose size={13} />
             </button>
+
+            {discardAsk && (
+                <ConfirmActionDialog
+                    visible
+                    header={t('panels:tabMenu.unsavedTitle')}
+                    message={t('panels:tabMenu.unsavedMessage', { title: api.title })}
+                    confirmLabel={t('panels:tabMenu.discard')}
+                    severity="danger"
+                    onConfirm={async () => { discardAsk(true); }}
+                    onHide={() => { discardAsk(false); setDiscardAsk(null); }}
+                />
+            )}
 
             {menuPos && (
                 <InstancePickerMenu

@@ -32,6 +32,7 @@ import { useAskAi } from '../ai/useAskAi';
 import { parseObjectRef } from '../ai/refs';
 import type { AiRef } from '../../stores/aiChatStore';
 import { useLogViewerStore, TAIL_OPTIONS, SINCE_OPTIONS } from '../../stores/logViewerStore';
+import { TOAST_LIFE } from '../../lib/toast';
 
 export type WorkloadKind = 'pod' | 'deployment' | 'statefulset' | 'replicaset' | 'daemonset' | 'job' | 'cronjob';
 
@@ -113,7 +114,7 @@ export default function LogViewerPanel({ params, api }: IDockviewPanelProps<LogV
     const lastScrollRef = useRef({ top: 0, height: 0 });
 
     const toast = useCallback((severity: 'success' | 'error' | 'warn', summary: string, detail?: string) => {
-        toastRef.current?.show({ severity, summary, detail, life: 3000 });
+        toastRef.current?.show({ severity, summary, detail, life: TOAST_LIFE[severity] });
     }, []);
 
     // Batch the stream into one state update per tick: an event per chunk

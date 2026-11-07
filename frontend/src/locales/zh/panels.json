@@ -161,6 +161,18 @@
       "warn": "警告",
       "fail": "失败",
       "skip": "已跳过"
+    },
+    "toast": {
+      "saved": "诊断信息已保存",
+      "exportFailed": "导出失败",
+      "copied": "已复制",
+      "copiedDetail": "报告已复制到剪贴板。",
+      "copyFailed": "无法复制",
+      "copyFailedDetail": "此处无法使用剪贴板。",
+      "buildFailed": "无法生成报告",
+      "noFolder": "此处无法打开文件夹",
+      "pathCopied": "已复制路径：{{dir}}",
+      "dirUnknown": "日志目录未知。"
     }
   },
   "trivy": {
@@ -534,7 +546,15 @@
     "users": "用户",
     "currentContext": "当前 Context",
     "noServerEndpoint": "没有服务器端点",
-    "save": "保存"
+    "save": "保存",
+    "toast": {
+      "readFailed": "读取失败",
+      "readFailedDetail": "无法读取该文件",
+      "incomplete": "暂时无法保存",
+      "nameRequired": "必须填写配置名称",
+      "contentRequired": "必须填写 kubeconfig 内容",
+      "saveFailed": "保存失败"
+    }
   },
   "cliMode": {
     "badge": "CLI 模式",
@@ -661,7 +681,10 @@
     "undock": "在新窗口中打开",
     "toWindow": "移动到窗口",
     "toInstance": "移动到实例",
-    "close": "关闭"
+    "close": "关闭",
+    "unsavedTitle": "放弃未保存的更改？",
+    "unsavedMessage": "“{{title}}” 有未保存的更改。关闭或移动标签页会丢失这些更改。",
+    "discard": "放弃更改"
   },
   "info": {
     "placeholder": "信息页"
@@ -857,10 +880,6 @@
     "exportSaved": "已保存到 {{path}}",
     "exportFailed": "无法保存：{{error}}"
   },
-  "configMapEditor": {
-    "addKey": "添加键",
-    "empty": "此 ConfigMap 没有键。"
-  },
   "crd": {
     "loading": "正在加载 CRD…",
     "noMatch": "没有符合筛选条件的 CRD",
@@ -887,7 +906,8 @@
     "anyScope": "任意范围",
     "refreshDefinitions": "刷新定义和实例数量",
     "deleteBody_other": "要删除以下 {{count}} 条 {{label}} 记录吗？",
-    "deleteAlsoRemoves": " 这同时会移除它的所有 custom resource。"
+    "deleteAlsoRemoves": " 这同时会移除它的所有 custom resource。",
+    "deletedDetail_other": "已删除 {{count}} 条 {{label}} 记录"
   },
   "events": {
     "title": "Event 列表",
@@ -994,13 +1014,6 @@
   "roleBindingEditor": {
     "addSubject": "添加主体",
     "empty": "此绑定没有主体。"
-  },
-  "secretEditor": {
-    "addKey": "添加键",
-    "empty": "此 Secret 没有键。",
-    "showValue": "显示值",
-    "hideValue": "隐藏值",
-    "masked": "值已隐藏"
   },
   "roleMap": {
     "label": "安全角色图",
@@ -1357,6 +1370,118 @@
       "notInstalled": "此集群未安装 toolbox。",
       "forbidden": "你的权限不允许在此集群读取 toolbox。",
       "unreachable": "此集群的 toolbox 没有响应。"
+    }
+  },
+  "dataEditor": {
+    "addKey": "添加键",
+    "addFromFile": "从文件添加",
+    "keys": "键",
+    "searchKeys": "筛选键",
+    "noKeys": "没有键",
+    "noMatch": "没有匹配的键",
+    "unnamed": "（未命名）",
+    "binary": "二进制",
+    "emptyConfigMap": "此 ConfigMap 没有键。",
+    "emptySecret": "此 Secret 没有键。",
+    "selectKey": "请在左侧选择一个键。",
+    "keyName": "键名",
+    "keyPlaceholder": "key-name",
+    "show": "显示值",
+    "hide": "隐藏值",
+    "copy": "复制值",
+    "copied": "已复制 {{key}}",
+    "copyFailed": "无法复制",
+    "download": "保存到文件",
+    "replaceFromFile": "用文件替换",
+    "saved": "已保存到 {{path}}",
+    "saveFailed": "无法保存文件",
+    "remove": "删除键",
+    "restore": "恢复键",
+    "willRemove": "保存时将删除此键。",
+    "binaryValue": "二进制值 · {{size}}",
+    "binaryHint": "二进制数据不以文本显示。可以保存到文件，或用其他文件替换。",
+    "hiddenValue": "值已隐藏 · {{size}}",
+    "parseError": "第 {{line}} 行：{{message}}",
+    "immutable": "不可变，只读",
+    "loadFailed": "无法加载",
+    "reviewHint": "检查更改并保存 (Ctrl+S)",
+    "reviewCount_other": "检查 {{count}} 处更改",
+    "savedObject": "已保存 {{name}}",
+    "usedBy": "使用者",
+    "usedByNone": "没有 Pod 使用此对象。",
+    "usedByError": "无法列出使用者：{{message}}",
+    "needsRestart": "需要重启",
+    "openDescribe": "打开 Describe",
+    "status": {
+      "new": "新增",
+      "modified": "已更改",
+      "deleted": "已删除"
+    },
+    "problem": {
+      "empty": "键必须有名称。",
+      "chars": "只能使用字母、数字、“-”、“_” 和 “.”。",
+      "length": "最多 253 个字符。",
+      "dots": "键不能是 “.” 或以 “..” 开头。",
+      "duplicate": "已有同名的键。"
+    },
+    "review": {
+      "open": "检查并保存",
+      "title": "保存 {{name}}",
+      "changes_other": "{{count}} 处更改",
+      "added": "已添加",
+      "removed": "已删除",
+      "modified": "已更改",
+      "renamed": "由 {{from}} 重命名",
+      "checking": "正在 API 服务器上试运行…",
+      "checked": "试运行通过",
+      "saving": "正在保存…",
+      "savedOk": "已保存",
+      "showValues": "显示值",
+      "hideValues": "隐藏值",
+      "code": {
+        "conflict": "打开后已被他人修改",
+        "immutable": "对象不可变",
+        "invalid": "某个键或值无效",
+        "rejected": "API 服务器拒绝了更改"
+      }
+    },
+    "conflict": {
+      "reload": "放弃我的更改并重新加载",
+      "applyMine": "将我的更改应用到最新版本"
+    },
+    "restart": {
+      "title": "重启工作负载？",
+      "message": "这些工作负载只在容器启动时读取此对象（env、envFrom 或 subPath 挂载）。重启前它们会继续使用旧值。",
+      "confirm": "重启所选",
+      "skip": "暂不",
+      "manual": "请手动重启",
+      "running": "正在重启…",
+      "started": "已开始滚动更新",
+      "failed": "重启失败"
+    },
+    "tls": {
+      "subject": "主体",
+      "issuer": "颁发者",
+      "names": "名称",
+      "validUntil": "有效期至",
+      "key": "私钥",
+      "daysLeft_other": "剩余 {{count}} 天",
+      "expired": "已过期",
+      "keyMatches": "与证书匹配",
+      "keyMismatch": "与证书不匹配",
+      "unreadable": "无法读取证书"
+    },
+    "docker": {
+      "mode": "编辑模式",
+      "form": "表单",
+      "raw": "原文",
+      "server": "镜像仓库",
+      "username": "用户名",
+      "password": "密码",
+      "email": "电子邮件",
+      "add": "添加仓库",
+      "remove": "删除仓库",
+      "empty": "还没有仓库。"
     }
   }
 }

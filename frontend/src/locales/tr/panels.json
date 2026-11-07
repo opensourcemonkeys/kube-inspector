@@ -162,6 +162,18 @@
       "warn": "Uyarı",
       "fail": "Başarısız",
       "skip": "Atlandı"
+    },
+    "toast": {
+      "saved": "Tanılama kaydedildi",
+      "exportFailed": "Dışa aktarılamadı",
+      "copied": "Kopyalandı",
+      "copiedDetail": "Rapor panoya kopyalandı.",
+      "copyFailed": "Kopyalanamadı",
+      "copyFailedDetail": "Pano burada kullanılamıyor.",
+      "buildFailed": "Rapor oluşturulamadı",
+      "noFolder": "Klasör burada açılamıyor",
+      "pathCopied": "Yol kopyalandı: {{dir}}",
+      "dirUnknown": "Log dizini bilinmiyor."
     }
   },
   "trivy": {
@@ -540,7 +552,15 @@
     "users": "Kullanıcı",
     "currentContext": "Geçerli context",
     "noServerEndpoint": "Sunucu uç noktası yok",
-    "save": "Kaydet"
+    "save": "Kaydet",
+    "toast": {
+      "readFailed": "Okunamadı",
+      "readFailedDetail": "Dosya okunamadı",
+      "incomplete": "Henüz kaydedilemiyor",
+      "nameRequired": "Config adı gerekli",
+      "contentRequired": "Kubeconfig içeriği gerekli",
+      "saveFailed": "Kaydedilemedi"
+    }
   },
   "cliMode": {
     "badge": "CLI modu",
@@ -668,7 +688,10 @@
     "undock": "Yeni pencerede aç",
     "toWindow": "Pencereye taşı",
     "toInstance": "Örneğe taşı",
-    "close": "Kapat"
+    "close": "Kapat",
+    "unsavedTitle": "Kaydedilmemiş değişiklikler atılsın mı?",
+    "unsavedMessage": "“{{title}}” içinde kaydedilmemiş değişiklikler var. Tab kapanır ya da taşınırsa kaybolur.",
+    "discard": "Değişiklikleri at"
   },
   "info": {
     "placeholder": "Bilgi sayfası"
@@ -876,10 +899,6 @@
     "exportSaved": "Kaydedildi: {{path}}",
     "exportFailed": "Kaydedilemedi: {{error}}"
   },
-  "configMapEditor": {
-    "addKey": "Anahtar ekle",
-    "empty": "Bu ConfigMap'te anahtar yok."
-  },
   "crd": {
     "loading": "CRD'ler yükleniyor…",
     "noMatch": "Filtreyle eşleşen CRD yok",
@@ -908,7 +927,9 @@
     "refreshDefinitions": "Tanımları ve örnek sayılarını yenile",
     "deleteBody_one": "Aşağıdaki {{label}} silinsin mi?",
     "deleteBody_other": "Aşağıdaki {{count}} {{label}} kaydı silinsin mi?",
-    "deleteAlsoRemoves": " Bu, ona ait tüm custom resource'ları da kaldırır."
+    "deleteAlsoRemoves": " Bu, ona ait tüm custom resource'ları da kaldırır.",
+    "deletedDetail_one": "{{label}} silindi",
+    "deletedDetail_other": "{{count}} {{label}} kaydı silindi"
   },
   "events": {
     "title": "Event Listesi",
@@ -1015,13 +1036,6 @@
   "roleBindingEditor": {
     "addSubject": "Özne ekle",
     "empty": "Bu bağlamada özne yok."
-  },
-  "secretEditor": {
-    "addKey": "Anahtar ekle",
-    "empty": "Bu Secret'ta anahtar yok.",
-    "showValue": "Değeri göster",
-    "hideValue": "Değeri gizle",
-    "masked": "Değer gizli"
   },
   "roleMap": {
     "label": "Güvenlik Rol Haritası",
@@ -1383,6 +1397,121 @@
       "notInstalled": "Bu cluster'da toolbox kurulu değil.",
       "forbidden": "Erişim yetkin bu cluster'da toolbox'ı okumaya izin vermiyor.",
       "unreachable": "toolbox bu cluster'da yanıt vermedi."
+    }
+  },
+  "dataEditor": {
+    "addKey": "Key ekle",
+    "addFromFile": "Dosyadan ekle",
+    "keys": "Key'ler",
+    "searchKeys": "Key filtrele",
+    "noKeys": "Key yok",
+    "noMatch": "Eşleşen key yok",
+    "unnamed": "(adsız)",
+    "binary": "binary",
+    "emptyConfigMap": "Bu ConfigMap'te key yok.",
+    "emptySecret": "Bu Secret'ta key yok.",
+    "selectKey": "Soldan bir key seçin.",
+    "keyName": "Key adı",
+    "keyPlaceholder": "key-adi",
+    "show": "Değeri göster",
+    "hide": "Değeri gizle",
+    "copy": "Değeri kopyala",
+    "copied": "{{key}} kopyalandı",
+    "copyFailed": "Kopyalanamadı",
+    "download": "Dosyaya kaydet",
+    "replaceFromFile": "Dosyadan değiştir",
+    "saved": "{{path}} konumuna kaydedildi",
+    "saveFailed": "Dosya kaydedilemedi",
+    "remove": "Key'i sil",
+    "restore": "Key'i geri al",
+    "willRemove": "Bu key kaydedince silinecek.",
+    "binaryValue": "Binary değer · {{size}}",
+    "binaryHint": "Binary veri metin olarak gösterilmez. Dosyaya kaydedebilir ya da başka bir dosyayla değiştirebilirsiniz.",
+    "hiddenValue": "Değer gizli · {{size}}",
+    "parseError": "Satır {{line}}: {{message}}",
+    "immutable": "Değiştirilemez, salt-okunur",
+    "loadFailed": "Yüklenemedi",
+    "reviewHint": "Değişiklikleri gözden geçir ve kaydet (Ctrl+S)",
+    "reviewCount_one": "{{count}} değişikliği gözden geçir",
+    "reviewCount_other": "{{count}} değişikliği gözden geçir",
+    "savedObject": "{{name}} kaydedildi",
+    "usedBy": "Kullananlar",
+    "usedByNone": "Bu objeyi kullanan pod yok.",
+    "usedByError": "Kullananlar listelenemedi: {{message}}",
+    "needsRestart": "Yeniden başlatma gerekir",
+    "openDescribe": "Describe aç",
+    "status": {
+      "new": "Yeni",
+      "modified": "Değişti",
+      "deleted": "Silindi"
+    },
+    "problem": {
+      "empty": "Key'in bir adı olmalı.",
+      "chars": "Yalnızca harf, rakam, “-”, “_” ve “.” kullanılabilir.",
+      "length": "En fazla 253 karakter.",
+      "dots": "Key “.” olamaz ve “..” ile başlayamaz.",
+      "duplicate": "Bu adla başka bir key var."
+    },
+    "review": {
+      "open": "Gözden geçir ve kaydet",
+      "title": "{{name}} kaydediliyor",
+      "changes_one": "{{count}} değişiklik",
+      "changes_other": "{{count}} değişiklik",
+      "added": "eklendi",
+      "removed": "silindi",
+      "modified": "değişti",
+      "renamed": "{{from}} adından değişti",
+      "checking": "API sunucusunda dry-run…",
+      "checked": "Dry-run geçti",
+      "saving": "Kaydediliyor…",
+      "savedOk": "Kaydedildi",
+      "showValues": "Değerleri göster",
+      "hideValues": "Değerleri gizle",
+      "code": {
+        "conflict": "Siz açtıktan sonra başkası değiştirdi",
+        "immutable": "Obje değiştirilemez (immutable)",
+        "invalid": "Bir key ya da değer geçersiz",
+        "rejected": "API sunucusu değişikliği reddetti"
+      }
+    },
+    "conflict": {
+      "reload": "Benimkileri at ve yeniden yükle",
+      "applyMine": "Benimkileri en günceline uygula"
+    },
+    "restart": {
+      "title": "Workload'lar yeniden başlatılsın mı?",
+      "message": "Bu workload'lar objeyi yalnızca container başlarken okur (env, envFrom ya da subPath mount). Yeniden başlatılana kadar eski değerlerle çalışırlar.",
+      "confirm": "Seçilenleri yeniden başlat",
+      "skip": "Şimdi değil",
+      "manual": "elle yeniden başlatın",
+      "running": "Yeniden başlatılıyor…",
+      "started": "Rollout başladı",
+      "failed": "Yeniden başlatılamadı"
+    },
+    "tls": {
+      "subject": "Konu",
+      "issuer": "Veren",
+      "names": "Adlar",
+      "validUntil": "Geçerlilik sonu",
+      "key": "Özel anahtar",
+      "daysLeft_one": "{{count}} gün kaldı",
+      "daysLeft_other": "{{count}} gün kaldı",
+      "expired": "Süresi doldu",
+      "keyMatches": "Sertifikayla eşleşiyor",
+      "keyMismatch": "Sertifikayla eşleşmiyor",
+      "unreadable": "Sertifika okunamıyor"
+    },
+    "docker": {
+      "mode": "Düzenleme modu",
+      "form": "Form",
+      "raw": "Ham",
+      "server": "Registry",
+      "username": "Kullanıcı adı",
+      "password": "Parola",
+      "email": "E-posta",
+      "add": "Registry ekle",
+      "remove": "Registry'yi sil",
+      "empty": "Henüz registry yok."
     }
   }
 }

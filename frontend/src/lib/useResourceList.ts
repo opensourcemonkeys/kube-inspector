@@ -6,6 +6,7 @@ import { usePanelActive } from './usePanelActive';
 import { usePayloadSignature } from './usePayloadSignature';
 import { errText } from './errText';
 import { useT } from '../i18n/useT';
+import { TOAST_LIFE } from './toast';
 
 /** Minimal shape every list row shares. Namespace is absent for cluster-scoped resources. */
 export interface ResourceRow {
@@ -21,6 +22,13 @@ export interface ResourceRow {
     __rowKey?: string;
 }
 
+/**
+ * Per-delete switches a kind's dialog offers (a pod's force / grace period 0).
+ * Every one starts unticked each time the dialog opens, and is handed to the
+ * deleter as its fourth argument; deleters that offer none ignore it.
+ */
+export type DeleteFlags = Record<string, boolean>;
+
 export interface UseResourceListOptions<T extends ResourceRow> {
     clusterName: string;
     /** Wails binding that returns the raw list, e.g. GetPods. */
@@ -28,7 +36,7 @@ export interface UseResourceListOptions<T extends ResourceRow> {
     /** Deserializer, e.g. models.PodInfo.createFrom. */
     createFrom: (raw: any) => T;
     /** Wails delete binding, e.g. DeletePod. When provided, the delete flow is enabled. */
-    deleter?: (clusterName: string, name: string, namespace: string) => Promise<void>;
+    deleter?: (clusterName: string, name: string, namespace: string, flags: DeleteFlags) => Promise<void>;
     /** Human label used in delete toasts/dialog, e.g. "pod". */
     deleteLabel?: string;
     defaultFilters: DataTableFilterMeta;
@@ -60,6 +68,8 @@ export interface UseResourceListResult<T extends ResourceRow> {
     setFilters: (f: DataTableFilterMeta) => void;
     deleting: boolean;
     deleteDialogVisible: boolean;
+    deleteFlags: DeleteFlags;
+    setDeleteFlags: (flags: DeleteFlags) => void;
     openDeleteDialog: () => void;
     closeDeleteDialog: () => void;
     handleDeleteSelected: () => Promise<void>;
@@ -95,6 +105,7 @@ export function useResourceList<T extends ResourceRow>(
     const [selected, setSelected] = useState<T[]>([]);
     const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [deleteFlags, setDeleteFlags] = useState<DeleteFlags>({});
     const [filters, setFilters] = useState<DataTableFilterMeta>(defaultFilters);
     const toastRef = useRef<Toast>(null);
     const active = usePanelActive(api);
@@ -150,7 +161,9 @@ export function useResourceList<T extends ResourceRow>(
     }, [active, pollInterval, reload]);
 
     const openDeleteDialog = useCallback(() => {
-        if (selected.length > 0) setDeleteDialogVisible(true);
+        if (selected.length === 0) return;
+        setDeleteFlags({});
+        setDeleteDialogVisible(true);
     }, [selected]);
 
     const closeDeleteDialog = useCallback(() => {
@@ -172,19 +185,19 @@ export function useResourceList<T extends ResourceRow>(
             // catalog.
             const target = `${row.namespace ? `${row.namespace}/` : ''}${row.name}`;
             try {
-                await deleter(clusterName, row.name, row.namespace ?? '');
+                await deleter(clusterName, row.name, row.namespace ?? '', deleteFlags);
                 toastRef.current?.show({
                     severity: 'success',
                     summary: t('resources:delete.toast.successSummary'),
                     detail: t('resources:delete.toast.successDetail', { target }),
-                    life: 2500,
+                    life: TOAST_LIFE.success,
                 });
             } catch {
                 toastRef.current?.show({
                     severity: 'error',
                     summary: t('resources:delete.toast.failSummary'),
                     detail: t('resources:delete.toast.failDetail', { target }),
-                    life: 3500,
+                    life: TOAST_LIFE.error,
                 });
             }
         }
@@ -193,7 +206,7 @@ export function useResourceList<T extends ResourceRow>(
         setDeleteDialogVisible(false);
         setDeleting(false);
         await reload();
-    }, [deleter, selected, clusterName, reload, t]);
+    }, [deleter, selected, deleteFlags, clusterName, reload, t]);
 
     // Per-field cache of the last option array handed out, keyed by the sorted
     // values themselves. `items` gets a brand new array identity on every poll
@@ -237,6 +250,8 @@ export function useResourceList<T extends ResourceRow>(
             setFilters,
             deleting,
             deleteDialogVisible,
+            deleteFlags,
+            setDeleteFlags,
             openDeleteDialog,
             closeDeleteDialog,
             handleDeleteSelected,
@@ -253,6 +268,7 @@ export function useResourceList<T extends ResourceRow>(
             filters,
             deleting,
             deleteDialogVisible,
+            deleteFlags,
             openDeleteDialog,
             closeDeleteDialog,
             handleDeleteSelected,

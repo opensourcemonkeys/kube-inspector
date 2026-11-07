@@ -3,11 +3,13 @@ import type { DockviewPanelApi } from 'dockview';
 import { Menu } from 'primereact/menu';
 import type { MenuItem } from 'primereact/menuitem';
 import { VscClose, VscEdit, VscHubot, VscListFlat, VscTerminal, VscTrash } from 'react-icons/vsc';
-import { DeletePod, GetPodContainerUsage, GetPodDetail } from '../../../../wailsjs/go/controller_app/App';
+import { DeletePodWithOptions, GetPodContainerUsage, GetPodDetail } from '../../../../wailsjs/go/controller_app/App';
 import { models } from '../../../../wailsjs/go/models';
 import { useTabContext } from '../../../contexts/TabContext';
 import ErrorBanner from '../../shared/ErrorBanner';
 import ConfirmActionDialog from '../../shared/ConfirmActionDialog';
+import PodDeleteOptions from '../PodDeleteOptions';
+import type { DeleteFlags } from '../../../lib/useResourceList';
 import { errText } from '../../../lib/errText';
 import { absTime, humanAge } from '../../../lib/time';
 import { usePanelActive } from '../../../lib/usePanelActive';
@@ -59,6 +61,7 @@ export default function PodDetailPanel({ clusterName, name, namespace, reference
     const execMenuRef = useRef<Menu>(null);
     const [execItems, setExecItems] = useState<MenuItem[]>([]);
     const [confirmDelete, setConfirmDelete] = useState(false);
+    const [deleteFlags, setDeleteFlags] = useState<DeleteFlags>({});
 
     const [detail, setDetail] = useState<models.PodDetailInfo | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -135,7 +138,7 @@ export default function PodDetailPanel({ clusterName, name, namespace, reference
                     onClick={() => askAi(clusterName, t('panels:ai.ask.object'), [{ resource: 'pods', namespace, name }])} />
                 <RowAction icon={<VscEdit size={15} />} label={t('resources:pod.detail.edit')}
                     onClick={() => openYamlPanel({ clusterName, resourceKind: 'pod', name, namespace, referencePanel })} />
-                <RowAction icon={<VscTrash size={15} />} label={t('action.delete')} severity="danger" onClick={() => setConfirmDelete(true)} />
+                <RowAction icon={<VscTrash size={15} />} label={t('action.delete')} severity="danger" onClick={() => { setDeleteFlags({}); setConfirmDelete(true); }} />
                 <RowAction icon={<VscClose size={15} />} label={t('resources:pod.detail.close')} onClick={onClose} />
             </div>
         </header>
@@ -264,9 +267,10 @@ export default function PodDetailPanel({ clusterName, name, namespace, reference
                 message={<>{t('resources:delete.body', { label: 'pod' })} <strong>{`${namespace}/${name}`}</strong></>}
                 confirmLabel={t('action.delete')}
                 severity="danger"
+                extra={<PodDeleteOptions value={deleteFlags} onChange={setDeleteFlags} />}
                 onHide={() => setConfirmDelete(false)}
                 onConfirm={async () => {
-                    await DeletePod(clusterName, name, namespace);
+                    await DeletePodWithOptions(clusterName, name, namespace, !!deleteFlags.force, !!deleteFlags.gracePeriodZero);
                     onClose();
                 }}
             />

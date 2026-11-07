@@ -195,3 +195,29 @@ func TestPodWarnings(t *testing.T) {
 		})
 	}
 }
+
+func TestPodDeleteOptions(t *testing.T) {
+	cases := []struct {
+		name            string
+		force, zero     bool
+		wantGracePeriod *int64
+	}{
+		{"neither keeps the pod's own grace period", false, false, nil},
+		{"force removes at once", true, false, ptrInt64(0)},
+		{"grace period 0 alone becomes 1s, as in kubectl", false, true, ptrInt64(1)},
+		{"both remove at once", true, true, ptrInt64(0)},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := podDeleteOptions(tc.force, tc.zero).GracePeriodSeconds
+			switch {
+			case tc.wantGracePeriod == nil && got != nil:
+				t.Fatalf("GracePeriodSeconds = %d, want unset", *got)
+			case tc.wantGracePeriod != nil && got == nil:
+				t.Fatalf("GracePeriodSeconds unset, want %d", *tc.wantGracePeriod)
+			case tc.wantGracePeriod != nil && *got != *tc.wantGracePeriod:
+				t.Fatalf("GracePeriodSeconds = %d, want %d", *got, *tc.wantGracePeriod)
+			}
+		})
+	}
+}

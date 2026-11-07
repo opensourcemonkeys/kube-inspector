@@ -21,6 +21,7 @@ import { writeClipboard } from '../../lib/clipboard';
 import { errText } from '../../lib/errText';
 import { useT } from '../../i18n/useT';
 import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
+import { TOAST_LIFE } from '../../lib/toast';
 
 type TagSeverity = 'success' | 'info' | 'warning' | 'danger' | 'secondary' | 'contrast';
 
@@ -78,7 +79,7 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
     }, [active, refresh]);
 
     const notify = (severity: 'success' | 'error', summary: string, detail: string) =>
-        toastRef.current?.show({ severity, summary, detail, life: severity === 'error' ? 6000 : 3000 });
+        toastRef.current?.show({ severity, summary, detail, life: TOAST_LIFE[severity] });
 
     const stop = async (f: PortForward) => {
         setBusyId(f.id);
@@ -148,7 +149,7 @@ export default function PortForwardsPanel({ api }: IDockviewPanelProps<Record<st
 
     return (
         <div className="pf-panel">
-            <Toast ref={toastRef} />
+            <Toast ref={toastRef} position="bottom-right" />
 
             <div className="rlv-toolbar">
                 <h3 className="rlv-toolbar__title">{t('panels:portForwards.title')}</h3>

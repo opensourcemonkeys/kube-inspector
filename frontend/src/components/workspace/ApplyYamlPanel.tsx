@@ -17,6 +17,7 @@ import { renderPanelTitle } from '../../contexts/TabContext';
 import { useT } from '../../i18n/useT';
 import RowAction from '../shared/RowAction';
 import StatusLamp from '../shared/StatusLamp';
+import { TOAST_LIFE } from '../../lib/toast';
 
 interface ApplyYamlPanelParams {
     clusterName?: string;
@@ -69,7 +70,7 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
                 severity: 'warn',
                 summary: t('panels:applyYaml.emptyTitle'),
                 detail: t('panels:applyYaml.emptyDetail'),
-                life: 2500,
+                life: TOAST_LIFE.warn,
             });
             return;
         }
@@ -79,7 +80,7 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
                 severity: 'warn',
                 summary: t('panels:applyYaml.noClusterTitle'),
                 detail: t('panels:applyYaml.noClusterDetail'),
-                life: 2500,
+                life: TOAST_LIFE.warn,
             });
             return;
         }
@@ -94,7 +95,7 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
                 severity: 'success',
                 summary: t('panels:applyYaml.applied'),
                 detail: t('panels:applyYaml.appliedDetail', { cluster }),
-                life: 2500,
+                life: TOAST_LIFE.success,
             });
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : String(err);
@@ -104,7 +105,7 @@ export default function ApplyYamlPanel({ api, params }: IDockviewPanelProps<Appl
                 severity: 'error',
                 summary: t('panels:applyYaml.failed'),
                 detail: msg,
-                life: 4000,
+                life: TOAST_LIFE.error,
             });
         } finally {
             setApplying(false);

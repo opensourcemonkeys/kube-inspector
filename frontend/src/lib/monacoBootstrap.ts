@@ -5,6 +5,11 @@ import { loader } from '@monaco-editor/react';
 import * as monacoEditor from 'monaco-editor';
 import 'monaco-editor/features/register.all';
 import 'monaco-editor/languages/definitions/yaml/register';
+// The ConfigMap/Secret editor shows config files; these three grammars are
+// ~10KB together and cover .conf/.properties/.ini, shell scripts and XML.
+import 'monaco-editor/languages/definitions/ini/register';
+import 'monaco-editor/languages/definitions/shell/register';
+import 'monaco-editor/languages/definitions/xml/register';
 import { monoFontReady } from './fonts';
 
 /**

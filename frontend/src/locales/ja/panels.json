@@ -161,6 +161,18 @@
       "warn": "警告",
       "fail": "失敗",
       "skip": "スキップ"
+    },
+    "toast": {
+      "saved": "診断情報を保存しました",
+      "exportFailed": "エクスポートに失敗しました",
+      "copied": "コピーしました",
+      "copiedDetail": "レポートをクリップボードにコピーしました。",
+      "copyFailed": "コピーできませんでした",
+      "copyFailedDetail": "ここではクリップボードを使用できません。",
+      "buildFailed": "レポートを作成できませんでした",
+      "noFolder": "ここではフォルダーを開けません",
+      "pathCopied": "パスをコピーしました: {{dir}}",
+      "dirUnknown": "ログディレクトリが不明です。"
     }
   },
   "trivy": {
@@ -534,7 +546,15 @@
     "users": "ユーザー",
     "currentContext": "現在の Context",
     "noServerEndpoint": "サーバーエンドポイントなし",
-    "save": "保存"
+    "save": "保存",
+    "toast": {
+      "readFailed": "読み込みに失敗しました",
+      "readFailedDetail": "ファイルを読み込めませんでした",
+      "incomplete": "まだ保存できません",
+      "nameRequired": "設定名は必須です",
+      "contentRequired": "kubeconfig の内容は必須です",
+      "saveFailed": "保存に失敗しました"
+    }
   },
   "cliMode": {
     "badge": "CLI モード",
@@ -661,7 +681,10 @@
     "undock": "新しいウィンドウで開く",
     "toWindow": "ウィンドウへ移動",
     "toInstance": "インスタンスへ移動",
-    "close": "閉じる"
+    "close": "閉じる",
+    "unsavedTitle": "保存していない変更を破棄しますか？",
+    "unsavedMessage": "「{{title}}」に保存していない変更があります。タブを閉じるか移動すると失われます。",
+    "discard": "変更を破棄"
   },
   "info": {
     "placeholder": "情報ページ"
@@ -857,10 +880,6 @@
     "exportSaved": "保存しました: {{path}}",
     "exportFailed": "保存できませんでした: {{error}}"
   },
-  "configMapEditor": {
-    "addKey": "キーを追加",
-    "empty": "この ConfigMap にはキーがありません。"
-  },
   "crd": {
     "loading": "CRD を読み込み中…",
     "noMatch": "フィルターに一致する CRD はありません",
@@ -887,7 +906,8 @@
     "anyScope": "スコープを問わない",
     "refreshDefinitions": "定義とインスタンス数を更新",
     "deleteBody_other": "次の {{count}} 件の {{label}} レコードを削除しますか？",
-    "deleteAlsoRemoves": " これにより、その custom resource もすべて削除されます。"
+    "deleteAlsoRemoves": " これにより、その custom resource もすべて削除されます。",
+    "deletedDetail_other": "{{count}} 件の {{label}} レコードを削除しました"
   },
   "events": {
     "title": "Event 一覧",
@@ -994,13 +1014,6 @@
   "roleBindingEditor": {
     "addSubject": "サブジェクトを追加",
     "empty": "このバインディングにはサブジェクトがありません。"
-  },
-  "secretEditor": {
-    "addKey": "キーを追加",
-    "empty": "この Secret にはキーがありません。",
-    "showValue": "値を表示",
-    "hideValue": "値を隠す",
-    "masked": "値は非表示"
   },
   "roleMap": {
     "label": "セキュリティロールマップ",
@@ -1357,6 +1370,118 @@
       "notInstalled": "このクラスターには toolbox がインストールされていません。",
       "forbidden": "このクラスターで toolbox を読み取る権限がありません。",
       "unreachable": "このクラスターの toolbox が応答しませんでした。"
+    }
+  },
+  "dataEditor": {
+    "addKey": "キーを追加",
+    "addFromFile": "ファイルから追加",
+    "keys": "キー",
+    "searchKeys": "キーを絞り込む",
+    "noKeys": "キーがありません",
+    "noMatch": "一致するキーがありません",
+    "unnamed": "（名前なし）",
+    "binary": "バイナリ",
+    "emptyConfigMap": "この ConfigMap にはキーがありません。",
+    "emptySecret": "この Secret にはキーがありません。",
+    "selectKey": "左側でキーを選択してください。",
+    "keyName": "キー名",
+    "keyPlaceholder": "key-name",
+    "show": "値を表示",
+    "hide": "値を隠す",
+    "copy": "値をコピー",
+    "copied": "{{key}} をコピーしました",
+    "copyFailed": "コピーできませんでした",
+    "download": "ファイルに保存",
+    "replaceFromFile": "ファイルで置き換え",
+    "saved": "{{path}} に保存しました",
+    "saveFailed": "ファイルを保存できませんでした",
+    "remove": "キーを削除",
+    "restore": "キーを元に戻す",
+    "willRemove": "保存するとこのキーは削除されます。",
+    "binaryValue": "バイナリ値 · {{size}}",
+    "binaryHint": "バイナリデータはテキストとして表示されません。ファイルに保存するか、別のファイルで置き換えてください。",
+    "hiddenValue": "値は非表示 · {{size}}",
+    "parseError": "{{line}} 行目: {{message}}",
+    "immutable": "変更不可、読み取り専用",
+    "loadFailed": "読み込めませんでした",
+    "reviewHint": "変更を確認して保存 (Ctrl+S)",
+    "reviewCount_other": "{{count}} 件の変更を確認",
+    "savedObject": "{{name}} を保存しました",
+    "usedBy": "使用元",
+    "usedByNone": "このオブジェクトを使う Pod はありません。",
+    "usedByError": "使用元を取得できませんでした: {{message}}",
+    "needsRestart": "再起動が必要",
+    "openDescribe": "Describe を開く",
+    "status": {
+      "new": "新規",
+      "modified": "変更",
+      "deleted": "削除"
+    },
+    "problem": {
+      "empty": "キーには名前が必要です。",
+      "chars": "使えるのは英数字と「-」「_」「.」だけです。",
+      "length": "253 文字以内にしてください。",
+      "dots": "キーを「.」にしたり「..」で始めたりできません。",
+      "duplicate": "同じ名前のキーがあります。"
+    },
+    "review": {
+      "open": "確認して保存",
+      "title": "{{name}} を保存",
+      "changes_other": "{{count}} 件の変更",
+      "added": "追加",
+      "removed": "削除",
+      "modified": "変更",
+      "renamed": "{{from}} から名前変更",
+      "checking": "API サーバーでドライラン中…",
+      "checked": "ドライラン成功",
+      "saving": "保存中…",
+      "savedOk": "保存しました",
+      "showValues": "値を表示",
+      "hideValues": "値を隠す",
+      "code": {
+        "conflict": "開いた後に他の人が変更しました",
+        "immutable": "オブジェクトは変更不可です",
+        "invalid": "キーまたは値が無効です",
+        "rejected": "API サーバーが変更を拒否しました"
+      }
+    },
+    "conflict": {
+      "reload": "自分の変更を破棄して再読み込み",
+      "applyMine": "自分の変更を最新版に適用"
+    },
+    "restart": {
+      "title": "ワークロードを再起動しますか？",
+      "message": "これらのワークロードはコンテナの起動時にだけこのオブジェクトを読みます（env、envFrom、subPath マウント）。再起動するまで古い値のままです。",
+      "confirm": "選択したものを再起動",
+      "skip": "今はしない",
+      "manual": "手動で再起動してください",
+      "running": "再起動中…",
+      "started": "ロールアウト開始",
+      "failed": "再起動に失敗しました"
+    },
+    "tls": {
+      "subject": "サブジェクト",
+      "issuer": "発行者",
+      "names": "名前",
+      "validUntil": "有効期限",
+      "key": "秘密鍵",
+      "daysLeft_other": "残り {{count}} 日",
+      "expired": "期限切れ",
+      "keyMatches": "証明書と一致",
+      "keyMismatch": "証明書と一致しません",
+      "unreadable": "証明書を読み取れません"
+    },
+    "docker": {
+      "mode": "編集モード",
+      "form": "フォーム",
+      "raw": "テキスト",
+      "server": "レジストリ",
+      "username": "ユーザー名",
+      "password": "パスワード",
+      "email": "メール",
+      "add": "レジストリを追加",
+      "remove": "レジストリを削除",
+      "empty": "レジストリはまだありません。"
     }
   }
 }

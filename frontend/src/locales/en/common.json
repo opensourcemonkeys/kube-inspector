@@ -26,5 +26,13 @@
   "value": {
     "yes": "Yes",
     "no": "No"
+  },
+  "toast": {
+    "updated": "Updated",
+    "updatedDetail": "{{target}} updated",
+    "updateFailed": "Update failed",
+    "updateFailedDetail": "{{target}} could not be updated",
+    "loadFailed": "Load failed",
+    "loadFailedDetail": "{{target}} could not be loaded"
   }
 }

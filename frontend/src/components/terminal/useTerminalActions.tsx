@@ -33,6 +33,7 @@ import { useT } from '../../i18n/useT';
 import { SaveText } from '../../../wailsjs/go/controller_app/App';
 import PastePreviewDialog from './PastePreviewDialog';
 import TerminalSearchBar from './TerminalSearchBar';
+import { TOAST_LIFE } from '../../lib/toast';
 
 // Key names, not prose — these are what is printed on the user's keyboard and
 // must not be translated.
@@ -109,7 +110,7 @@ export function useTerminalActions(opts: TerminalActionsOptions): TerminalAction
 
     const toast = useCallback(
         (severity: 'success' | 'error' | 'warn', summary: string, detail?: string) => {
-            toastRef.current?.show({ severity, summary, detail, life: 3000 });
+            toastRef.current?.show({ severity, summary, detail, life: TOAST_LIFE[severity] });
         },
         [],
     );

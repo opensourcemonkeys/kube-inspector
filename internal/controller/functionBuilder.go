@@ -251,6 +251,10 @@ func (a *App) DeletePod(clusterName string, name string, namespace string) error
 	return bussiness.DeletePod(clusterName, name, namespace)
 }
 
+func (a *App) DeletePodWithOptions(clusterName string, name string, namespace string, force bool, gracePeriodZero bool) error {
+	return bussiness.DeletePodWithOptions(clusterName, name, namespace, force, gracePeriodZero)
+}
+
 func (a *App) GetPodYaml(clusterName string, name string, namespace string) (string, error) {
 	return bussiness.GetPodYaml(clusterName, name, namespace)
 }
@@ -491,12 +495,43 @@ func (a *App) UpdateSecretYaml(clusterName string, name string, namespace string
 	return bussiness.UpdateSecretYaml(clusterName, name, namespace, yamlContent)
 }
 
-func (a *App) GetSecretData(clusterName string, name string, namespace string) (map[string]string, error) {
-	return bussiness.GetSecretData(clusterName, name, namespace)
+// ============================================================================
+// ConfigMap / Secret key-value editor
+// ============================================================================
+
+// GetDataObject reads a ConfigMap or Secret (kind) for the key/value editor;
+// values are base64 so binary data survives.
+func (a *App) GetDataObject(clusterName, kind, namespace, name string) (models.DataObject, error) {
+	return bussiness.GetDataObject(clusterName, kind, namespace, name)
 }
 
-func (a *App) UpdateSecretData(clusterName string, name string, namespace string, data map[string]string) error {
-	return bussiness.UpdateSecretData(clusterName, name, namespace, data)
+// SaveDataObject saves the editor's entries against the resourceVersion it
+// loaded, or only dry-runs them.
+func (a *App) SaveDataObject(clusterName, kind, namespace, name, resourceVersion string, entries []models.DataEntry, dryRun bool) (models.DataSaveResult, error) {
+	return bussiness.SaveDataObject(clusterName, kind, namespace, name, resourceVersion, entries, dryRun)
+}
+
+func (a *App) GetDataConsumers(clusterName, kind, namespace, name string) ([]models.DataConsumer, error) {
+	return bussiness.GetDataConsumers(clusterName, kind, namespace, name)
+}
+
+func (a *App) InspectTlsPair(certB64, keyB64 string) models.TlsInfo {
+	return bussiness.InspectTlsPair(certB64, keyB64)
+}
+
+// SaveDataValue prompts for a location and writes one ConfigMap/Secret value
+// (base64) there as-is. Returns "" if the user cancelled.
+func (a *App) SaveDataValue(defaultName, valueB64 string) (string, error) {
+	path, err := a.saveFile(SaveFileOptions{
+		Title:       "Save value",
+		DefaultName: defaultName,
+		FilterName:  "All files (*)",
+		Pattern:     "*",
+	})
+	if err != nil || path == "" {
+		return "", err
+	}
+	return bussiness.SaveDataValueFile(path, valueB64)
 }
 
 // ============================================================================
@@ -517,14 +552,6 @@ func (a *App) GetConfigMapYaml(clusterName string, name string, namespace string
 
 func (a *App) UpdateConfigMapYaml(clusterName string, name string, namespace string, yamlContent string) error {
 	return bussiness.UpdateConfigMapYaml(clusterName, name, namespace, yamlContent)
-}
-
-func (a *App) GetConfigMapData(clusterName string, name string, namespace string) (map[string]string, error) {
-	return bussiness.GetConfigMapData(clusterName, name, namespace)
-}
-
-func (a *App) UpdateConfigMapData(clusterName string, name string, namespace string, data map[string]string) error {
-	return bussiness.UpdateConfigMapData(clusterName, name, namespace, data)
 }
 
 // ============================================================================

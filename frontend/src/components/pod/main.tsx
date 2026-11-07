@@ -9,11 +9,13 @@ import { Menu } from 'primereact/menu';
 import { Tooltip } from 'primereact/tooltip';
 import type { MenuItem, MenuItemOptions } from 'primereact/menuitem';
 import { VscTerminal, VscListFlat, VscWarning } from 'react-icons/vsc';
-import { GetPods, DeletePod } from '../../../wailsjs/go/controller_app/App';
+import { GetPods, DeletePodWithOptions } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
 import ResourceListView from '../shared/ResourceListView';
 import PodDetailPanel from './detail/PodDetailPanel';
+import PodDeleteOptions from './PodDeleteOptions';
+import type { DeleteFlags } from '../../lib/useResourceList';
 import { containerDotColor, fmtCpu, fmtMem, getStatusSeverity } from './podStatus';
 import { humanAge, absTime } from '../../lib/time';
 import { useSplitPane } from '../../lib/useSplitPane';
@@ -29,6 +31,13 @@ const getReadySeverity = (ready: number, total: number) => {
 
 // A pod with no controller. A Kubernetes kind name, so it stays English (locales/GLOSSARY.md).
 const BARE_POD = 'Pod';
+
+const deletePod = (clusterName: string, name: string, namespace: string, flags: DeleteFlags) =>
+    DeletePodWithOptions(clusterName, name, namespace, !!flags.force, !!flags.gracePeriodZero);
+
+const deleteFlagsEditor = (flags: DeleteFlags, setFlags: (flags: DeleteFlags) => void, disabled: boolean) => (
+    <PodDeleteOptions value={flags} onChange={setFlags} disabled={disabled} />
+);
 
 const DETAIL_WIDTH_KEY = 'kube-ins:pod-detail-width';
 const DEFAULT_DETAIL_WIDTH = 620;
@@ -89,8 +98,9 @@ export default function DataTableComponent({ clusterName, api }: { clusterName: 
             api={api}
             fetcher={GetPods}
             createFrom={models.PodInfo.createFrom}
-            deleter={DeletePod}
+            deleter={deletePod}
             deleteLabel="pod"
+            deleteFlagsEditor={deleteFlagsEditor}
             impactKind="Pod"
             pollInterval={2000}
             describeResource="pods"

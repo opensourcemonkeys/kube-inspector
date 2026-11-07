@@ -107,7 +107,13 @@
       "failSummary": "Silme başarısız",
       "failDetail": "{{target}} silinemedi"
     },
-    "more": "ve {{count}} tane daha"
+    "more": "ve {{count}} tane daha",
+    "options": {
+      "force": "Zorla sil (force)",
+      "forceHint": "Kubelet onayı beklenmeden API'den hemen kaldırılır. Container'lar bir süre düğümde çalışmaya devam edebilir.",
+      "gracePeriodZero": "Grace period 0",
+      "gracePeriodZeroHint": "Container'lara hemen durma sinyali gider, kapanmak için 1 saniye tanınır (kubectl'deki gibi); kubelet yine onaylar."
+    }
   },
   "namespace": {
     "createTitle": "Namespace Oluştur",

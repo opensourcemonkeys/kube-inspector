@@ -107,7 +107,13 @@
       "failSummary": "Löschen fehlgeschlagen",
       "failDetail": "{{target}} konnte nicht gelöscht werden"
     },
-    "more": "und {{count}} weitere"
+    "more": "und {{count}} weitere",
+    "options": {
+      "force": "Löschen erzwingen (force)",
+      "forceHint": "Wird sofort aus der API entfernt, ohne auf die Bestätigung des Kubelets zu warten. Die Container können noch eine Weile auf dem Node weiterlaufen.",
+      "gracePeriodZero": "Grace period 0",
+      "gracePeriodZeroHint": "Die Container werden sofort zum Beenden aufgefordert und haben 1 Sekunde dafür (wie bei kubectl); das Kubelet bestätigt weiterhin."
+    }
   },
   "namespace": {
     "createTitle": "Namespace anlegen",

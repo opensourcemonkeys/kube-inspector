@@ -42,19 +42,3 @@ func UpdateSecretYaml(clusterName string, name, namespace, yamlContent string) e
 	}
 	return services.UpdateSecretYaml(namespace, name, yamlContent, client)
 }
-
-func GetSecretData(clusterName string, name, namespace string) (map[string]string, error) {
-	client, err := repository.NewK8sClientForCluster(clusterName)
-	if err != nil {
-		return nil, err
-	}
-	return services.GetSecretData(namespace, name, client)
-}
-
-func UpdateSecretData(clusterName string, name, namespace string, data map[string]string) error {
-	client, err := repository.NewK8sClientForCluster(clusterName)
-	if err != nil {
-		return err
-	}
-	return services.UpdateSecretData(namespace, name, data, client)
-}

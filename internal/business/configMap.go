@@ -42,19 +42,3 @@ func UpdateConfigMapYaml(clusterName string, name, namespace, yamlContent string
 	}
 	return services.UpdateConfigMapYaml(namespace, name, yamlContent, client)
 }
-
-func GetConfigMapData(clusterName string, name, namespace string) (map[string]string, error) {
-	client, err := repository.NewK8sClientForCluster(clusterName)
-	if err != nil {
-		return nil, err
-	}
-	return services.GetConfigMapData(namespace, name, client)
-}
-
-func UpdateConfigMapData(clusterName string, name, namespace string, data map[string]string) error {
-	client, err := repository.NewK8sClientForCluster(clusterName)
-	if err != nil {
-		return err
-	}
-	return services.UpdateConfigMapData(namespace, name, data, client)
-}

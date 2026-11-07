@@ -15,6 +15,7 @@ import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
 import { ACTION_COLUMN_PROPS } from '../shared/actionColumn';
 import RowAction from '../shared/RowAction';
+import { TOAST_LIFE } from '../../lib/toast';
 
 interface RoleEditorPanelParams {
     clusterName: string;
@@ -90,7 +91,7 @@ export default function RoleEditorPanel({ params }: IDockviewPanelProps<RoleEdit
                 setStoredLabels(role.labels ?? {});
                 setStoredAnnotations(role.annotations ?? {});
             } catch {
-                toast.current?.show({ severity: 'error', summary: 'Load failed', detail: `${namespace}/${name} could not be loaded`, life: 3500 });
+                toast.current?.show({ severity: 'error', summary: t('common:toast.loadFailed'), detail: t('common:toast.loadFailedDetail', { target: `${namespace}/${name}` }), life: TOAST_LIFE.error });
             }
         };
         load();
@@ -127,9 +128,9 @@ export default function RoleEditorPanel({ params }: IDockviewPanelProps<RoleEdit
             await UpdateRole(cn, name, namespace, storedLabels, storedAnnotations, rowsToRules(rows));
             setOriginalRows(rows.map(r => ({ ...r })));
             setDirty(false);
-            toast.current?.show({ severity: 'success', summary: 'Updated', detail: `${namespace}/${name} updated`, life: 2500 });
+            toast.current?.show({ severity: 'success', summary: t('common:toast.updated'), detail: t('common:toast.updatedDetail', { target: `${namespace}/${name}` }), life: TOAST_LIFE.success });
         } catch {
-            toast.current?.show({ severity: 'error', summary: 'Update failed', detail: `${namespace}/${name} could not be updated`, life: 3500 });
+            toast.current?.show({ severity: 'error', summary: t('common:toast.updateFailed'), detail: t('common:toast.updateFailedDetail', { target: `${namespace}/${name}` }), life: TOAST_LIFE.error });
         } finally {
             setSaving(false);
         }

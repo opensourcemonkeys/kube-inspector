@@ -21,6 +21,7 @@ import RowAction from '../shared/RowAction';
 import { ListSkeleton } from '../shared/PanelSkeleton';
 import { usePanelActive } from '../../lib/usePanelActive';
 import { usePayloadSignature } from '../../lib/usePayloadSignature';
+import { TOAST_LIFE } from '../../lib/toast';
 
 type Severity = 'success' | 'warning' | 'danger' | 'info' | 'secondary' | 'contrast' | undefined;
 
@@ -250,7 +251,7 @@ export default function NodeListComponent({ clusterName, api }: { clusterName: s
     }, [openNodeShellPanel, clusterName]);
 
     const showToast = useCallback((severity: 'success' | 'error', summary: string, detail: string) => {
-        toast.current?.show({ severity, summary, detail, life: 3000 });
+        toast.current?.show({ severity, summary, detail, life: TOAST_LIFE[severity] });
     }, []);
 
     const readyCount = nodes.filter(n => n.status === 'Ready').length;

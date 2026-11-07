@@ -26,5 +26,13 @@
   "value": {
     "yes": "Ja",
     "no": "Nein"
+  },
+  "toast": {
+    "updated": "Aktualisiert",
+    "updatedDetail": "{{target}} aktualisiert",
+    "updateFailed": "Aktualisierung fehlgeschlagen",
+    "updateFailedDetail": "{{target}} konnte nicht aktualisiert werden",
+    "loadFailed": "Laden fehlgeschlagen",
+    "loadFailedDetail": "{{target}} konnte nicht geladen werden"
   }
 }

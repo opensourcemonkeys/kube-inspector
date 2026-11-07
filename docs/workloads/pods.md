@@ -49,7 +49,16 @@ Double-click a pod row to open its full YAML definition in a panel. Pod YAML is 
 
 ### Delete
 
-Select one or more pods using the checkbox column and click **Delete Selected**. Confirm in the dialog. The pod is deleted immediately — if it is managed by a controller, Kubernetes will recreate it.
+Select one or more pods using the checkbox column and click **Delete Selected**, or use **Delete** in the pod detail panel. Confirm in the dialog. If the pod is managed by a controller, Kubernetes will recreate it.
+
+The dialog offers two options, both off by default. They behave like the matching `kubectl delete pod` flags:
+
+| Option | What happens |
+|---|---|
+| Neither | The pod shuts down within its own `terminationGracePeriodSeconds`. |
+| **Force delete** | The pod is removed from the API at once, without waiting for the kubelet to confirm. Its containers may keep running on the node for a while. |
+| **Grace period 0** | The containers are told to stop immediately and get 1 second to shut down, as kubectl does with `--grace-period=0`; the kubelet still confirms. |
+| Both | Same as **Force delete**. |
 
 ## Tips
 

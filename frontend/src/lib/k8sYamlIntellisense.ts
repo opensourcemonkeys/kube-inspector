@@ -17,6 +17,14 @@ import type { SchemaDef, SchemaIndex, SchemaProp } from './k8sYamlSchema';
 // Registered once globally — call ensureK8sYamlIntellisense() from any editor
 // mount; repeated calls are no-ops.
 
+/**
+ * Models under this URI path hold YAML that is not a Kubernetes object (a
+ * ConfigMap's application.yaml): no schema completion, hover or markers.
+ */
+export const PLAIN_YAML_PATH = '/plain-yaml/';
+
+const isK8sModel = (model: monaco.editor.ITextModel) => !model.uri.path.startsWith(PLAIN_YAML_PATH);
+
 let registration: Promise<void> | null = null;
 
 export function ensureK8sYamlIntellisense(): Promise<void> {
@@ -77,6 +85,7 @@ function registerCompletion(index: SchemaIndex) {
     monaco.languages.registerCompletionItemProvider('yaml', {
         triggerCharacters: ['\n', ' ', '-'],
         provideCompletionItems(model, position) {
+            if (!isK8sModel(model)) return { suggestions: [] };
             const lines = model.getLinesContent();
             const lineIndex = position.lineNumber - 1;
             const before = lines[lineIndex].slice(0, position.column - 1);
@@ -187,6 +196,7 @@ function registerCompletion(index: SchemaIndex) {
 function registerHover(index: SchemaIndex) {
     monaco.languages.registerHoverProvider('yaml', {
         provideHover(model, position) {
+            if (!isK8sModel(model)) return null;
             const word = model.getWordAtPosition(position);
             if (!word) return null;
             const lines = model.getLinesContent();
@@ -233,7 +243,7 @@ function registerValidation(index: SchemaIndex) {
     };
 
     const hook = (model: monaco.editor.ITextModel) => {
-        if (model.getLanguageId() !== 'yaml') return;
+        if (model.getLanguageId() !== 'yaml' || !isK8sModel(model)) return;
         validate(model);
         model.onDidChangeContent(() => {
             clearTimeout(timers.get(model));

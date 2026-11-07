@@ -107,7 +107,13 @@
       "failSummary": "削除に失敗しました",
       "failDetail": "{{target}} を削除できませんでした"
     },
-    "more": "ほか {{count}} 件"
+    "more": "ほか {{count}} 件",
+    "options": {
+      "force": "強制削除 (force)",
+      "forceHint": "kubelet の確認を待たずに API から即座に削除します。コンテナはしばらくノード上で動き続ける場合があります。",
+      "gracePeriodZero": "Grace period 0",
+      "gracePeriodZeroHint": "コンテナに即座に停止を指示し、終了まで 1 秒を与えます (kubectl と同じ)。kubelet による確認は行われます。"
+    }
   },
   "namespace": {
     "createTitle": "Namespace を作成",

@@ -107,7 +107,13 @@
       "failSummary": "删除失败",
       "failDetail": "无法删除 {{target}}"
     },
-    "more": "以及另外 {{count}} 项"
+    "more": "以及另外 {{count}} 项",
+    "options": {
+      "force": "强制删除 (force)",
+      "forceHint": "立即从 API 中移除,不等待 kubelet 确认。容器可能仍会在节点上运行一段时间。",
+      "gracePeriodZero": "Grace period 0",
+      "gracePeriodZeroHint": "立即通知容器停止,并给予 1 秒关闭时间(与 kubectl 相同);仍由 kubelet 确认。"
+    }
   },
   "namespace": {
     "createTitle": "创建 Namespace",

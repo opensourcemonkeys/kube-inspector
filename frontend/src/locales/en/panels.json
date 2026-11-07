@@ -162,6 +162,18 @@
       "warn": "Warning",
       "fail": "Failed",
       "skip": "Skipped"
+    },
+    "toast": {
+      "saved": "Diagnostics saved",
+      "exportFailed": "Export failed",
+      "copied": "Copied",
+      "copiedDetail": "The report is on your clipboard.",
+      "copyFailed": "Could not copy",
+      "copyFailedDetail": "The clipboard is unavailable here.",
+      "buildFailed": "Could not build the report",
+      "noFolder": "Cannot open a folder here",
+      "pathCopied": "Path copied: {{dir}}",
+      "dirUnknown": "Log directory unknown."
     }
   },
   "trivy": {
@@ -540,7 +552,15 @@
     "users": "Users",
     "currentContext": "Current context",
     "noServerEndpoint": "No server endpoint",
-    "save": "Save"
+    "save": "Save",
+    "toast": {
+      "readFailed": "Read failed",
+      "readFailedDetail": "Could not read the file",
+      "incomplete": "Cannot save yet",
+      "nameRequired": "Config name is required",
+      "contentRequired": "Kubeconfig content is required",
+      "saveFailed": "Save failed"
+    }
   },
   "cliMode": {
     "badge": "CLI mode",
@@ -668,7 +688,10 @@
     "undock": "Open in a new window",
     "toWindow": "Move to window",
     "toInstance": "Move to instance",
-    "close": "Close"
+    "close": "Close",
+    "unsavedTitle": "Discard unsaved changes?",
+    "unsavedMessage": "“{{title}}” has changes that are not saved. They are lost if the tab closes or moves.",
+    "discard": "Discard changes"
   },
   "info": {
     "placeholder": "Info page"
@@ -876,10 +899,6 @@
     "exportSaved": "Saved to {{path}}",
     "exportFailed": "Could not save: {{error}}"
   },
-  "configMapEditor": {
-    "addKey": "Add key",
-    "empty": "This ConfigMap has no keys."
-  },
   "crd": {
     "loading": "Loading CRDs…",
     "noMatch": "No CRDs match the filter",
@@ -908,7 +927,9 @@
     "refreshDefinitions": "Refresh definitions and instance counts",
     "deleteBody_one": "Delete the following {{label}}?",
     "deleteBody_other": "Delete the following {{count}} {{label}} records?",
-    "deleteAlsoRemoves": " This also removes all of its custom resources."
+    "deleteAlsoRemoves": " This also removes all of its custom resources.",
+    "deletedDetail_one": "{{label}} deleted",
+    "deletedDetail_other": "{{count}} {{label}} records deleted"
   },
   "events": {
     "title": "Event List",
@@ -1015,13 +1036,6 @@
   "roleBindingEditor": {
     "addSubject": "Add subject",
     "empty": "This binding has no subjects."
-  },
-  "secretEditor": {
-    "addKey": "Add key",
-    "empty": "This Secret has no keys.",
-    "showValue": "Show value",
-    "hideValue": "Hide value",
-    "masked": "Value hidden"
   },
   "roleMap": {
     "label": "Security Role Map",
@@ -1383,6 +1397,121 @@
       "notInstalled": "toolbox is not installed on this cluster.",
       "forbidden": "Your access does not allow reading toolbox on this cluster.",
       "unreachable": "toolbox did not answer on this cluster."
+    }
+  },
+  "dataEditor": {
+    "addKey": "Add key",
+    "addFromFile": "Add from file",
+    "keys": "Keys",
+    "searchKeys": "Filter keys",
+    "noKeys": "No keys",
+    "noMatch": "No key matches",
+    "unnamed": "(unnamed)",
+    "binary": "binary",
+    "emptyConfigMap": "This ConfigMap has no keys.",
+    "emptySecret": "This Secret has no keys.",
+    "selectKey": "Select a key on the left.",
+    "keyName": "Key name",
+    "keyPlaceholder": "key-name",
+    "show": "Show value",
+    "hide": "Hide value",
+    "copy": "Copy value",
+    "copied": "{{key}} copied",
+    "copyFailed": "Could not copy",
+    "download": "Save to file",
+    "replaceFromFile": "Replace from file",
+    "saved": "Saved to {{path}}",
+    "saveFailed": "Could not save the file",
+    "remove": "Remove key",
+    "restore": "Restore key",
+    "willRemove": "This key is removed when you save.",
+    "binaryValue": "Binary value · {{size}}",
+    "binaryHint": "Binary data is not shown as text. Save it to a file, or replace it with another file.",
+    "hiddenValue": "Value hidden · {{size}}",
+    "parseError": "Line {{line}}: {{message}}",
+    "immutable": "Immutable, read-only",
+    "loadFailed": "Could not load",
+    "reviewHint": "Review the changes and save (Ctrl+S)",
+    "reviewCount_one": "Review {{count}} change",
+    "reviewCount_other": "Review {{count}} changes",
+    "savedObject": "{{name}} saved",
+    "usedBy": "Used by",
+    "usedByNone": "No pod uses this object.",
+    "usedByError": "Could not list users: {{message}}",
+    "needsRestart": "Needs a restart",
+    "openDescribe": "Open Describe",
+    "status": {
+      "new": "New",
+      "modified": "Changed",
+      "deleted": "Removed"
+    },
+    "problem": {
+      "empty": "A key needs a name.",
+      "chars": "Only letters, digits, “-”, “_” and “.” are allowed.",
+      "length": "At most 253 characters.",
+      "dots": "A key cannot be “.” or start with “..”.",
+      "duplicate": "Another key has this name."
+    },
+    "review": {
+      "open": "Review and save",
+      "title": "Save {{name}}",
+      "changes_one": "{{count}} change",
+      "changes_other": "{{count}} changes",
+      "added": "added",
+      "removed": "removed",
+      "modified": "changed",
+      "renamed": "renamed from {{from}}",
+      "checking": "Dry run on the API server…",
+      "checked": "Dry run passed",
+      "saving": "Saving…",
+      "savedOk": "Saved",
+      "showValues": "Show values",
+      "hideValues": "Hide values",
+      "code": {
+        "conflict": "Changed by someone else since you opened it",
+        "immutable": "The object is immutable",
+        "invalid": "A key or value is not valid",
+        "rejected": "The API server refused the change"
+      }
+    },
+    "conflict": {
+      "reload": "Discard mine and reload",
+      "applyMine": "Apply mine to the latest"
+    },
+    "restart": {
+      "title": "Restart workloads?",
+      "message": "These workloads read the object only when their containers start (env, envFrom or a subPath mount). They keep the old values until restarted.",
+      "confirm": "Restart selected",
+      "skip": "Not now",
+      "manual": "restart by hand",
+      "running": "Restarting…",
+      "started": "Rollout started",
+      "failed": "Restart failed"
+    },
+    "tls": {
+      "subject": "Subject",
+      "issuer": "Issuer",
+      "names": "Names",
+      "validUntil": "Valid until",
+      "key": "Private key",
+      "daysLeft_one": "{{count}} day left",
+      "daysLeft_other": "{{count}} days left",
+      "expired": "Expired",
+      "keyMatches": "Matches the certificate",
+      "keyMismatch": "Does not match the certificate",
+      "unreadable": "Certificate cannot be read"
+    },
+    "docker": {
+      "mode": "Edit mode",
+      "form": "Form",
+      "raw": "Raw",
+      "server": "Registry",
+      "username": "Username",
+      "password": "Password",
+      "email": "Email",
+      "add": "Add registry",
+      "remove": "Remove registry",
+      "empty": "No registry yet."
     }
   }
 }

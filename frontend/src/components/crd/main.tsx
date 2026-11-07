@@ -16,6 +16,7 @@ import { useCrdExplorer } from './useCrdExplorer';
 import './crd.css';
 import { useT } from '../../i18n/useT';
 import RowAction from '../shared/RowAction';
+import { TOAST_LIFE } from '../../lib/toast';
 
 /** As in ResourceListView: past this many names the dialog says "and N more". */
 const DELETE_LIST_MAX = 8;
@@ -110,17 +111,17 @@ export default function CrdListComponent({ clusterName, api }: { clusterName: st
         if (deleted > 0) {
             toast.current?.show({
                 severity: 'success',
-                summary: 'Deleted',
-                detail: `${deleted} ${deleteTarget.label} deleted`,
-                life: 3000,
+                summary: t('resources:delete.toast.successSummary'),
+                detail: t('panels:crd.deletedDetail', { count: deleted, label: deleteTarget.label }),
+                life: TOAST_LIFE.success,
             });
         }
         if (failures.length > 0) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Delete failed',
+                summary: t('resources:delete.toast.failSummary'),
                 detail: failures.join('\n'),
-                life: 5000,
+                life: TOAST_LIFE.error,
             });
         }
         const wasCrd = deleteTarget.kind === 'crd';

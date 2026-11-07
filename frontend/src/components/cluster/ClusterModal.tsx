@@ -15,6 +15,7 @@ import { useClusterColorStore } from '../../stores/clusterColorStore';
 import { useT } from '../../i18n/useT';
 import RowAction from '../shared/RowAction';
 import StatusLamp from '../shared/StatusLamp';
+import { TOAST_LIFE } from '../../lib/toast';
 
 interface Props {
     editingName: string | null;
@@ -130,7 +131,7 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
             }
         };
         reader.onerror = () => {
-            toast.current?.show({ severity: 'error', summary: 'Read failed', detail: 'Could not read the file', life: 3000 });
+            toast.current?.show({ severity: 'error', summary: t('panels:clusterModal.toast.readFailed'), detail: t('panels:clusterModal.toast.readFailedDetail'), life: TOAST_LIFE.error });
         };
         reader.readAsText(file);
     };
@@ -144,11 +145,11 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
 
     const handleSave = async () => {
         if (!name.trim()) {
-            toast.current?.show({ severity: 'warn', summary: 'Error', detail: 'Config name is required', life: 2500 });
+            toast.current?.show({ severity: 'warn', summary: t('panels:clusterModal.toast.incomplete'), detail: t('panels:clusterModal.toast.nameRequired'), life: TOAST_LIFE.warn });
             return;
         }
         if (!content.trim()) {
-            toast.current?.show({ severity: 'warn', summary: 'Error', detail: 'Kubeconfig content is required', life: 2500 });
+            toast.current?.show({ severity: 'warn', summary: t('panels:clusterModal.toast.incomplete'), detail: t('panels:clusterModal.toast.contentRequired'), life: TOAST_LIFE.warn });
             return;
         }
         setSaving(true);
@@ -163,9 +164,9 @@ export default function ClusterModal({ editingName, onClose, onSaved, dismissibl
         } catch (err: unknown) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Save failed',
+                summary: t('panels:clusterModal.toast.saveFailed'),
                 detail: String(err),
-                life: 4000,
+                life: TOAST_LIFE.error,
             });
         } finally {
             setSaving(false);

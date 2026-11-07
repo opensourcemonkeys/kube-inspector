@@ -15,6 +15,7 @@ import { writeClipboard } from '../../lib/clipboard';
 import { renderReport } from '../../lib/diagnosticsReport';
 import { useT } from '../../i18n/useT';
 import { VscCopy, VscDesktopDownload, VscFolderOpened } from 'react-icons/vsc';
+import { TOAST_LIFE } from '../../lib/toast';
 
 function humanBytes(n: number): string {
     if (n < 1024) return `${n} B`;
@@ -48,17 +49,17 @@ export default function ExportTab({ report }: { report: models.DiagnosticsReport
                 if (!path) return;
                 toast.current?.show({
                     severity: 'success',
-                    summary: 'Diagnostics saved',
+                    summary: t('panels:diagnostics.toast.saved'),
                     detail: path,
-                    life: 4000,
+                    life: TOAST_LIFE.success,
                 });
             })
             .catch((e) =>
                 toast.current?.show({
                     severity: 'error',
-                    summary: 'Export failed',
+                    summary: t('panels:diagnostics.toast.exportFailed'),
                     detail: String(e),
-                    life: 5000,
+                    life: TOAST_LIFE.error,
                 }),
             )
             .finally(() => setBusy(false));
@@ -74,16 +75,16 @@ export default function ExportTab({ report }: { report: models.DiagnosticsReport
             const ok = await writeClipboard(renderReport(rep, checks, undefined, uiErrors));
             toast.current?.show({
                 severity: ok ? 'success' : 'error',
-                summary: ok ? 'Copied' : 'Could not copy',
-                detail: ok ? 'The report is on your clipboard.' : 'The clipboard is unavailable here.',
-                life: 2500,
+                summary: ok ? t('panels:diagnostics.toast.copied') : t('panels:diagnostics.toast.copyFailed'),
+                detail: ok ? t('panels:diagnostics.toast.copiedDetail') : t('panels:diagnostics.toast.copyFailedDetail'),
+                life: ok ? TOAST_LIFE.success : TOAST_LIFE.error,
             });
         } catch (e) {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Could not build the report',
+                summary: t('panels:diagnostics.toast.buildFailed'),
                 detail: String(e),
-                life: 5000,
+                life: TOAST_LIFE.error,
             });
         } finally {
             setBusy(false);
@@ -98,9 +99,9 @@ export default function ExportTab({ report }: { report: models.DiagnosticsReport
             const ok = dir ? await writeClipboard(dir) : false;
             toast.current?.show({
                 severity: 'warn',
-                summary: 'Cannot open a folder here',
-                detail: ok ? `Path copied: ${dir}` : dir || 'Log directory unknown.',
-                life: 5000,
+                summary: t('panels:diagnostics.toast.noFolder'),
+                detail: ok ? t('panels:diagnostics.toast.pathCopied', { dir }) : dir || t('panels:diagnostics.toast.dirUnknown'),
+                life: TOAST_LIFE.warn,
             });
         });
     };

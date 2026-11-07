@@ -13,6 +13,7 @@ import { GetObjectYaml, UpdateObjectYaml } from '../../../wailsjs/go/controller_
 import { useT } from '../../i18n/useT';
 import PanelLoading from '../shared/PanelLoading';
 import HistoryButton from '../toolbox/history/HistoryButton';
+import { TOAST_LIFE } from '../../lib/toast';
 
 interface ObjectYamlPanelParams {
     clusterName: string;
@@ -70,9 +71,9 @@ export default function ObjectYamlPanel({ params, api }: IDockviewPanelProps<Obj
             await UpdateObjectYaml(clusterName, group ?? '', resource, namespace ?? '', name, value);
             setOriginalYaml(value);
             setDirty(false);
-            toast.current?.show({ severity: 'success', summary: 'Updated', detail: `${name} updated`, life: 2500 });
+            toast.current?.show({ severity: 'success', summary: t('common:toast.updated'), detail: t('common:toast.updatedDetail', { target: name }), life: TOAST_LIFE.success });
         } catch (e: any) {
-            toast.current?.show({ severity: 'error', summary: 'Update failed', detail: e?.message ?? String(e), life: 4000 });
+            toast.current?.show({ severity: 'error', summary: t('common:toast.updateFailed'), detail: e?.message ?? String(e), life: TOAST_LIFE.error });
         } finally {
             setSaving(false);
         }

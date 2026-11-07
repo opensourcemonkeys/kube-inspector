@@ -107,7 +107,13 @@
       "failSummary": "Delete failed",
       "failDetail": "{{target}} could not be deleted"
     },
-    "more": "and {{count}} more"
+    "more": "and {{count}} more",
+    "options": {
+      "force": "Force delete",
+      "forceHint": "Removed from the API at once, without waiting for the kubelet to confirm. Its containers may keep running on the node for a while.",
+      "gracePeriodZero": "Grace period 0",
+      "gracePeriodZeroHint": "Containers are told to stop immediately, with 1 second to shut down (as kubectl does); the kubelet still confirms."
+    }
   },
   "namespace": {
     "createTitle": "Create Namespace",

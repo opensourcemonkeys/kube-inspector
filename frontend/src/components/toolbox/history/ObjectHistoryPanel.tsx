@@ -21,6 +21,7 @@ import RollbackDialog from './RollbackDialog';
 import { useRollbackFollowUp } from './useRollbackFollowUp';
 import { historyUnavailable } from './HistoryButton';
 import { GapText, useRecordingGaps } from './gaps';
+import { TOAST_LIFE } from '../../../lib/toast';
 
 export interface ObjectHistoryParams {
     clusterName: string;
@@ -318,7 +319,7 @@ export default function ObjectHistoryPanel({ params, api }: IDockviewPanelProps<
                     message={restoreMessage(restoring)}
                     onHide={() => setRestoring(null)}
                     onDone={(out, at) => {
-                        toast.current?.show({ severity: 'success', summary: t('panels:clusterHistory.rollback.done'), detail: out, life: 3000 });
+                        toast.current?.show({ severity: 'success', summary: t('panels:clusterHistory.rollback.done'), detail: out, life: TOAST_LIFE.success });
                         // Show the result: the restored version against the
                         // object as it is now should read "no differences".
                         setA(restoring.eventId);

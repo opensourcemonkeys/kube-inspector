@@ -38,6 +38,15 @@ func DeletePod(clusterName string, name string, namespace string) error {
 	return services.DeletePod(namespace, name, client)
 }
 
+func DeletePodWithOptions(clusterName string, name string, namespace string, force bool, gracePeriodZero bool) error {
+	client, err := repository.NewK8sClientForCluster(clusterName)
+	if err != nil {
+		return err
+	}
+
+	return services.DeletePodWithOptions(namespace, name, force, gracePeriodZero, client)
+}
+
 func GetPodYaml(clusterName string, name string, namespace string) (string, error) {
 	client, err := repository.NewK8sClientForCluster(clusterName)
 	if err != nil {

@@ -9,7 +9,7 @@ import { Toast } from 'primereact/toast';
 import { Menu } from 'primereact/menu';
 import type { MenuItem } from 'primereact/menuitem';
 import { VscInfo, VscArrowSwap, VscKebabVertical, VscHistory, VscHubot } from 'react-icons/vsc';
-import { useResourceList, ResourceRow } from '../../lib/useResourceList';
+import { useResourceList, ResourceRow, type DeleteFlags } from '../../lib/useResourceList';
 import { useT } from '../../i18n/useT';
 import { useTabContext } from '../../contexts/TabContext';
 import { useToolboxStatus, useToolboxStatusStore } from '../../stores/toolboxStatusStore';
@@ -21,6 +21,7 @@ import { ROW_HEIGHT } from '../../lib/tableMetrics';
 import PortForwardDialog, { type ForwardableKind } from './PortForwardDialog';
 import { useWorkloadActions, type WorkloadActionSpec } from './WorkloadActions';
 import { ACTION_COLUMN_PROPS } from './actionColumn';
+import { TOAST_LIFE } from '../../lib/toast';
 
 // The delete dialog's blast-radius summary. Lazy: it brings the resource
 // graph's code, which a list never needs until someone deletes from it.
@@ -135,9 +136,15 @@ export interface ResourceListViewProps<T extends ResourceRow> {
     fetcher: (clusterName: string) => Promise<any[]>;
     createFrom: (raw: any) => T;
     /** When provided, enables multi-select + Delete Selected + confirmation dialog. */
-    deleter?: (clusterName: string, name: string, namespace: string) => Promise<void>;
+    deleter?: (clusterName: string, name: string, namespace: string, flags: DeleteFlags) => Promise<void>;
     /** Singular label for delete UI, e.g. "pod". */
     deleteLabel?: string;
+    /**
+     * Switches shown in the delete dialog below the list of targets. The
+     * values arrive at `deleter` as its fourth argument and are reset to
+     * `{}` (all off) each time the dialog opens.
+     */
+    deleteFlagsEditor?: (flags: DeleteFlags, setFlags: (flags: DeleteFlags) => void, disabled: boolean) => React.ReactNode;
     /**
      * The kind as the resource graph names it ("Deployment", "PersistentVolumeClaim").
      * Set for kinds the graph draws: the delete dialog then shows what else is
@@ -215,6 +222,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
         createFrom,
         deleter,
         deleteLabel = 'resource',
+        deleteFlagsEditor,
         impactKind,
         dataKey = '__rowKey',
         describeResource,
@@ -242,6 +250,8 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
         setFilters,
         deleting,
         deleteDialogVisible,
+        deleteFlags,
+        setDeleteFlags,
         openDeleteDialog,
         closeDeleteDialog,
         handleDeleteSelected,
@@ -711,6 +721,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                     {selected.length > DELETE_LIST_MAX && (
                         <p className="rlv-delete-dialog__more">{t('resources:delete.more', { count: selected.length - DELETE_LIST_MAX })}</p>
                     )}
+                    {deleteFlagsEditor?.(deleteFlags, setDeleteFlags, deleting)}
                     {impactKind && deleteDialogVisible && selected.length > 0 && (
                         // A summary that cannot load leaves the dialog as it was:
                         // it never holds up the delete.
@@ -736,7 +747,7 @@ export default function ResourceListView<T extends ResourceRow>(props: ResourceL
                             severity: 'success',
                             summary: t('panels:portForward.startedSummary'),
                             detail: `${info.address}:${info.local_port} → ${pfRow.name}:${info.remote_port}`,
-                            life: 5000,
+                            life: TOAST_LIFE.success,
                         })
                     }
                 />

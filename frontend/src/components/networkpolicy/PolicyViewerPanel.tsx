@@ -33,6 +33,7 @@ import { models } from '../../../wailsjs/go/models';
 import { MONACO_BASE_OPTIONS, MONACO_THEME, defineMonacoTheme, useMonacoTheme } from '../../lib/monacoTheme';
 import { useT, type TFn } from '../../i18n/useT';
 import PanelLoading from '../shared/PanelLoading';
+import { TOAST_LIFE } from '../../lib/toast';
 
 interface PolicyViewerPanelParams {
     clusterName: string;
@@ -437,9 +438,9 @@ export default function PolicyViewerPanel({ params }: IDockviewPanelProps<Policy
             setOriginalYaml(value);
             setYaml(value);
             setDirty(false);
-            toast.current?.show({ severity: 'success', summary: 'Updated', detail: `${namespace}/${name} updated`, life: 2500 });
+            toast.current?.show({ severity: 'success', summary: t('common:toast.updated'), detail: t('common:toast.updatedDetail', { target: `${namespace}/${name}` }), life: TOAST_LIFE.success });
         } catch {
-            toast.current?.show({ severity: 'error', summary: 'Update failed', detail: `${namespace}/${name} could not be updated`, life: 3500 });
+            toast.current?.show({ severity: 'error', summary: t('common:toast.updateFailed'), detail: t('common:toast.updateFailedDetail', { target: `${namespace}/${name}` }), life: TOAST_LIFE.error });
         } finally {
             setSaving(false);
         }

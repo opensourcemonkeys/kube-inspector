@@ -35,13 +35,22 @@ const disposeModelsAfterEditor: DiffOnMount = (editor) => {
     });
 };
 
-/** A read-only YAML diff in the app's Monaco theme, original on the left. */
-export default function YamlDiff({ original, modified, sideBySide }: { original: string; modified: string; sideBySide: boolean }) {
+/**
+ * A read-only YAML diff in the app's Monaco theme, original on the left.
+ * `language` defaults to YAML; the ConfigMap/Secret editor passes the
+ * grammar of the key it compares.
+ */
+export default function YamlDiff({ original, modified, sideBySide, language = 'yaml' }: {
+    original: string;
+    modified: string;
+    sideBySide: boolean;
+    language?: string;
+}) {
     useMonacoTheme();
     return (
         <DiffEditor
             height="100%"
-            language="yaml"
+            language={language}
             original={original}
             modified={modified}
             theme={MONACO_THEME}

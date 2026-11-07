@@ -60,33 +60,6 @@ func UpdateConfigMapYaml(namespace, name, yamlContent string, client *kubernetes
 	return err
 }
 
-func GetConfigMapData(namespace, name string, client *kubernetes.Clientset) (map[string]string, error) {
-	if namespace == "" || name == "" {
-		return nil, errNamespaceNameRequired
-	}
-	cm, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-	if cm.Data == nil {
-		return map[string]string{}, nil
-	}
-	return cm.Data, nil
-}
-
-func UpdateConfigMapData(namespace, name string, data map[string]string, client *kubernetes.Clientset) error {
-	if namespace == "" || name == "" {
-		return errNamespaceNameRequired
-	}
-	cm, err := client.CoreV1().ConfigMaps(namespace).Get(context.Background(), name, metav1.GetOptions{})
-	if err != nil {
-		return err
-	}
-	cm.Data = data
-	_, err = client.CoreV1().ConfigMaps(namespace).Update(context.Background(), cm, metav1.UpdateOptions{})
-	return err
-}
-
 func configMapToInfo(cm corev1.ConfigMap) models.ConfigMapInfo {
 	return models.ConfigMapInfo{
 		Name:      cm.Name,

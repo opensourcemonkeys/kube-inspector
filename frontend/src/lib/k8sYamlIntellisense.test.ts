@@ -66,9 +66,10 @@ vi.mock('../../wailsjs/go/controller_app/App', () => ({
     GetK8sSchema: () => Promise.resolve(JSON.stringify(SCHEMA)),
 }));
 
-function fakeModel(text: string) {
+function fakeModel(text: string, path = '/1') {
     const lines = text.split('\n');
     return {
+        uri: { path },
         getLinesContent: () => lines,
         getWordUntilPosition: (pos: { lineNumber: number; column: number }) => {
             const upto = lines[pos.lineNumber - 1].slice(0, pos.column - 1);
@@ -97,8 +98,8 @@ function accept(text: string, lineNumber: number, column: number, item: Item): s
     return lines.join('\n');
 }
 
-function complete(text: string, lineNumber: number, column: number): Item[] {
-    return providers[0].provideCompletionItems(fakeModel(text), { lineNumber, column }).suggestions;
+function complete(text: string, lineNumber: number, column: number, path?: string): Item[] {
+    return providers[0].provideCompletionItems(fakeModel(text, path), { lineNumber, column }).suggestions;
 }
 
 describe('k8s yaml completion indentation', () => {
@@ -145,5 +146,11 @@ describe('k8s yaml completion indentation', () => {
         const item = complete('', 1, 1).find(s => s.label === 'metadata')!;
         expect(item).toBeDefined();
         expect(accept('', 1, 1, item)).toBe('metadata:\n  ');
+    });
+
+    it('offers nothing in a plain YAML value (a ConfigMap application.yaml)', async () => {
+        const { PLAIN_YAML_PATH } = await import('./k8sYamlIntellisense');
+        expect(complete('', 1, 1)).not.toHaveLength(0);
+        expect(complete('', 1, 1, `${PLAIN_YAML_PATH}7-0`)).toHaveLength(0);
     });
 });

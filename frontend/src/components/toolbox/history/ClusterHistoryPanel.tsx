@@ -30,6 +30,7 @@ import { useRollbackFollowUp } from './useRollbackFollowUp';
 import { useChangeStream } from './useChangeStream';
 import { mergeChange } from './mergeChange';
 import { GapText, isGapRow, useRecordingGaps, withGaps, type GapRow } from './gaps';
+import { TOAST_LIFE } from '../../../lib/toast';
 
 const PAGE = 100;
 // New changes are only interesting on the first page; once the user has paged
@@ -243,12 +244,12 @@ export default function ClusterHistoryPanel({ params, api }: IDockviewPanelProps
             if (!res.path) return; // cancelled
             toast.current?.show(res.truncated ? {
                 severity: 'warn', summary: t('panels:clusterHistory.export.truncated', { count: res.rows }),
-                detail: t('panels:clusterHistory.export.truncatedDetail', { limit: res.limit, path: res.path }), life: 8000,
+                detail: t('panels:clusterHistory.export.truncatedDetail', { limit: res.limit, path: res.path }), life: TOAST_LIFE.warn,
             } : {
-                severity: 'success', summary: t('panels:clusterHistory.export.done', { count: res.rows }), detail: res.path, life: 4000,
+                severity: 'success', summary: t('panels:clusterHistory.export.done', { count: res.rows }), detail: res.path, life: TOAST_LIFE.success,
             });
         } catch (e) {
-            toast.current?.show({ severity: 'error', summary: t('panels:clusterHistory.export.failed'), detail: errText(e), life: 6000 });
+            toast.current?.show({ severity: 'error', summary: t('panels:clusterHistory.export.failed'), detail: errText(e), life: TOAST_LIFE.error });
         } finally {
             setExporting(false);
         }
@@ -537,7 +538,7 @@ export default function ClusterHistoryPanel({ params, api }: IDockviewPanelProps
                                 eventId={selected}
                                 onClose={() => setSelected(null)}
                                 onRolledBack={(msg, at) => {
-                                    toast.current?.show({ severity: 'success', summary: t('panels:clusterHistory.rollback.done'), detail: msg, life: 3000 });
+                                    toast.current?.show({ severity: 'success', summary: t('panels:clusterHistory.rollback.done'), detail: msg, life: TOAST_LIFE.success });
                                     const c = changes.find((x) => x.eventId === selected);
                                     if (c) followUp.follow({ at, resource: c.resource, namespace: c.namespace, name: c.name });
                                 }}

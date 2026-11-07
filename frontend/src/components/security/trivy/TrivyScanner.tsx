@@ -17,6 +17,7 @@ import FindingsView from './FindingsView';
 import CoverageView from './CoverageView';
 import AcceptRiskDialog, { type AcceptRequest } from './AcceptRiskDialog';
 import ImageScanTab, { useImageScanner } from './ImageScanTab';
+import { TOAST_LIFE } from '../../../lib/toast';
 
 const SECTIONS: TrivySection[] = ['summary', 'fixplan', 'findings', 'coverage'];
 
@@ -24,7 +25,7 @@ export default function TrivyScanner({ clusterName }: { clusterName: string }) {
     const t = useT();
     const toast = useRef<Toast | null>(null);
     const pushToast: PushToast = (severity, summary, detail) =>
-        toast.current?.show({ severity, summary, detail, life: 4000 });
+        toast.current?.show({ severity, summary, detail, life: TOAST_LIFE[severity] });
 
     // Everything that must survive switching the top-level tabs lives here:
     // PrimeReact's TabView unmounts the inactive panel, which would otherwise
@@ -71,7 +72,7 @@ export default function TrivyScanner({ clusterName }: { clusterName: string }) {
 
     return (
         <div className="trivy-root">
-            <Toast ref={toast} />
+            <Toast ref={toast} position="bottom-right" />
 
             <div className="mon-header">
                 <VscShield /> <span>{t('panels:trivy.title')}</span>

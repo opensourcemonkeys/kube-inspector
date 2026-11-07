@@ -162,6 +162,18 @@
       "warn": "Warnung",
       "fail": "Fehlgeschlagen",
       "skip": "Übersprungen"
+    },
+    "toast": {
+      "saved": "Diagnose gespeichert",
+      "exportFailed": "Export fehlgeschlagen",
+      "copied": "Kopiert",
+      "copiedDetail": "Der Bericht ist in der Zwischenablage.",
+      "copyFailed": "Kopieren fehlgeschlagen",
+      "copyFailedDetail": "Die Zwischenablage ist hier nicht verfügbar.",
+      "buildFailed": "Bericht konnte nicht erstellt werden",
+      "noFolder": "Ordner kann hier nicht geöffnet werden",
+      "pathCopied": "Pfad kopiert: {{dir}}",
+      "dirUnknown": "Log-Verzeichnis unbekannt."
     }
   },
   "trivy": {
@@ -540,7 +552,15 @@
     "users": "Benutzer",
     "currentContext": "Aktueller Context",
     "noServerEndpoint": "Kein Server-Endpunkt",
-    "save": "Speichern"
+    "save": "Speichern",
+    "toast": {
+      "readFailed": "Lesen fehlgeschlagen",
+      "readFailedDetail": "Die Datei konnte nicht gelesen werden",
+      "incomplete": "Noch nicht speicherbar",
+      "nameRequired": "Ein Config-Name ist erforderlich",
+      "contentRequired": "Kubeconfig-Inhalt ist erforderlich",
+      "saveFailed": "Speichern fehlgeschlagen"
+    }
   },
   "cliMode": {
     "badge": "CLI-Modus",
@@ -668,7 +688,10 @@
     "undock": "In neuem Fenster öffnen",
     "toWindow": "In Fenster verschieben",
     "toInstance": "In Instanz verschieben",
-    "close": "Schließen"
+    "close": "Schließen",
+    "unsavedTitle": "Ungespeicherte Änderungen verwerfen?",
+    "unsavedMessage": "„{{title}}“ hat ungespeicherte Änderungen. Sie gehen verloren, wenn der Tab geschlossen oder verschoben wird.",
+    "discard": "Änderungen verwerfen"
   },
   "info": {
     "placeholder": "Infoseite"
@@ -876,10 +899,6 @@
     "exportSaved": "Gespeichert unter {{path}}",
     "exportFailed": "Speichern fehlgeschlagen: {{error}}"
   },
-  "configMapEditor": {
-    "addKey": "Schlüssel hinzufügen",
-    "empty": "Diese ConfigMap hat keine Schlüssel."
-  },
   "crd": {
     "loading": "CRDs werden geladen…",
     "noMatch": "Keine CRDs passen zum Filter",
@@ -908,7 +927,9 @@
     "refreshDefinitions": "Definitionen und Instanzzahlen aktualisieren",
     "deleteBody_one": "Folgendes Element ({{label}}) löschen?",
     "deleteBody_other": "Die folgenden {{count}} Einträge ({{label}}) löschen?",
-    "deleteAlsoRemoves": " Damit werden auch alle zugehörigen Custom Resources entfernt."
+    "deleteAlsoRemoves": " Damit werden auch alle zugehörigen Custom Resources entfernt.",
+    "deletedDetail_one": "Element ({{label}}) gelöscht",
+    "deletedDetail_other": "{{count}} Einträge ({{label}}) gelöscht"
   },
   "events": {
     "title": "Event-Liste",
@@ -1015,13 +1036,6 @@
   "roleBindingEditor": {
     "addSubject": "Subjekt hinzufügen",
     "empty": "Diese Bindung hat keine Subjekte."
-  },
-  "secretEditor": {
-    "addKey": "Schlüssel hinzufügen",
-    "empty": "Dieses Secret hat keine Schlüssel.",
-    "showValue": "Wert anzeigen",
-    "hideValue": "Wert ausblenden",
-    "masked": "Wert verborgen"
   },
   "roleMap": {
     "label": "Sicherheits-Rollenkarte",
@@ -1383,6 +1397,121 @@
       "notInstalled": "toolbox ist auf diesem Cluster nicht installiert.",
       "forbidden": "Ihre Berechtigungen erlauben es nicht, toolbox auf diesem Cluster zu lesen.",
       "unreachable": "toolbox hat auf diesem Cluster nicht geantwortet."
+    }
+  },
+  "dataEditor": {
+    "addKey": "Schlüssel hinzufügen",
+    "addFromFile": "Aus Datei hinzufügen",
+    "keys": "Schlüssel",
+    "searchKeys": "Schlüssel filtern",
+    "noKeys": "Keine Schlüssel",
+    "noMatch": "Kein Schlüssel passt",
+    "unnamed": "(ohne Namen)",
+    "binary": "binär",
+    "emptyConfigMap": "Diese ConfigMap hat keine Schlüssel.",
+    "emptySecret": "Dieses Secret hat keine Schlüssel.",
+    "selectKey": "Wählen Sie links einen Schlüssel.",
+    "keyName": "Schlüsselname",
+    "keyPlaceholder": "schluessel-name",
+    "show": "Wert anzeigen",
+    "hide": "Wert verbergen",
+    "copy": "Wert kopieren",
+    "copied": "{{key}} kopiert",
+    "copyFailed": "Kopieren fehlgeschlagen",
+    "download": "In Datei speichern",
+    "replaceFromFile": "Durch Datei ersetzen",
+    "saved": "Gespeichert unter {{path}}",
+    "saveFailed": "Datei konnte nicht gespeichert werden",
+    "remove": "Schlüssel entfernen",
+    "restore": "Schlüssel wiederherstellen",
+    "willRemove": "Dieser Schlüssel wird beim Speichern entfernt.",
+    "binaryValue": "Binärer Wert · {{size}}",
+    "binaryHint": "Binärdaten werden nicht als Text angezeigt. Speichern Sie sie in eine Datei oder ersetzen Sie sie durch eine andere Datei.",
+    "hiddenValue": "Wert verborgen · {{size}}",
+    "parseError": "Zeile {{line}}: {{message}}",
+    "immutable": "Unveränderlich, schreibgeschützt",
+    "loadFailed": "Laden fehlgeschlagen",
+    "reviewHint": "Änderungen prüfen und speichern (Strg+S)",
+    "reviewCount_one": "{{count}} Änderung prüfen",
+    "reviewCount_other": "{{count}} Änderungen prüfen",
+    "savedObject": "{{name}} gespeichert",
+    "usedBy": "Verwendet von",
+    "usedByNone": "Kein Pod verwendet dieses Objekt.",
+    "usedByError": "Verwender konnten nicht ermittelt werden: {{message}}",
+    "needsRestart": "Neustart nötig",
+    "openDescribe": "Describe öffnen",
+    "status": {
+      "new": "Neu",
+      "modified": "Geändert",
+      "deleted": "Entfernt"
+    },
+    "problem": {
+      "empty": "Ein Schlüssel braucht einen Namen.",
+      "chars": "Nur Buchstaben, Ziffern, „-“, „_“ und „.“ sind erlaubt.",
+      "length": "Höchstens 253 Zeichen.",
+      "dots": "Ein Schlüssel darf nicht „.“ sein oder mit „..“ beginnen.",
+      "duplicate": "Ein anderer Schlüssel hat diesen Namen."
+    },
+    "review": {
+      "open": "Prüfen und speichern",
+      "title": "{{name}} speichern",
+      "changes_one": "{{count}} Änderung",
+      "changes_other": "{{count}} Änderungen",
+      "added": "hinzugefügt",
+      "removed": "entfernt",
+      "modified": "geändert",
+      "renamed": "umbenannt von {{from}}",
+      "checking": "Probelauf auf dem API-Server…",
+      "checked": "Probelauf bestanden",
+      "saving": "Speichern…",
+      "savedOk": "Gespeichert",
+      "showValues": "Werte anzeigen",
+      "hideValues": "Werte verbergen",
+      "code": {
+        "conflict": "Seit dem Öffnen von jemand anderem geändert",
+        "immutable": "Das Objekt ist unveränderlich",
+        "invalid": "Ein Schlüssel oder Wert ist ungültig",
+        "rejected": "Der API-Server hat die Änderung abgelehnt"
+      }
+    },
+    "conflict": {
+      "reload": "Meine verwerfen und neu laden",
+      "applyMine": "Meine auf den neuesten Stand anwenden"
+    },
+    "restart": {
+      "title": "Workloads neu starten?",
+      "message": "Diese Workloads lesen das Objekt nur beim Start ihrer Container (env, envFrom oder ein subPath-Mount). Bis zum Neustart behalten sie die alten Werte.",
+      "confirm": "Ausgewählte neu starten",
+      "skip": "Nicht jetzt",
+      "manual": "manuell neu starten",
+      "running": "Neustart läuft…",
+      "started": "Rollout gestartet",
+      "failed": "Neustart fehlgeschlagen"
+    },
+    "tls": {
+      "subject": "Inhaber",
+      "issuer": "Aussteller",
+      "names": "Namen",
+      "validUntil": "Gültig bis",
+      "key": "Privater Schlüssel",
+      "daysLeft_one": "noch {{count}} Tag",
+      "daysLeft_other": "noch {{count}} Tage",
+      "expired": "Abgelaufen",
+      "keyMatches": "Passt zum Zertifikat",
+      "keyMismatch": "Passt nicht zum Zertifikat",
+      "unreadable": "Zertifikat nicht lesbar"
+    },
+    "docker": {
+      "mode": "Bearbeitungsmodus",
+      "form": "Formular",
+      "raw": "Roh",
+      "server": "Registry",
+      "username": "Benutzername",
+      "password": "Passwort",
+      "email": "E-Mail",
+      "add": "Registry hinzufügen",
+      "remove": "Registry entfernen",
+      "empty": "Noch keine Registry."
     }
   }
 }

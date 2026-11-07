@@ -26,5 +26,13 @@
   "value": {
     "yes": "是",
     "no": "否"
+  },
+  "toast": {
+    "updated": "已更新",
+    "updatedDetail": "已更新 {{target}}",
+    "updateFailed": "更新失败",
+    "updateFailedDetail": "无法更新 {{target}}",
+    "loadFailed": "加载失败",
+    "loadFailedDetail": "无法加载 {{target}}"
   }
 }

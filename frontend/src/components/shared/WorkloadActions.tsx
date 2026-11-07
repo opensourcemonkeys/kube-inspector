@@ -7,6 +7,7 @@ import ScaleDialog from './ScaleDialog';
 import ConfirmActionDialog from './ConfirmActionDialog';
 import { Trans } from 'react-i18next';
 import { useT } from '../../i18n/useT';
+import { TOAST_LIFE } from '../../lib/toast';
 
 export type ScalableKind = 'deployment' | 'statefulset' | 'replicaset';
 export type RestartableKind = 'deployment' | 'statefulset' | 'daemonset';
@@ -60,7 +61,7 @@ export function useWorkloadActions({
     const [suspendT, setSuspendT] = useState<(WorkloadActionTarget & { suspended: boolean }) | null>(null);
 
     const notify = (detail: string) =>
-        toastRef.current?.show({ severity: 'success', summary: t('panels:workload.doneSummary'), detail, life: 3000 });
+        toastRef.current?.show({ severity: 'success', summary: t('panels:workload.doneSummary'), detail, life: TOAST_LIFE.success });
 
     const target = (r: WorkloadActionTarget) => `${r.namespace}/${r.name}`;
 

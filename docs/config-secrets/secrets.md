@@ -23,10 +23,15 @@ Double-click a row to open the full Secret YAML. Secret values are **base64-enco
 
 ### Key-Value Editor
 
-Click the **sliders** icon on a row to open the key-value editor. The panel decodes values from base64 and displays them as plain text for easier editing. When you save, values are re-encoded automatically before being written to the cluster.
+Click the **sliders** icon on a row to open the key-value editor. It works like the [ConfigMap editor](configmaps.md#key-value-editor) — keys on the left, the value in a code editor on the right, a reviewed and dry-run save, and the workloads that use the Secret — with these differences:
+
+- **Values stay hidden** until you click **Show value**, and hide again when you pick another key, switch tabs or save. **Copy value** copies without showing it. In the review, values are compared by size unless you ask to see them.
+- **Base64 is handled for you.** Values are decoded for editing and encoded on save. A value that is not text (a keystore, a DER certificate) is kept byte for byte as a binary file; you can save it or replace it from a file, and it is never re-encoded by accident.
+- **`kubernetes.io/tls`**: selecting `tls.crt` or `tls.key` shows the certificate's subject, issuer, names and expiry (▲ under 30 days, ■ expired) and whether the private key belongs to it.
+- **`kubernetes.io/dockerconfigjson`**: the registry credentials appear as a form (registry, username, password, email); **Raw** switches to the JSON.
 
 !!! danger "Sensitive data"
-    Secret values are shown decoded in the key-value editor. Be careful when working in shared environments or when screen sharing.
+    A shown value is plain text on screen. Be careful when screen sharing.
 
 ### Bulk Delete
 

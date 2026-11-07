@@ -40,6 +40,7 @@ import {
     GetRoleYaml, UpdateRoleYaml,
     GetRoleBindingYaml, UpdateRoleBindingYaml,
 } from '../../../wailsjs/go/controller_app/App';
+import { TOAST_LIFE } from '../../lib/toast';
 
 interface YamlEditorPanelParams {
     clusterName: string;
@@ -210,16 +211,16 @@ export default function YamlEditorPanel({ params, api }: IDockviewPanelProps<Yam
             setDirty(false);
             toast.current?.show({
                 severity: 'success',
-                summary: 'Updated',
-                detail: `${namespace}/${name} updated`,
-                life: 2500,
+                summary: t('common:toast.updated'),
+                detail: t('common:toast.updatedDetail', { target: `${namespace}/${name}` }),
+                life: TOAST_LIFE.success,
             });
         } catch {
             toast.current?.show({
                 severity: 'error',
-                summary: 'Update failed',
-                detail: `${namespace}/${name} could not be updated`,
-                life: 3500,
+                summary: t('common:toast.updateFailed'),
+                detail: t('common:toast.updateFailedDetail', { target: `${namespace}/${name}` }),
+                life: TOAST_LIFE.error,
             });
         } finally {
             setSaving(false);

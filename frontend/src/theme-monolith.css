@@ -2989,19 +2989,88 @@ button.ov-top__row:hover { background: var(--bezel-high); }
 .apply-yaml__text { background: var(--screen-dark); flex: 1; margin: 0; padding: 10px 14px; overflow-y: auto; white-space: pre-wrap; font-family: var(--font-family-mono); font-size: 12px; color: var(--ink-2); }
 .apply-yaml__text--err { color: var(--err); }
 
-/* Key/value and rule editors (ConfigMap, Secret, Role, RoleBinding): the panel
-   toolbar above an editable table with no stripes or grid — the row rule is
-   enough, and a cell being edited shows its own field. */
+/* Rule editors (Role, RoleBinding): the panel toolbar above an editable table
+   with no stripes or grid — the row rule is enough, and a cell being edited
+   shows its own field. */
 .kv-editor { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--screen); }
 .kv-editor__table { flex: 1; min-height: 0; }
 .kv-input.p-inputtext { width: 100%; font-family: var(--font-family-mono); font-size: 12px; }
-.kv-input--area.p-inputtextarea { min-height: 72px; }
-.kv-value { display: block; max-height: 4.5rem; overflow: hidden; text-overflow: ellipsis; white-space: pre; font-family: var(--font-family-mono); font-size: 12px; color: var(--ink-2); }
-.kv-masked { font-family: var(--font-family-mono); font-size: 12px; letter-spacing: .15em; color: var(--ink-3); }
-.kv-secret { position: relative; width: 100%; }
-.kv-secret > .p-button { position: absolute; top: 4px; right: 4px; }
-.kv-input--secret.p-inputtextarea { padding-right: 2.25rem; }
-.kv-input--secret.is-masked { -webkit-text-security: disc; }
+
+/* ConfigMap / Secret editor (components/shared/dataEditor): keys on the left,
+   the selected value on the right. Key states are marked by shape (+ ● − ⚠)
+   as well as colour. */
+.de { display: flex; flex-direction: column; height: 100%; overflow: hidden; background: var(--screen); }
+.de-toolbar__type { font-family: var(--font-family-mono); font-size: 11.5px; color: var(--ink-3); }
+.de-split { display: flex; flex: 1; min-height: 0; }
+.de-split__keys { flex: 0 0 auto; min-width: 200px; max-width: calc(100% - 320px); display: flex; flex-direction: column; min-height: 0; background: var(--bezel); }
+.de-split__value { flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+.de-keys { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.de-keys__search { padding: 8px; border-bottom: 1px solid var(--line); }
+.de-keys__search .p-inputtext { width: 100%; height: 28px; font-size: 12.5px; }
+.de-keys__list { flex: 1; min-height: 0; margin: 0; padding: 4px 0; overflow: auto; list-style: none; }
+.de-keys__empty { padding: 12px; font-size: 12px; color: var(--ink-3); }
+.de-key { display: flex; align-items: center; gap: 8px; height: var(--row-h); padding: 0 10px; cursor: pointer; font-family: var(--font-family-mono); font-size: 12px; color: var(--ink-2); }
+.de-key:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.de-key.is-selected { background: var(--bezel-high); color: var(--ink); box-shadow: inset 2px 0 0 var(--accent); }
+.de-key__mark { flex: 0 0 1.2ch; text-align: center; font-family: var(--font-family-mono); color: var(--ink-3); }
+.de-key--new .de-key__mark, .de-change--added .de-key__mark { color: var(--ok); }
+.de-key--modified .de-key__mark, .de-change--modified .de-key__mark { color: var(--info); }
+.de-key--deleted .de-key__mark, .de-change--removed .de-key__mark { color: var(--err); }
+.de-key--invalid .de-key__mark { color: var(--warn); }
+.de-key--deleted .de-key__name { text-decoration: line-through; }
+.de-key__name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.de-key__tag { flex: none; padding: 0 4px; border: 1px solid var(--line-strong); border-radius: 3px; font-family: var(--font-family); font-size: 10.5px; color: var(--ink-3); }
+.de-key.is-selected .de-key__tag { color: var(--ink-2); }
+
+.de-consumers { display: flex; flex-direction: column; max-height: 40%; min-height: 0; border-top: 1px solid var(--line); }
+.de-consumers__head { display: flex; align-items: center; gap: 6px; width: 100%; padding: 8px 10px; border: 0; background: none; color: var(--ink-2); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.de-consumers__count { margin-left: auto; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+.de-consumers__body { overflow: auto; padding: 0 6px 8px; }
+.de-consumers__note { margin: 0; padding: 4px 6px; font-size: 12px; color: var(--ink-3); }
+.de-consumer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; width: 100%; padding: 6px; border: 0; border-radius: var(--radius-ctl); background: none; color: var(--ink); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.de-consumer:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); }
+.de-consumer__ref { overflow: hidden; font-family: var(--font-family-mono); text-overflow: ellipsis; white-space: nowrap; }
+.de-consumer__usage { grid-column: 1 / -1; font-family: var(--font-family-mono); font-size: 11.5px; color: var(--ink-3); overflow-wrap: anywhere; }
+
+.de-value { display: flex; flex: 1; flex-direction: column; min-height: 0; }
+.de-value--empty { align-items: center; justify-content: center; }
+.de-value__head { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-bottom: 1px solid var(--line); background: var(--bezel); }
+.de-value__key { flex: 1 1 auto; min-width: 120px; max-width: 420px; }
+.de-value__key .p-inputtext { width: 100%; height: 28px; font-size: 12.5px; }
+.de-value__meta { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.de-value__actions { display: flex; align-items: center; gap: 2px; margin-left: auto; }
+.de-value__problem { margin: 6px 12px 0; }
+.de-editor { flex: 1; min-height: 0; }
+.de-card { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin: 16px; padding: 16px; border: 1px solid var(--line-strong); border-radius: var(--radius-pop); background: var(--bezel); }
+.de-card__title { margin: 0; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.de-card .dlg-actions { justify-content: flex-start; }
+.de-tls { padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.de-tls .dlg-facts { margin: 0; }
+.de-docker { display: flex; flex-direction: column; gap: 12px; padding: 12px; overflow: auto; }
+.de-docker__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) 2rem; gap: 8px; align-items: end; margin: 0; padding: 12px; border: 1px solid var(--line-strong); border-radius: var(--radius-pop); }
+.de-docker__row .p-inputtext { width: 100%; }
+.de-secret-input { display: flex; align-items: center; gap: 4px; }
+.de-secret-input .p-inputtext { flex: 1; min-width: 0; }
+
+.de-review-dialog { width: min(1100px, calc(100vw - 32px)); }
+.de-review-dialog--small { width: min(640px, calc(100vw - 32px)); }
+.de-review { display: flex; flex-direction: column; gap: 10px; height: min(60vh, 560px); }
+.de-review__status { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.de-review__status .dlg-error { flex-basis: 100%; margin: 0; }
+.de-review__reveal { margin-left: auto; }
+.de-review__body { display: flex; flex: 1; min-height: 0; overflow: hidden; border: 1px solid var(--line-strong); border-radius: var(--radius-ctl); }
+.de-review__changes { flex: 0 0 240px; margin: 0; padding: 4px 0; overflow: auto; list-style: none; border-right: 1px solid var(--line-strong); }
+.de-review__diff { flex: 1; min-width: 0; }
+.de-change { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 10px; border: 0; background: none; color: var(--ink-2); font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.de-change.is-selected { background: var(--bezel-high); color: var(--ink); }
+.de-change__key { flex: 1; min-width: 0; overflow: hidden; font-family: var(--font-family-mono); text-overflow: ellipsis; white-space: nowrap; }
+.de-change__kind { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.de-change.is-selected .de-change__kind { color: var(--ink-2); }
+.de-restart { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.de-restart__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.de-restart__ref { font-family: var(--font-family-mono); font-size: 12.5px; }
+.de-restart__usage { font-family: var(--font-family-mono); font-size: 11.5px; color: var(--ink-3); }
+
 /* Empty: what is (not) there, and the way out when filters caused it. */
 .rlv-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 32px 16px; color: var(--ink-2); font-size: 13px; text-align: center; }
 /* Loading placeholder (PanelSkeleton.tsx): static bars, no shimmer. */
@@ -3031,6 +3100,10 @@ button.ov-top__row:hover { background: var(--bezel-high); }
 .rlv-delete-dialog__list { margin: 0; padding: 8px 12px; list-style: none; background: var(--screen); border: 1px solid var(--line); border-radius: var(--radius-ctl); box-shadow: var(--recess); }
 .rlv-delete-dialog__list li { font-family: var(--font-family-mono); font-size: 12px; line-height: 1.8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rlv-delete-dialog__more { margin: 8px 0 0; color: var(--ink-2); font-size: 12px; }
+.pod-delete-options { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-strong); }
+.pod-delete-options__item { display: flex; align-items: flex-start; gap: 8px; }
+.pod-delete-options__item label { display: flex; flex-direction: column; gap: 2px; cursor: pointer; }
+.pod-delete-options__label { font-size: 13px; color: var(--ink); }
 
 /* Button labels keep their nowrap (a wrapped label doubles the button's
    height and breaks every toolbar row); they clip instead. */

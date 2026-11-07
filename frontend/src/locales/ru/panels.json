@@ -164,6 +164,18 @@
       "warn": "Предупреждение",
       "fail": "Не пройдено",
       "skip": "Пропущено"
+    },
+    "toast": {
+      "saved": "Диагностика сохранена",
+      "exportFailed": "Не удалось экспортировать",
+      "copied": "Скопировано",
+      "copiedDetail": "Отчёт скопирован в буфер обмена.",
+      "copyFailed": "Не удалось скопировать",
+      "copyFailedDetail": "Буфер обмена здесь недоступен.",
+      "buildFailed": "Не удалось сформировать отчёт",
+      "noFolder": "Здесь нельзя открыть папку",
+      "pathCopied": "Путь скопирован: {{dir}}",
+      "dirUnknown": "Каталог логов неизвестен."
     }
   },
   "trivy": {
@@ -552,7 +564,15 @@
     "users": "Пользователи",
     "currentContext": "Текущий context",
     "noServerEndpoint": "Адрес сервера не указан",
-    "save": "Сохранить"
+    "save": "Сохранить",
+    "toast": {
+      "readFailed": "Не удалось прочитать",
+      "readFailedDetail": "Не удалось прочитать файл",
+      "incomplete": "Пока нельзя сохранить",
+      "nameRequired": "Укажите имя конфигурации",
+      "contentRequired": "Укажите содержимое kubeconfig",
+      "saveFailed": "Не удалось сохранить"
+    }
   },
   "cliMode": {
     "badge": "Режим CLI",
@@ -682,7 +702,10 @@
     "undock": "Открыть в новом окне",
     "toWindow": "Переместить в окно",
     "toInstance": "Переместить в экземпляр",
-    "close": "Закрыть"
+    "close": "Закрыть",
+    "unsavedTitle": "Отбросить несохранённые изменения?",
+    "unsavedMessage": "В «{{title}}» есть несохранённые изменения. Они пропадут, если вкладку закрыть или переместить.",
+    "discard": "Отбросить изменения"
   },
   "info": {
     "placeholder": "Информационная страница"
@@ -914,10 +937,6 @@
     "exportSaved": "Сохранено: {{path}}",
     "exportFailed": "Не удалось сохранить: {{error}}"
   },
-  "configMapEditor": {
-    "addKey": "Добавить ключ",
-    "empty": "В этом ConfigMap нет ключей."
-  },
   "crd": {
     "loading": "Загрузка CRDs…",
     "noMatch": "Ни один CRD не подходит под фильтр",
@@ -950,7 +969,11 @@
     "deleteBody_few": "Удалить следующие {{count}} объекта ({{label}})?",
     "deleteBody_many": "Удалить следующие {{count}} объектов ({{label}})?",
     "deleteBody_other": "Удалить следующие {{count}} объектов ({{label}})?",
-    "deleteAlsoRemoves": " Вместе с ним будут удалены и все его custom resources."
+    "deleteAlsoRemoves": " Вместе с ним будут удалены и все его custom resources.",
+    "deletedDetail_one": "Объект ({{label}}) удалён",
+    "deletedDetail_few": "Удалено {{count}} объекта ({{label}})",
+    "deletedDetail_many": "Удалено {{count}} объектов ({{label}})",
+    "deletedDetail_other": "Удалено {{count}} объектов ({{label}})"
   },
   "events": {
     "title": "Список Events",
@@ -1057,13 +1080,6 @@
   "roleBindingEditor": {
     "addSubject": "Добавить субъект",
     "empty": "У этой привязки нет субъектов."
-  },
-  "secretEditor": {
-    "addKey": "Добавить ключ",
-    "empty": "В этом Secret нет ключей.",
-    "showValue": "Показать значение",
-    "hideValue": "Скрыть значение",
-    "masked": "Значение скрыто"
   },
   "roleMap": {
     "label": "Карта ролей безопасности",
@@ -1435,6 +1451,127 @@
       "notInstalled": "В этом кластере toolbox не установлен.",
       "forbidden": "Ваши права не позволяют читать toolbox в этом кластере.",
       "unreachable": "toolbox в этом кластере не ответил."
+    }
+  },
+  "dataEditor": {
+    "addKey": "Добавить ключ",
+    "addFromFile": "Добавить из файла",
+    "keys": "Ключи",
+    "searchKeys": "Фильтр ключей",
+    "noKeys": "Нет ключей",
+    "noMatch": "Нет подходящих ключей",
+    "unnamed": "(без имени)",
+    "binary": "двоичные",
+    "emptyConfigMap": "В этом ConfigMap нет ключей.",
+    "emptySecret": "В этом Secret нет ключей.",
+    "selectKey": "Выберите ключ слева.",
+    "keyName": "Имя ключа",
+    "keyPlaceholder": "key-name",
+    "show": "Показать значение",
+    "hide": "Скрыть значение",
+    "copy": "Копировать значение",
+    "copied": "{{key}} скопирован",
+    "copyFailed": "Не удалось скопировать",
+    "download": "Сохранить в файл",
+    "replaceFromFile": "Заменить из файла",
+    "saved": "Сохранено в {{path}}",
+    "saveFailed": "Не удалось сохранить файл",
+    "remove": "Удалить ключ",
+    "restore": "Восстановить ключ",
+    "willRemove": "Этот ключ будет удалён при сохранении.",
+    "binaryValue": "Двоичное значение · {{size}}",
+    "binaryHint": "Двоичные данные не показываются как текст. Сохраните их в файл или замените другим файлом.",
+    "hiddenValue": "Значение скрыто · {{size}}",
+    "parseError": "Строка {{line}}: {{message}}",
+    "immutable": "Неизменяемый, только чтение",
+    "loadFailed": "Не удалось загрузить",
+    "reviewHint": "Просмотреть изменения и сохранить (Ctrl+S)",
+    "reviewCount_one": "Проверить {{count}} изменение",
+    "reviewCount_few": "Проверить {{count}} изменения",
+    "reviewCount_many": "Проверить {{count}} изменений",
+    "reviewCount_other": "Проверить {{count}} изменения",
+    "savedObject": "{{name}} сохранён",
+    "usedBy": "Используется",
+    "usedByNone": "Ни один под не использует этот объект.",
+    "usedByError": "Не удалось получить список: {{message}}",
+    "needsRestart": "Нужен перезапуск",
+    "openDescribe": "Открыть Describe",
+    "status": {
+      "new": "Новый",
+      "modified": "Изменён",
+      "deleted": "Удалён"
+    },
+    "problem": {
+      "empty": "У ключа должно быть имя.",
+      "chars": "Допустимы только буквы, цифры, «-», «_» и «.».",
+      "length": "Не более 253 символов.",
+      "dots": "Ключ не может быть «.» или начинаться с «..».",
+      "duplicate": "Другой ключ уже носит это имя."
+    },
+    "review": {
+      "open": "Проверить и сохранить",
+      "title": "Сохранение {{name}}",
+      "changes_one": "{{count}} изменение",
+      "changes_few": "{{count}} изменения",
+      "changes_many": "{{count}} изменений",
+      "changes_other": "{{count}} изменения",
+      "added": "добавлен",
+      "removed": "удалён",
+      "modified": "изменён",
+      "renamed": "переименован из {{from}}",
+      "checking": "Пробный запуск на API-сервере…",
+      "checked": "Пробный запуск пройден",
+      "saving": "Сохранение…",
+      "savedOk": "Сохранено",
+      "showValues": "Показать значения",
+      "hideValues": "Скрыть значения",
+      "code": {
+        "conflict": "Кто-то изменил объект после того, как вы его открыли",
+        "immutable": "Объект неизменяемый",
+        "invalid": "Ключ или значение недопустимы",
+        "rejected": "API-сервер отклонил изменение"
+      }
+    },
+    "conflict": {
+      "reload": "Отбросить мои и перезагрузить",
+      "applyMine": "Применить мои к последней версии"
+    },
+    "restart": {
+      "title": "Перезапустить рабочие нагрузки?",
+      "message": "Эти нагрузки читают объект только при запуске контейнеров (env, envFrom или монтирование subPath). До перезапуска они используют старые значения.",
+      "confirm": "Перезапустить выбранные",
+      "skip": "Не сейчас",
+      "manual": "перезапустите вручную",
+      "running": "Перезапуск…",
+      "started": "Rollout запущен",
+      "failed": "Перезапуск не удался"
+    },
+    "tls": {
+      "subject": "Субъект",
+      "issuer": "Издатель",
+      "names": "Имена",
+      "validUntil": "Действителен до",
+      "key": "Закрытый ключ",
+      "daysLeft_one": "остался {{count}} день",
+      "daysLeft_few": "осталось {{count}} дня",
+      "daysLeft_many": "осталось {{count}} дней",
+      "daysLeft_other": "осталось {{count}} дня",
+      "expired": "Истёк",
+      "keyMatches": "Соответствует сертификату",
+      "keyMismatch": "Не соответствует сертификату",
+      "unreadable": "Сертификат не читается"
+    },
+    "docker": {
+      "mode": "Режим редактирования",
+      "form": "Форма",
+      "raw": "Текст",
+      "server": "Реестр",
+      "username": "Имя пользователя",
+      "password": "Пароль",
+      "email": "Эл. почта",
+      "add": "Добавить реестр",
+      "remove": "Удалить реестр",
+      "empty": "Реестров пока нет."
     }
   }
 }

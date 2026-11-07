@@ -26,5 +26,13 @@
   "value": {
     "yes": "Evet",
     "no": "Hayır"
+  },
+  "toast": {
+    "updated": "Güncellendi",
+    "updatedDetail": "{{target}} güncellendi",
+    "updateFailed": "Güncellenemedi",
+    "updateFailedDetail": "{{target}} güncellenemedi",
+    "loadFailed": "Yüklenemedi",
+    "loadFailedDetail": "{{target}} yüklenemedi"
   }
 }

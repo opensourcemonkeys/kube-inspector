@@ -26,5 +26,13 @@
   "value": {
     "yes": "Да",
     "no": "Нет"
+  },
+  "toast": {
+    "updated": "Обновлено",
+    "updatedDetail": "{{target}} обновлён",
+    "updateFailed": "Не удалось обновить",
+    "updateFailedDetail": "Не удалось обновить {{target}}",
+    "loadFailed": "Не удалось загрузить",
+    "loadFailedDetail": "Не удалось загрузить {{target}}"
   }
 }

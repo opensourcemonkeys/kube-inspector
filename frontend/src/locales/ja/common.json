@@ -26,5 +26,13 @@
   "value": {
     "yes": "はい",
     "no": "いいえ"
+  },
+  "toast": {
+    "updated": "更新しました",
+    "updatedDetail": "{{target}} を更新しました",
+    "updateFailed": "更新に失敗しました",
+    "updateFailedDetail": "{{target}} を更新できませんでした",
+    "loadFailed": "読み込みに失敗しました",
+    "loadFailedDetail": "{{target}} を読み込めませんでした"
   }
 }

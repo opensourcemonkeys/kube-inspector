@@ -57,11 +57,36 @@ func GetPods(namespace string, repoK8sClient *kubernetes.Clientset, mc *metricsc
 }
 
 func DeletePod(namespace string, name string, repoK8sClient *kubernetes.Clientset) error {
+	return DeletePodWithOptions(namespace, name, false, false, repoK8sClient)
+}
+
+// DeletePodWithOptions deletes a pod the way `kubectl delete pod` does with
+// --force and --grace-period=0, see podDeleteOptions.
+func DeletePodWithOptions(namespace string, name string, force bool, gracePeriodZero bool, repoK8sClient *kubernetes.Clientset) error {
 	if namespace == "" || name == "" {
 		return fmt.Errorf("namespace and pod name are required")
 	}
 
-	return repoK8sClient.CoreV1().Pods(namespace).Delete(context.Background(), name, metav1.DeleteOptions{})
+	return repoK8sClient.CoreV1().Pods(namespace).Delete(context.Background(), name, podDeleteOptions(force, gracePeriodZero))
+}
+
+// podDeleteOptions mirrors kubectl. A grace period of 0 sent to the API
+// server removes the pod at once without waiting for the kubelet to confirm
+// its containers stopped, so only force does that. A grace period of 0 on its
+// own becomes 1 second, as kubectl converts it: the containers are signalled
+// immediately but the kubelet still confirms the shutdown. With neither, the
+// pod's own terminationGracePeriodSeconds applies.
+func podDeleteOptions(force bool, gracePeriodZero bool) metav1.DeleteOptions {
+	var grace int64
+	switch {
+	case force:
+		grace = 0
+	case gracePeriodZero:
+		grace = 1
+	default:
+		return metav1.DeleteOptions{}
+	}
+	return metav1.DeleteOptions{GracePeriodSeconds: &grace}
 }
 
 func GetPodYaml(namespace string, name string, repoK8sClient *kubernetes.Clientset) (string, error) {

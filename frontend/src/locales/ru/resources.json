@@ -107,7 +107,13 @@
       "failSummary": "Не удалось удалить",
       "failDetail": "Не удалось удалить {{target}}"
     },
-    "more": "и ещё {{count}}"
+    "more": "и ещё {{count}}",
+    "options": {
+      "force": "Принудительно (force)",
+      "forceHint": "Удаляется из API сразу, без подтверждения от kubelet. Контейнеры могут ещё какое-то время работать на узле.",
+      "gracePeriodZero": "Grace period 0",
+      "gracePeriodZeroHint": "Контейнеры получают сигнал остановки сразу и 1 секунду на завершение (как в kubectl); kubelet по-прежнему подтверждает удаление."
+    }
   },
   "namespace": {
     "createTitle": "Создать Namespace",
