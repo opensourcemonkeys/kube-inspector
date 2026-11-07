@@ -31,7 +31,7 @@
     "motion": "^12.40.0",
     "nextstepjs": "^2.3.0",
     "primeflex": "^4.0.0",
-    "primereact": "^10.9.7",
+    "primereact": "^10.9.9",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-i18next": "^17.1.9",
