@@ -76,9 +76,17 @@ export default function DockviewContainer() {
     // ClusterContext has read the active cluster, so opening Overview there
     // pinned it to cluster "" — a tab titled "Overview" with a dangling "•",
     // and a second "Overview • <cluster>" as soon as the sidebar was used.
+    //
+    // It also waits for a cluster to be *selected*. On a first run the list
+    // loads empty, and opening then pinned Overview to "" for good — panels
+    // never change cluster — so it polled an error ("try setting
+    // KUBERNETES_MASTER") behind the first-run dialog and kept doing so after a
+    // cluster was added. The same happens when .active names a cluster that is
+    // gone. Waiting opens it once the dialog (or the cluster dropdown) selects
+    // one; scripts/smoke checks it.
     const [startScreenPending, setStartScreenPending] = useState(false);
     useEffect(() => {
-        if (!startScreenPending || !loaded) return;
+        if (!startScreenPending || !loaded || !activeCluster) return;
         setStartScreenPending(false);
         openTab({ view: HOME_ITEM.view, clusterName: activeCluster, icon: HOME_ITEM.icon });
     }, [startScreenPending, loaded, activeCluster, openTab]);

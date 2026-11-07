@@ -10,7 +10,9 @@ headless Chrome and walks the path every new user takes:
                  ListClusters returned nothing for an empty ~/.kube-ins)
   2. add       — paste a kubeconfig, save; the file lands in ~/.kube-ins
   3. connect   — the cluster bar shows the new cluster
-  4. pods      — the Pods list shows a pod the cluster is known to run
+  4. overview  — the start screen opens pinned to that cluster, not to the
+                 empty selection it had before (a first-run bug, fixed in 1.0)
+  5. pods      — the Pods list shows a pod the cluster is known to run
 
 Everything runs against a throwaway HOME, so it never touches the real
 ~/.kube-ins. The update check is pointed at a dead address to keep the run
@@ -207,6 +209,20 @@ def run(args, home, out, steps):
                      lambda: CLUSTER in d.find_element(By.ID, "tour-cluster-area").text, 30)
             assert_no_crash(d)
 
+        def overview():
+            # The start screen must be pinned to the cluster just added. It used
+            # to open the moment the cluster list loaded — empty on a first run —
+            # and stay pinned to cluster "" for good: an "Overview" tab with no
+            # cluster, polling an error ("try setting KUBERNETES_MASTER").
+            def titles():
+                return [t.text.strip() for t in d.find_elements(By.CSS_SELECTOR, ".dv-tab")]
+            wait_for(f"an Overview tab for '{CLUSTER}'",
+                     lambda: any(t.startswith("Overview") and CLUSTER in t for t in titles()), 30)
+            stray = [t for t in titles() if t.startswith("Overview") and CLUSTER not in t]
+            if stray:
+                raise StepFailed(f"an Overview tab is pinned to no cluster: tabs {titles()}")
+            assert_no_crash(d)
+
         def pods():
             wait_for("the Pods item in the sidebar", lambda: nav(d, "Pods"), 20)
 
@@ -230,6 +246,7 @@ def run(args, home, out, steps):
         step("launch", launch)
         step("add", add)
         step("connect", connect)
+        step("overview", overview)
         step("pods", pods)
         return True
     except StepFailed as e:
