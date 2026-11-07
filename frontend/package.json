@@ -24,7 +24,7 @@
     "@xterm/xterm": "^6.0.0",
     "chart.js": "^4.6.1",
     "dockview": "^6.6.1",
-    "dockview-react": "^6.6.1",
+    "dockview-react": "^8.8.2",
     "i18next": "^26.5.11",
     "monaco-editor": "^0.57.0",
     "monaco-yaml": "^5.5.1",
