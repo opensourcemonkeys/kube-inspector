@@ -1173,7 +1173,9 @@
       "audit": "如需记录来源 IP 和 User-Agent，还需将 Audit Webhook 接入 kube-apiserver：添加 --set audit.service.clusterIP=<Service CIDR 中的空闲 IP>，然后按 `helm get notes toolbox -n toolbox` 输出的步骤操作。",
       "managed": "在托管集群（EKS、GKE、AKS）上无法配置 API Server；用户和用户组仍会通过 Admission Webhook 记录。",
       "guide": "完整安装指南"
-    }
+    },
+    "beta": "测试版",
+    "betaNote": "toolbox 处于测试阶段，版本独立于 Kube Inspector。它记录的内容和 API 在不同 toolbox 版本之间仍可能变化；较新的 Kube Inspector 仍可与较旧的 toolbox 配合使用，但功能会少一些。"
   },
   "clusterHistory": {
     "label": "集群历史",

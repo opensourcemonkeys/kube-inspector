@@ -17,6 +17,7 @@ import { errText } from '../../../lib/errText';
 import { useT } from '../../../i18n/useT';
 import { HISTORY_VIEWS, DEFAULT_HISTORY_FILTERS, useHistoryStore, useHistoryTab, type HistoryFilters, type HistoryView } from '../../../stores/historyStore';
 import Segmented from '../../shared/Segmented';
+import BetaTag from '../BetaTag';
 import RowAction from '../../shared/RowAction';
 import StatusLamp from '../../shared/StatusLamp';
 import ErrorBanner from '../../shared/ErrorBanner';
@@ -457,6 +458,7 @@ export default function ClusterHistoryPanel({ params, api }: IDockviewPanelProps
                 <span className="panel-toolbar__label">
                     <VscHistory size={14} aria-hidden />
                     {t('panels:clusterHistory.label')}
+                    <BetaTag />
                 </span>
                 <div className="panel-toolbar__actions">
                     <Segmented<HistoryView>

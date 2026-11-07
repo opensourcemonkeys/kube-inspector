@@ -1197,7 +1197,9 @@
       "audit": "For source IPs and user agents, also wire the audit webhook into kube-apiserver: add --set audit.service.clusterIP=<a free IP in your service CIDR>, then follow the steps `helm get notes toolbox -n toolbox` prints.",
       "managed": "On managed clusters (EKS, GKE, AKS) the API server is not yours to configure; users and groups are still recorded through the admission webhook.",
       "guide": "Full installation guide"
-    }
+    },
+    "beta": "Beta",
+    "betaNote": "toolbox is in beta and versioned separately from Kube Inspector. What it records and its API may still change between toolbox releases; a newer Kube Inspector keeps working with an older toolbox, with fewer features."
   },
   "clusterHistory": {
     "label": "Cluster history",

@@ -11,6 +11,7 @@ import StatusLamp, { type LampTone } from '../shared/StatusLamp';
 import RowAction from '../shared/RowAction';
 import RecordingHealth from './RecordingHealth';
 import InstallGuide from './InstallGuide';
+import BetaTag from './BetaTag';
 
 const STATE_TONE: Record<string, LampTone> = { ok: 'ok', notInstalled: 'idle', forbidden: 'warn', unreachable: 'err' };
 
@@ -68,6 +69,7 @@ export default function ToolboxPanel({ params, api }: IDockviewPanelProps<{ clus
                 <span className="panel-toolbar__label">
                     <VscTools size={14} aria-hidden />
                     {t('panels:toolbox.label')}
+                    <BetaTag />
                 </span>
                 <div className="panel-toolbar__actions">
                     <RowAction icon={<VscRefresh size={14} />} label={t('panels:toolbox.refresh')} loading={checking}
@@ -76,6 +78,7 @@ export default function ToolboxPanel({ params, api }: IDockviewPanelProps<{ clus
             </div>
 
             <p className="tool-panel__intro">{t('panels:toolbox.intro')}</p>
+            <p className="tool-panel__note">{t('panels:toolbox.betaNote')}</p>
 
             <ul className="tool-list">
                 <li className="tool-row" aria-disabled={!ready}>

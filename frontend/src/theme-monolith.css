@@ -2807,6 +2807,9 @@ button.ai-chip { padding: 2px 8px; cursor: pointer; }
    here keeps its row and says why; it is dimmed, not hidden. */
 .tool-panel { display: flex; flex-direction: column; height: 100%; overflow: auto; background: var(--screen); }
 .tool-panel__intro { margin: 12px 16px 4px; color: var(--ink-2); line-height: 1.5; max-width: 72ch; }
+.tool-panel__note { margin: 0 16px 4px; font-size: 12px; color: var(--ink-3); line-height: 1.5; max-width: 72ch; }
+/* "Beta" beside a panel title: toolbox's own version line is still a beta. */
+.panel-toolbar__label .beta-tag.p-tag { margin-left: 6px; font-size: 10.5px; padding: 0 5px; flex: none; }
 .tool-list { list-style: none; margin: 0; padding: 4px 16px 16px; display: flex; flex-direction: column; }
 .tool-row { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .tool-row__icon { flex: 0 0 auto; display: flex; padding-top: 2px; color: var(--accent); }

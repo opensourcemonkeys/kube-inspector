@@ -1173,7 +1173,9 @@
       "audit": "送信元 IP とユーザーエージェントを記録するには、Audit Webhook を kube-apiserver にも接続します: --set audit.service.clusterIP=<Service CIDR 内の空き IP> を追加し、`helm get notes toolbox -n toolbox` が表示する手順に従ってください。",
       "managed": "マネージドクラスター（EKS、GKE、AKS）では API サーバーを設定できませんが、ユーザーとグループは Admission Webhook で記録されます。",
       "guide": "インストールガイド全文"
-    }
+    },
+    "beta": "ベータ",
+    "betaNote": "toolbox はベータ版で、Kube Inspector とは別にバージョン管理されています。記録する内容と API は toolbox のリリース間で変わる可能性があります。新しい Kube Inspector は古い toolbox でも動作し続けますが、使える機能は少なくなります。"
   },
   "clusterHistory": {
     "label": "クラスター履歴",

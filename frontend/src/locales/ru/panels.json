@@ -1245,7 +1245,9 @@
       "audit": "Чтобы записывать IP-адреса и user agent, подключите audit webhook к kube-apiserver: добавьте --set audit.service.clusterIP=<свободный IP в service CIDR>, затем выполните шаги из вывода `helm get notes toolbox -n toolbox`.",
       "managed": "В управляемых кластерах (EKS, GKE, AKS) API-сервер не настраивается, но пользователи и группы всё равно записываются через admission webhook.",
       "guide": "Полное руководство по установке"
-    }
+    },
+    "beta": "Бета",
+    "betaNote": "toolbox находится в бета-версии и версионируется отдельно от Kube Inspector. То, что он записывает, и его API ещё могут меняться между выпусками toolbox; более новая версия Kube Inspector продолжает работать со старой toolbox, но с меньшим набором функций."
   },
   "clusterHistory": {
     "label": "История кластера",

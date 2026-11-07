@@ -14,6 +14,7 @@ import Segmented from '../../shared/Segmented';
 import RowAction from '../../shared/RowAction';
 import ErrorBanner from '../../shared/ErrorBanner';
 import PanelLoading from '../../shared/PanelLoading';
+import BetaTag from '../BetaTag';
 import { ListSkeleton } from '../../shared/PanelSkeleton';
 import { AgeCell, formatTime, verbLamp } from './format';
 import YamlDiff from './YamlDiff';
@@ -266,6 +267,7 @@ export default function ObjectHistoryPanel({ params, api }: IDockviewPanelProps<
                 <span className="panel-toolbar__label" title={title}>
                     <VscHistory size={14} aria-hidden />
                     <span className="cell-clip">{title}</span>
+                    <BetaTag />
                 </span>
                 <div className="panel-toolbar__actions">
                     {followUp.waiting && <span className="obj-history__waiting">{t('panels:objectHistory.waiting')}</span>}

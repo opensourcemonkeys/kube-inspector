@@ -1197,7 +1197,9 @@
       "audit": "Kaynak IP ve user agent için audit webhook'u da kube-apiserver'a bağlayın: --set audit.service.clusterIP=<service CIDR'da boş bir IP> ekleyin, ardından `helm get notes toolbox -n toolbox` çıktısındaki adımları izleyin.",
       "managed": "Managed cluster'larda (EKS, GKE, AKS) API server yapılandırması size ait değildir; kullanıcı ve gruplar admission webhook ile yine kaydedilir.",
       "guide": "Kurulum rehberinin tamamı"
-    }
+    },
+    "beta": "Beta",
+    "betaNote": "toolbox beta aşamasındadır ve Kube Inspector'dan ayrı sürümlenir. Kaydettikleri ve API'si toolbox sürümleri arasında hâlâ değişebilir; daha yeni bir Kube Inspector, daha eski bir toolbox ile daha az özellikle çalışmaya devam eder."
   },
   "clusterHistory": {
     "label": "Cluster geçmişi",
