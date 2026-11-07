@@ -1,0 +1,56 @@
+name: Prune release artifacts
+
+# Keeps the newest 3 releases of each update channel in the R2 bucket's dist/
+# and deletes older ones (scripts/release/prune_dist.py, which explains what it
+# will and will not touch). stable = releases without a prerelease suffix,
+# beta = every release; their union is kept.
+#
+# build.yml calls this after a release is fully published (artifacts, checksums,
+# manifests, GitHub Release). Run it by hand from the Actions tab to see what it
+# would delete: a manual run is a dry run unless you untick it.
+on:
+  workflow_call:
+    inputs:
+      dry_run:
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list what would be deleted"
+        type: boolean
+        default: true
+
+# Two release runs pruning at once could each see the other's fresh upload as
+# an unknown version; serialise them rather than cancel either.
+concurrency:
+  group: prune-dist
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    name: Prune dist/ (keep the newest 3 per channel)
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      AWS_REQUEST_CHECKSUM_CALCULATION: WHEN_REQUIRED
+      AWS_RESPONSE_CHECKSUM_VALIDATION: WHEN_REQUIRED
+      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+      R2_BUCKET: ${{ vars.R2_BUCKET }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          # The releases are the v* tags; without them the script refuses to run.
+          fetch-depth: 0
+
+      - name: Prune
+        run: |
+          set -euo pipefail
+          python3 scripts/release/prune_dist.py \
+            --bucket "$R2_BUCKET" \
+            --endpoint "https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com" \
+            --keep 3 \
+            ${{ inputs.dry_run && '--dry-run' || '' }}

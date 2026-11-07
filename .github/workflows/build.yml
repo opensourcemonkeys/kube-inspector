@@ -485,9 +485,9 @@ jobs:
           ENDPOINT="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
           mkdir -p sums
 
-          # Only this release's sidecars. dist/ accumulates every version ever
-          # shipped, on purpose: the artifact sync has no --delete, so a link
-          # published in an old changelog keeps working.
+          # Only this release's sidecars. The artifact sync has no --delete;
+          # older releases are removed only by the prune-dist job at the end,
+          # which keeps the newest 3 of each update channel.
           aws s3 cp "s3://${R2_BUCKET}/dist/" sums/ \
             --endpoint-url "$ENDPOINT" --recursive --no-progress \
             --exclude "*" --include "*${VERSION}*.sha256"
@@ -680,3 +680,18 @@ jobs:
             --exclude "dcount.json" \
             --exclude "vcount.json" \
             --no-progress
+
+  # ==========================================
+  # STAGE 3: PRUNE OLD RELEASES FROM R2
+  # ==========================================
+  # Last, once the release is fully published: the newest 3 releases of each
+  # update channel stay in dist/, older ones are deleted. The script refuses to
+  # delete anything the published manifests point at. See prune-dist.yml.
+  prune-dist:
+    name: Prune old releases from R2
+    needs: [deploy-docs, release]
+    if: github.ref_type == 'tag'
+    uses: ./.github/workflows/prune-dist.yml
+    with:
+      dry_run: false
+    secrets: inherit

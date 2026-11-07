@@ -33,6 +33,13 @@ version it names.
 top; there is no in-app rollback. An older version is not promised to read what
 a newer one wrote, and starts from defaults where it cannot.
 
+**Which older packages stay downloadable.** The newest three releases of each
+update channel stay at `https://kubeinspector.com/dist/` under their versioned
+names (`kube-inspector-<version>-linux-amd64.deb` and so on, each with its
+`.sha256` and the release's `SHA256SUMS-<version>`). When a release is
+published, older ones are removed. The checksums of every release stay on its
+GitHub release.
+
 **Platform requirements may rise in a minor release** when Electron or Go drop
 an operating system version. The changelog says so. The current list is under
 [System requirements](getting-started/installation.md#system-requirements).

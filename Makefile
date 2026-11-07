@@ -234,10 +234,15 @@ clean:
 #
 # Note the frontend half needs frontend/wailsjs, which is generated and
 # gitignored — `bindings` creates it when missing.
-check: test-go lint-go check-frontend licenses-check
+check: test-go lint-go check-frontend licenses-check test-scripts
 
 test-go:
 	go test ./...
+
+# The release scripts' own tests (stdlib unittest, no network): prune_dist.py
+# deletes from the public bucket, so its decisions are tested.
+test-scripts:
+	python3 -m unittest discover -s scripts/release -p 'test_*.py'
 
 vet:
 	go vet ./...
@@ -344,4 +349,4 @@ docs-serve: docs-downloads
 docs-build: docs-downloads
 	mkdocs build --clean --strict
 
-.PHONY: build build-linux build-windows build-mac dev dev-wails bindings dev-tui build-tui build-tui-linux build-tui-windows build-tui-mac deps build-sidecar electron-frontend electron-app electron-dev-go electron-dev-vite electron-dev pkg-deb pkg-rpm pkg-linux pkg-windows pkg-mac pkg-tui-deb pkg-tui-rpm pkg-all clean check test-go vet lint-go check-frontend print-version print-pkg-version smoke notices licenses-check vulncheck docs-downloads docs-serve docs-build
+.PHONY: build build-linux build-windows build-mac dev dev-wails bindings dev-tui build-tui build-tui-linux build-tui-windows build-tui-mac deps build-sidecar electron-frontend electron-app electron-dev-go electron-dev-vite electron-dev pkg-deb pkg-rpm pkg-linux pkg-windows pkg-mac pkg-tui-deb pkg-tui-rpm pkg-all clean check test-go vet lint-go check-frontend print-version print-pkg-version smoke notices licenses-check vulncheck test-scripts docs-downloads docs-serve docs-build

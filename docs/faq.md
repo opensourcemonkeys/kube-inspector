@@ -172,8 +172,9 @@ Switching to stable never downgrades you. See
 
 ### Can I roll back an update?
 
-Not from inside the app. Install the older package over the top from
-[Downloads](downloads.md).
+Not from inside the app. Install the older package over the top; the newest
+three releases of each channel stay downloadable — see
+[Versioning and compatibility](versioning.md#what-an-upgrade-within-1x-keeps-working).
 
 ## Comparisons
 

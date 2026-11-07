@@ -289,7 +289,9 @@ mv "/Applications/Kube Inspector.app.old" "/Applications/Kube Inspector.app"
 ```
 
 **There is no rollback.** The updater detects a failed update; it cannot undo a
-successful one. To go back a version, install the older package over the top.
+successful one. To go back a version, install the older package over the top —
+the newest three releases of each channel stay downloadable
+([which ones](versioning.md#what-an-upgrade-within-1x-keeps-working)).
 
 **Nothing is ever offered.** Check **Help ▸ Check for Updates**, and check the
 channel: **Open ▸ Update channel** offers *stable* and *beta*. A build ahead of

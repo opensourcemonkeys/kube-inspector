@@ -185,6 +185,10 @@ jobs:
       - name: Install MkDocs
         run: pip install "mkdocs-material[imaging]"
 
+      # prune_dist.py deletes from the public bucket; its decisions are tested.
+      - name: Release script tests
+        run: python -m unittest discover -s scripts/release -p 'test_*.py'
+
       # --strict turns a broken internal link or a page missing from the nav
       # into a failure, which is the only automated check the docs have.
       - name: Build docs

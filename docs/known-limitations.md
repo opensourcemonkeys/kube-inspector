@@ -41,8 +41,9 @@ it by hand if you are short on disk.
 
 **There is no rollback.** The updater notices when an update was handed to an
 installer and did not take effect — the next launch says so — but it cannot undo
-one that succeeded. To go back, install the older package over the top from
-[Downloads](downloads.md).
+one that succeeded. To go back, install the older package over the top. Only
+the newest three releases of each update channel stay downloadable — see
+[Versioning and compatibility](versioning.md#what-an-upgrade-within-1x-keeps-working).
 
 **Switching from beta to stable does not downgrade you.** If you are running a
 build that is ahead of the stable channel, choosing *stable* simply means you
