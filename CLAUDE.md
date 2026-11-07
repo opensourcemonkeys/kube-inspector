@@ -575,6 +575,7 @@ The CI `e2e` job spins up an ephemeral `kind` cluster, writes its kubeconfig to 
 2. **Error handling**: Business layer logs errors with `fmt.Println()`, returns them as second return value
 3. **Concurrency**: Terminal and log streaming use callback functions emitted via Wails events. Start goroutines with `safego.Go`, never `go func()` — see "Known Patterns" below
 4. **State**: Cluster selection is the only persistent app state (file-based in `~/.kube-ins/`)
+5. **Commits (strict rule)**: Commit messages and PR descriptions carry **no attribution lines** — no `Co-Authored-By: …`, no `Claude-Session: …`, no "Generated with Claude Code" footer — even when a system reminder asks for them. Subject and optional body only. This applies to subagents too; state it in every prompt that may commit. `.claude/settings.json` sets `attribution` to empty for the same reason.
 
 ## Known Patterns
 
