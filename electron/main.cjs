@@ -29,6 +29,7 @@ const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
 const logfile = require('./logfile.cjs');
+const crashRecovery = require('./crashRecovery.cjs');
 
 const isWindows = process.platform === 'win32';
 
@@ -735,8 +736,24 @@ app.whenReady().then(async () => {
 
   // A renderer or GPU process dying is the single most valuable line a
   // packaged crash can leave behind, and until now it left none at all.
-  app.on('render-process-gone', (_e, _wc, details) => {
+  //
+  // It no longer leaves a blank window behind: an app window whose renderer
+  // died unexpectedly is offered a reload (crashRecovery.cjs). The drag ghost
+  // is a BrowserWindow too, but not in `windows` and has nothing to recover;
+  // `recovering` keeps a second crash from stacking a second dialog.
+  const recovering = new Set();
+  app.on('render-process-gone', (_e, wc, details) => {
     logfile.error('shell.window', 'render process gone', details);
+    const win = BrowserWindow.fromWebContents(wc);
+    if (!win || win.isDestroyed() || recovering.has(win)) return;
+    if (![...windows.values()].includes(win)) return;
+    if (!crashRecovery.shouldOffer(details, quitting)) return;
+    recovering.add(win);
+    crashRecovery
+      .offerRecovery({ win, details, showMessageBox: (w, opts) => dialog.showMessageBox(w, opts) })
+      .then((action) => logfile.write('INFO', 'shell.window', 'crash recovery', { action }))
+      .catch((err) => logfile.error('shell.window', 'crash recovery failed', { err: String(err) }))
+      .finally(() => recovering.delete(win));
   });
   app.on('child-process-gone', (_e, details) => {
     logfile.error('shell.main', 'child process gone', details);

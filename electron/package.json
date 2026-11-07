@@ -8,7 +8,8 @@
     "start": "electron .",
     "dist:linux": "electron-builder --linux --publish never",
     "dist:win": "electron-builder --win --publish never",
-    "dist:mac": "electron-builder --mac --publish never"
+    "dist:mac": "electron-builder --mac --publish never",
+    "test": "node --test crashRecovery.test.cjs"
   },
   "dependencies": {
     "ws": "^8.22.0"

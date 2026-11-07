@@ -253,6 +253,7 @@ lint-go: vet
 # five translated catalogs drifting away from `en`.
 check-frontend: bindings
 	cd frontend && npm run typecheck && npm run lint && npm run i18n:check && npm run test
+	cd electron && npm test
 
 # Single source of truth for the release version. CI derives every artifact name
 # and both update manifests from this rather than from GITHUB_REF_NAME, and

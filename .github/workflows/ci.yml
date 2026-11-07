@@ -158,6 +158,11 @@ jobs:
       - name: Test
         run: cd frontend && npm run test
 
+      # The Electron shell's pure modules (crash recovery). node:test only — no
+      # npm install, no Electron, no display.
+      - name: Electron shell tests
+        run: cd electron && npm test
+
       - name: Build
         run: cd frontend && npm run build
 

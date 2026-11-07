@@ -6,6 +6,7 @@ import { useT } from '../../i18n/useT';
 import { useClusterContext } from '../../contexts/ClusterContext';
 import { HOME_ITEM } from '../menu/menuItems';
 import { initialPanel, onDragHover, onDragLeave, onPanelFromWindow } from '../../lib/shellWindows';
+import { takeAfterCrashAction } from '../../lib/afterCrash';
 import {
     dragHover,
     dragLeave,
@@ -69,7 +70,7 @@ const components = Object.fromEntries(
 
 export default function DockviewContainer() {
     const t = useT();
-    const { registerApi, openTab, openReceivedPanel, openApplyYaml } = useTabContext();
+    const { registerApi, openTab, openReceivedPanel, openApplyYaml, openDiagnostics } = useTabContext();
     const { activeCluster, loaded } = useClusterContext();
     const apiRef = useRef<DockviewApi | null>(null);
     // The start screen waits for the cluster list. onReady fires before
@@ -85,11 +86,19 @@ export default function DockviewContainer() {
     // gone. Waiting opens it once the dialog (or the cluster dropdown) selects
     // one; scripts/smoke checks it.
     const [startScreenPending, setStartScreenPending] = useState(false);
+    // Set when the Electron shell reloaded this window after its renderer
+    // crashed and the user asked for Diagnostics (lib/afterCrash.ts). Opened
+    // after the start screen, so it is the tab in front.
+    const diagnosticsAfterStart = useRef(false);
     useEffect(() => {
         if (!startScreenPending || !loaded || !activeCluster) return;
         setStartScreenPending(false);
         openTab({ view: HOME_ITEM.view, clusterName: activeCluster, icon: HOME_ITEM.icon });
-    }, [startScreenPending, loaded, activeCluster, openTab]);
+        if (diagnosticsAfterStart.current) {
+            diagnosticsAfterStart.current = false;
+            openDiagnostics();
+        }
+    }, [startScreenPending, loaded, activeCluster, openTab, openDiagnostics]);
 
     // Place a panel dropped in from another window at the spot dockview's
     // overlay was showing. `takeDroppedPanel` is non-null only for our own
@@ -173,6 +182,7 @@ export default function DockviewContainer() {
         const seed = initialPanel();
         if (seed) openReceivedPanel(seed);
         else setStartScreenPending(true);
+        if (takeAfterCrashAction() === 'diagnostics') diagnosticsAfterStart.current = true;
     };
 
     // Double-clicking the empty strip of a tab bar opens a blank YAML editor in

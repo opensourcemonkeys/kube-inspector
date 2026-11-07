@@ -12,10 +12,14 @@ directories:
 
 # Only the shell scripts. The frontend bundle is embedded in the Go binary and
 # served by it, so packaging it here again would just duplicate ~7MB.
+#
+# Every module main.cjs requires must be listed, or the packaged app dies at
+# start-up on a missing require — nothing in a dev run would show it.
 files:
   - main.cjs
   - preload.cjs
   - logfile.cjs
+  - crashRecovery.cjs
   - package.json
 
 # The Go binary IS the application. Built by `make build-sidecar` (or the
