@@ -48,7 +48,7 @@
     "@types/react": "^18.0.17",
     "@types/react-dom": "^18.0.6",
     "@vitejs/plugin-react": "^6.1.2",
-    "eslint": "^9.39.5",
+    "eslint": "^10.13.0",
     "eslint-plugin-i18next": "^6.1.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "globals": "^15.15.0",
