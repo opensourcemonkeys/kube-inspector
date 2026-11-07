@@ -41,7 +41,9 @@ attacker who could replace both the artifact and both copies of its checksum
 could serve you something else, and your OS would not object any louder than it
 already does. This is the honest limitation of shipping unsigned software.
 
-Code signing is on the roadmap for 1.0.
+Version 1.0 ships unsigned as well. Code signing is planned for a later
+release, with no date yet: it depends on obtaining the certificates, and this
+page will change when it happens.
 
 ## Linux
 

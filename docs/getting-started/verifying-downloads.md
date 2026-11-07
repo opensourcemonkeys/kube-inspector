@@ -113,4 +113,5 @@ corruption in transit. They cannot prove the build is authentic, because:
   serving both. The GitHub-hosted copy of `SHA256SUMS-<version>` exists so you
   do not have to take a single host's word for it.
 
-Code signing is on the roadmap for 1.0.
+Version 1.0 ships unsigned as well. Code signing is planned for a later
+release, with no date yet — see [Unsigned builds](unsigned-builds.md).

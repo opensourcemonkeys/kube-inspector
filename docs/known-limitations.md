@@ -18,8 +18,8 @@ If what you are seeing is *not* on this page, it probably is a bug:
 Authenticode certificate. macOS Gatekeeper blocks the first launch and Windows
 SmartScreen warns; both need a manual override. The published SHA-256 checksums
 prove the file arrived intact — they do not prove who built it. See
-[Unsigned builds](getting-started/unsigned-builds.md). Signing is on the roadmap
-for 1.0.
+[Unsigned builds](getting-started/unsigned-builds.md). Version 1.0 ships
+unsigned as well; signing is planned for a later release, with no date yet.
 
 **macOS is Apple Silicon only.** Releases up to v0.11.0 shipped a universal
 binary; since then the dmg targets `arm64` alone. A universal build would embed
