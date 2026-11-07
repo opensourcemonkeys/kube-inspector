@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.0] - 2026-11-08
+
+Kube Inspector 1.0, the first stable release. From here on releases follow semantic versioning: a patch release fixes, a minor release adds without breaking what you rely on, and [Versioning and compatibility](https://kubeinspector.com/versioning/) says what an upgrade within 1.x keeps working. The stable update channel is the default from this release on, and only the latest release receives fixes.
+
+The app is v1.0.0-rc.1 unchanged. Everything new since v0.21.0-beta — the licence notices under **Help ▸ About ▸ Licenses**, Linux packages that bring the libraries they need and update through apt or dnf, a way back from a crashed window, **Run now** for CronJobs, the first-run fixes, the system requirements and the removal of primeicons — is listed under [v1.0.0-rc.1](https://kubeinspector.com/changelog/).
+
+### Changed
+- **Only the newest three releases of each update channel stay downloadable.** When a release is published, older packages are removed from `kubeinspector.com/dist`; the checksums of every release stay on its GitHub release.
+
+### Internal
+- `build.yml` ends with a `prune-dist` job (`prune-dist.yml` → `scripts/release/prune_dist.py`) that keeps the newest 3 releases of the stable and the beta channel in R2's `dist/` and deletes older ones. It deletes only files attributable to a known `v*` tag, never what a published manifest points at; a manual run is a dry run by default.
+
+---
+
 ## [v1.0.0-rc.1] - 2026-11-07
 
 The first release candidate for 1.0. From 1.0 on Kube Inspector follows semantic versioning and says what an upgrade within 1.x keeps working. Most of this release is about shipping well: Linux packages that bring the libraries they need, the licence notices of everything inside the app, and a release pipeline that tests a build before it publishes it. It also fixes a first-run screen that stayed on an error. This candidate arrives on the beta channel; the same changes become 1.0 on the stable channel.
