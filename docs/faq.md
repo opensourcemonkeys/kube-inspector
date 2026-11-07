@@ -160,7 +160,8 @@ persist. Note that four of the six catalogs are machine-translated — see
 The app checks a published manifest, and when a newer release exists offers a
 two-step download-then-install flow. The download is verified against its
 published SHA-256 before anything is installed. On Linux the package goes to
-`pkexec dpkg -i` / `pkexec rpm -Uvh`, so you will be asked to authenticate.
+`pkexec apt-get install` / `pkexec dnf install` — or `dpkg -i` / `rpm -Uvh` on a
+system without them — so you will be asked to authenticate.
 
 ### Stable or beta channel?
 

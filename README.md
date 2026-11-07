@@ -60,17 +60,19 @@ Download from [kubeinspector.com/downloads](https://kubeinspector.com/downloads/
 | macOS (Apple Silicon) | `kube-inspector-<version>-macos-arm64.dmg` |
 | Windows | `kube-inspector-<version>-windows-amd64.exe` |
 
-**The packages declare no dependencies.** The app bundles its own browser
-engine, so there is no WebKitGTK, GTK or WebView2 runtime to install — on any
-platform. `kubectl` is not required either; the app speaks to the Kubernetes API
-directly through `client-go`.
+The app bundles its own browser engine, so there is no WebKitGTK or WebView2
+runtime to install — on any platform. On Linux the package names the system
+libraries Electron links against (GTK 3, NSS, ALSA, …), and `apt`/`dnf` install
+any that are missing; a desktop install almost always has them already.
+`kubectl` is not required either; the app speaks to the Kubernetes API directly
+through `client-go`.
 
 ```bash
 # Debian / Ubuntu
-sudo dpkg -i kube-inspector-<version>-linux-amd64.deb
+sudo apt install ./kube-inspector-<version>-linux-amd64.deb
 
 # RHEL / Fedora
-sudo rpm -Uvh kube-inspector-<version>-linux-x86_64.rpm
+sudo dnf install ./kube-inspector-<version>-linux-x86_64.rpm
 ```
 
 There is also a terminal UI, `kube-inspector-cli` — see

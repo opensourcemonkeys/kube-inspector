@@ -47,16 +47,17 @@ page will change when it happens.
 
 ## Linux
 
-Nothing to bypass. `dpkg` and `rpm` do not require a signature for a local file,
-and there is no Gatekeeper equivalent.
+Nothing to bypass. `apt`, `dnf`, `dpkg` and `rpm` do not require a signature
+for a local file, and there is no Gatekeeper equivalent.
 
 ```bash
 sha256sum -c kube-inspector-<version>-linux-amd64.deb.sha256   # must print OK
-sudo dpkg -i kube-inspector-<version>-linux-amd64.deb
+sudo apt install ./kube-inspector-<version>-linux-amd64.deb
 ```
 
 RPM will warn about a missing GPG signature if you install from a repository;
-installing the downloaded file directly with `rpm -Uvh` does not check one.
+installing the downloaded file directly with `dnf install ./…` or `rpm -Uvh`
+does not check one.
 
 ## macOS
 

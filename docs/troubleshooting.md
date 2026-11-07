@@ -36,6 +36,20 @@ sudo chmod 4755 /opt/kube-inspector/chrome-sandbox
 Reinstalling the `.deb` or `.rpm` fixes it too. Do **not** work around it with
 `--no-sandbox`.
 
+**Linux: "error while loading shared libraries: libnss3.so" (or another
+`.so`).** A system library the app links against is missing — usually on a
+minimal install or under WSL, and usually because the package went in through
+`dpkg -i` or `rpm -i`, which do not install dependencies. Let the package
+manager finish the job:
+
+```bash
+sudo apt-get -f install        # Debian / Ubuntu, after a dpkg -i
+sudo dnf install ./kube-inspector-<version>-linux-x86_64.rpm   # RHEL / Fedora
+```
+
+Installing with `apt install ./…deb` or `dnf install ./…rpm` in the first place
+avoids it.
+
 **Nothing happens at all when you launch it.** Start it from a terminal —
 `kube-inspector` on Linux — and read what it prints. Whatever it says, the same
 detail is in today's log file (see [where the logs are](#where-the-logs-are)),
@@ -249,12 +263,14 @@ happens twice, download manually and
 manual check also fails.
 
 **Linux: nothing happens after you approve the install.** The package is handed
-to `pkexec dpkg -i` / `pkexec rpm -Uvh`, which needs a working PolicyKit agent.
-On a minimal desktop session there may be none, and the prompt never appears.
+to `pkexec apt-get install` / `pkexec dnf install` (or to `dpkg -i` /
+`rpm -Uvh` where those are missing), which needs a working PolicyKit agent. On a
+minimal desktop session there may be none, and the prompt never appears.
 Install the package by hand instead:
 
 ```bash
-sudo dpkg -i ~/Downloads/kube-inspector-<version>-linux-amd64.deb
+sudo apt install ~/Downloads/kube-inspector-<version>-linux-amd64.deb     # Debian / Ubuntu
+sudo dnf install ~/Downloads/kube-inspector-<version>-linux-x86_64.rpm    # RHEL / Fedora
 ```
 
 **The app restarted but reports the old version.** The next launch detects this

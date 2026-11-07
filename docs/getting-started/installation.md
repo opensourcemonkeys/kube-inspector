@@ -4,7 +4,7 @@ description: Install Kube Inspector, the free visual desktop client for Kubernet
 
 # Installation
 
-Kube Inspector ships as a self-contained application for **Linux, macOS and Windows**. It bundles everything it needs — there are **no runtime dependencies to install on any platform**.
+Kube Inspector ships as a self-contained application for **Linux, macOS and Windows**. It bundles its own browser engine, so there is **no WebView or WebKitGTK runtime to install** and nothing to set up by hand on any platform. On Linux the package names the system libraries it uses, and your package manager installs any that are missing.
 
 ## Download
 
@@ -27,17 +27,24 @@ Get the package for your platform from the [Downloads](../downloads.md) page:
 
 ## Linux
 
-The packages declare no dependencies. Install and run:
+Install with your package manager. It also pulls in any system library the app
+needs that is missing — GTK 3, NSS, ALSA and the like, which a desktop install
+almost always already has:
 
 === "Debian / Ubuntu"
     ```bash
-    sudo dpkg -i kube-inspector-<version>-linux-amd64.deb
+    sudo apt install ./kube-inspector-<version>-linux-amd64.deb
     ```
 
 === "RHEL / Fedora"
     ```bash
-    sudo rpm -Uvh kube-inspector-<version>-linux-x86_64.rpm
+    sudo dnf install ./kube-inspector-<version>-linux-x86_64.rpm
     ```
+
+The `./` matters: without it `apt` and `dnf` look the name up in their
+repositories. `dpkg -i` and `rpm -i` install nothing the package depends on; if
+you used one and the app reports a missing `.so`, see
+[Troubleshooting](../troubleshooting.md#the-app-will-not-start).
 
 The application is installed to `/opt/kube-inspector` and linked as `/usr/bin/kube-inspector`, so you can launch it from the application menu or by running `kube-inspector`.
 

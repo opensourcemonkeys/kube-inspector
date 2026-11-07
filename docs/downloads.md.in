@@ -17,7 +17,9 @@ Kube Inspector ships in two flavours:
     unsigned, so this is the one integrity check available —
     [how to verify](getting-started/verifying-downloads.md).
 
-Both are self-contained: **no runtime dependencies to install on any platform**.
+Both are self-contained: **nothing to install by hand on any platform**. On
+Linux, install the desktop package with `sudo apt install ./<file>.deb` or
+`sudo dnf install ./<file>.rpm` so that any missing system library comes with it.
 
 ---
 
