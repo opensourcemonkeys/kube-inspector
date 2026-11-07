@@ -13,7 +13,7 @@ export default defineConfig({
         setupFiles: ['./src/test/i18n-setup.ts'],
         // Nothing here should reach the network or a cluster: these are unit
         // tests over pure helpers and hooks. Cluster-facing coverage is the
-        // e2e_tests/ suite's job.
+        // release smoke test's job (scripts/smoke/).
         restoreMocks: true,
     },
 });

@@ -39,13 +39,28 @@ export function ClusterProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const init = async () => {
-            await refreshClusters();
-            const active = await GetActiveCluster();
-            setActiveCluster(active ?? '');
+            const list = (await ListClusters()) ?? [];
+            setClusters(list);
+            let active = (await GetActiveCluster()) ?? '';
+            // Clusters exist but none is selected — no .active yet, or one that
+            // names a cluster since deleted (the backend trusts the file) —
+            // so start on the first one, as if picked. Otherwise the start
+            // screen, which waits for a selection (DockviewContainer), never
+            // opens and the workspace sits empty behind "Select cluster…".
+            if (list.length > 0 && !list.includes(active)) {
+                try {
+                    await SetActiveCluster(list[0]);
+                    active = list[0];
+                } catch (err) {
+                    console.error('Could not select a cluster at start-up:', err);
+                    active = '';
+                }
+            }
+            setActiveCluster(active);
             setLoaded(true);
         };
         init();
-    }, [refreshClusters]);
+    }, []);
 
     // Connection health check — periodic ping if active cluster is set
     useEffect(() => {
