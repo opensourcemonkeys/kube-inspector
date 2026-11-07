@@ -2,6 +2,45 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.0.0-rc.1] - 2026-11-07
+
+The first release candidate for 1.0. From 1.0 on Kube Inspector follows semantic versioning and says what an upgrade within 1.x keeps working. Most of this release is about shipping well: Linux packages that bring the libraries they need, the licence notices of everything inside the app, and a release pipeline that tests a build before it publishes it. It also fixes a first-run screen that stayed on an error. This candidate arrives on the beta channel; the same changes become 1.0 on the stable channel.
+
+### Added
+- **Open-source licences.** **Help ▸ About ▸ Licenses** lists every third-party component built into the app with its licence text. `kube-inspector --licenses` and `kube-inspector-cli --licenses` print the same.
+- **A way back from a crashed window.** If a window's page process stops unexpectedly, the app offers to reload it — or to reload it with Diagnostics open, where the crash is logged — instead of leaving the window blank. Port forwards, scans and other windows are not affected.
+- **System requirements**, in the installation guide: Linux with glibc 2.34 or newer (Ubuntu 22.04+, Debian 12+, Fedora 35+, RHEL / Rocky / AlmaLinux 9+), macOS 13 Ventura or newer, Windows 10 or 11. The desktop app on macOS is Apple Silicon only; the terminal UI also runs on Intel Macs.
+- **Versioning and compatibility**, a new page in the documentation: what patch, minor and major releases may contain, what an upgrade within 1.x keeps, how toolbox fits in, the update channels, and which version receives fixes (the latest).
+- **Beta marks for toolbox.** The Toolbox, Cluster History and Object History panels say that toolbox, the in-cluster recorder, is still a beta with its own version line, and what that means for compatibility.
+- **Run a CronJob now.** **⋮ → Run now** on a CronJob creates one Job from its template and starts it immediately — the same Job `kubectl create job --from=cronjob/<name>` makes, owned by the CronJob and named `<cronjob>-manual-<suffix>`. It runs whatever the schedule, the concurrency policy or a suspended state says, after a confirmation. In the terminal UI it is `T` on the CronJobs list.
+
+### Changed
+- **Linux packages declare the libraries they need.** Install them with `sudo apt install ./kube-inspector-<version>-linux-amd64.deb` or `sudo dnf install ./kube-inspector-<version>-linux-x86_64.rpm`; anything missing — common on minimal installs and under WSL — is installed with the app instead of the app failing to start with `libnss3.so` not found.
+- **In-app updates on Linux go through apt-get or dnf** where they exist, so a library a new version needs comes with the update. Systems without them still update through dpkg or rpm.
+- **Release candidates sort before their release** in the Linux package metadata (`1.0.0~rc.1`), so updating from 1.0.0-rc.1 to 1.0.0 is an upgrade, not a refused downgrade. File names are unchanged.
+- **The stable update channel is the default from 1.0 on.** If you never picked a channel, you move to *stable* by yourself once you run 1.0; if you picked *beta*, you keep receiving release candidates first.
+- **The Toolbox panel no longer lists "Cluster migration"**, a tool that is not built yet.
+- **About** names the shell the app runs on: Go, Electron and React.
+
+### Removed
+- **primeicons.** Version 8 of the icon font, which arrived with v0.20.1-beta, moved to a commercial licence that cannot be shipped inside a GPL-3.0 application. Kube Inspector never used its icons, so nothing looks different; v0.20.1-beta and v0.21.0-beta included it. PrimeReact stays on the 10.x line, which remains MIT-licensed.
+
+### Fixed
+- **The first-run Overview stayed on an error.** On a new install the start screen opened before any cluster existed and stayed tied to none, showing "try setting KUBERNETES_MASTER" even after a cluster was added. It now opens once a cluster is selected.
+- **An empty workspace when no cluster was selected.** With clusters saved but none selected — or the selected one deleted — the app now selects the first one and opens its Overview.
+
+### Internal
+- `build.yml` runs the CI checks (`ci.yml`, now a reusable workflow) before any build job, so a tag can no longer package code nothing checked; work lands on `main`, where `ci.yml`'s push trigger does not run.
+- A release smoke test (`scripts/smoke/`, `make smoke`) installs the built deb through apt and drives the packaged backend with headless Chrome against a kind cluster — first-run dialog, add the cluster, the start screen, the Pods list — before anything is uploaded. The unmaintained Wails-era `e2e_tests/` suite is gone.
+- `scripts/notices/` generates the third-party notices embedded in both binaries and fails CI on any licence that is unrecognised or incompatible with GPL-3.0; `build.yml` checks every shipped binary's `--licenses` output.
+- `govulncheck` runs in CI through `scripts/vulncheck/`, which fails on any reachable finding not reviewed in `accepted.txt`. The accepted ones — the Ollama module's server-side advisories — and the DOMPurify copy Monaco vendors are argued in `.github/SECURITY.md`.
+- The Electron shell has its first unit tests (`npm test` in `electron/`), run in CI and `make check`.
+- GitHub releases of tags with a prerelease suffix are marked as prereleases; only a stable release becomes Latest.
+- Dependabot ignores `primereact` 11+ and `primeicons` 8+; `primereact` 10.9.9; `golang.org/x/net` 0.62.0.
+- 1.0 ships unsigned; the documentation no longer promises code signing for it.
+
+---
+
 ## [v0.21.0-beta] - 2026-11-07
 
 A release about acting with confidence. The **Vulnerability Scan** has been rebuilt around one question — what do I fix first? — with a summary, a fix plan, scan history and a report for three readers. The **AI assistant** now lives in a tab per cluster, is read-only until you allow writes, and shows every change as a dry-run diff before it asks you. ConfigMaps and Secrets get a **real editor**, with a reviewed, dry-run save that can no longer damage values it did not touch.
