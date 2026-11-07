@@ -174,6 +174,20 @@ jobs:
           mv "dist/kube-inspector-cli_${VERSION}_amd64.deb"    "dist/kube-inspector-cli-${VERSION}-linux-amd64.deb"
           mv "dist/kube-inspector-cli-${VERSION}-1.x86_64.rpm" "dist/kube-inspector-cli-${VERSION}-linux-x86_64.rpm"
 
+      # The licence texts the MIT/BSD/Apache dependencies require are embedded
+      # by `make notices`, which the packaging targets run before compiling. A
+      # reordered Makefile would ship binaries without them and nothing else
+      # would notice — `--licenses` exits non-zero when they are missing. To a
+      # file, not a pipe: grep -q closing early would SIGPIPE the writer.
+      - name: Assert the binaries carry their licence notices
+        run: |
+          set -euo pipefail
+          for bin in /opt/kube-inspector/resources/kube-inspector build/bin/kube-inspector-cli; do
+            "$bin" --licenses > "$RUNNER_TEMP/notices.txt"
+            grep -q "THIRD-PARTY SOFTWARE NOTICES" "$RUNNER_TEMP/notices.txt"
+            echo "$bin: $(wc -c < "$RUNNER_TEMP/notices.txt") bytes of notices"
+          done
+
       # A .sha256 sidecar per artifact. The in-app updater fetches
       # <assetUrl>.sha256 and refuses to install a package that does not match,
       # because on Linux it hands the file to dpkg/rpm as root.
@@ -280,6 +294,18 @@ jobs:
           # while docs/downloads.md.in advertised the URL.
           mv build/bin/kube-inspector-cli.exe "dist/kube-inspector-cli-${VERSION}-windows-amd64.exe"
 
+      # See the Linux job: both binaries must embed their licence notices.
+      - name: Assert the binaries carry their licence notices
+        shell: bash
+        run: |
+          set -euo pipefail
+          # build/, not $RUNNER_TEMP: that is a backslashed Windows path here.
+          for bin in build/bin/kube-inspector.exe "dist/kube-inspector-cli-${VERSION}-windows-amd64.exe"; do
+            "$bin" --licenses > build/notices-check.txt
+            grep -q "THIRD-PARTY SOFTWARE NOTICES" build/notices-check.txt
+            echo "$bin: $(wc -c < build/notices-check.txt) bytes of notices"
+          done
+
       - name: Checksums
         shell: bash
         run: |
@@ -373,6 +399,16 @@ jobs:
           make build-tui-mac
           mkdir -p dist
           tar -czf "dist/kube-inspector-cli-${VERSION}-macos-universal.tar.gz" -C build/bin kube-inspector-cli
+
+      # See the Linux job: both binaries must embed their licence notices.
+      - name: Assert the binaries carry their licence notices
+        run: |
+          set -euo pipefail
+          for bin in build/bin/kube-inspector build/bin/kube-inspector-cli; do
+            "$bin" --licenses > "$RUNNER_TEMP/notices.txt"
+            grep -q "THIRD-PARTY SOFTWARE NOTICES" "$RUNNER_TEMP/notices.txt"
+            echo "$bin: $(wc -c < "$RUNNER_TEMP/notices.txt") bytes of notices"
+          done
 
       # macOS has no sha256sum; shasum -a 256 emits the same "<hash>  <name>".
       - name: Checksums

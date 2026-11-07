@@ -32,7 +32,11 @@
     "diagnostics": "診断",
     "close": "閉じる",
     "title": "Kube Inspector について",
-    "version": "バージョン"
+    "version": "バージョン",
+    "licenses": "ライセンス",
+    "licensesTitle": "サードパーティのライセンス",
+    "licensesIntro": "Kube Inspector は GNU GPL v3 のもとで提供されるフリーソフトウェアです。以下のコンポーネントを使用して構築されており、それぞれが独自のライセンスで提供されています。",
+    "licensesMissing": "この開発ビルドにはサードパーティのライセンス表示が含まれていません。"
   },
   "update": {
     "titleAvailable": "更新があります",

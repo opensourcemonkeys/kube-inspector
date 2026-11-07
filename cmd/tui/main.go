@@ -16,6 +16,14 @@ import (
 )
 
 func main() {
+	// --licenses prints the third-party notices and exits, before tview takes
+	// the screen.
+	for _, arg := range os.Args[1:] {
+		if arg == "--licenses" {
+			os.Exit(business.PrintLicenses(os.Stdout, os.Stderr))
+		}
+	}
+
 	version := business.GetAppInfo().AppVersion
 
 	// File-only logging, and the standard logger points at the same file.

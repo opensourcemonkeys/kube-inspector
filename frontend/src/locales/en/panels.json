@@ -33,7 +33,11 @@
     "diagnostics": "Diagnostics",
     "close": "Close",
     "title": "About Kube Inspector",
-    "version": "Version"
+    "version": "Version",
+    "licenses": "Licenses",
+    "licensesTitle": "Third-party licenses",
+    "licensesIntro": "Kube Inspector is free software under the GNU GPL v3. It is built with the components below, each under its own license.",
+    "licensesMissing": "This development build does not include the third-party notices."
   },
   "update": {
     "titleAvailable": "Update available",

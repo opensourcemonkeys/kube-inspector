@@ -32,7 +32,11 @@
     "diagnostics": "诊断",
     "close": "关闭",
     "title": "关于 Kube Inspector",
-    "version": "版本"
+    "version": "版本",
+    "licenses": "许可证",
+    "licensesTitle": "第三方许可证",
+    "licensesIntro": "Kube Inspector 是基于 GNU GPL v3 的自由软件，构建时使用了以下组件，每个组件均遵循其各自的许可证。",
+    "licensesMissing": "此开发版本不包含第三方许可声明。"
   },
   "update": {
     "titleAvailable": "有可用更新",

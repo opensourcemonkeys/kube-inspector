@@ -85,6 +85,15 @@ func serve(shellChannel bool) error {
 }
 
 func main() {
+	// --licenses prints the third-party notices and exits, before anything
+	// else starts: no log file, no cluster, no window, nothing on stdout but
+	// the notices.
+	for _, arg := range os.Args[1:] {
+		if arg == "--licenses" {
+			os.Exit(business.PrintLicenses(os.Stdout, os.Stderr))
+		}
+	}
+
 	// CLI mode: when launched with --tui (used both by `kube-ins --tui` and by
 	// the GUI's "CLI mode", which re-execs this binary in a pty), run the
 	// terminal UI instead of bootstrapping Wails/webview.

@@ -124,6 +124,14 @@ jobs:
       - name: Install dependencies
         run: cd frontend && npm ci
 
+      # Every Go module in either binary and every production npm package must
+      # be under a licence compatible with GPL-3.0, and recognised. This is the
+      # gate that would have caught primeicons 8 (a commercial licence that
+      # arrived as a dependabot bump). The electron shell's node_modules are
+      # not installed here; its lockfile's declared licence is used instead.
+      - name: Third-party licences (GPL-3.0 compatible)
+        run: node scripts/notices/notices.mjs --check
+
       - name: Typecheck
         run: cd frontend && npm run typecheck
 

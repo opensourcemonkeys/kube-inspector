@@ -33,7 +33,11 @@
     "diagnostics": "Tanılama",
     "close": "Kapat",
     "title": "Kube Inspector hakkında",
-    "version": "Sürüm"
+    "version": "Sürüm",
+    "licenses": "Lisanslar",
+    "licensesTitle": "Üçüncü taraf lisansları",
+    "licensesIntro": "Kube Inspector, GNU GPL v3 lisanslı özgür bir yazılımdır. Aşağıdaki bileşenlerle geliştirildi; her biri kendi lisansıyla dağıtılır.",
+    "licensesMissing": "Bu geliştirme sürümü üçüncü taraf lisans bildirimlerini içermiyor."
   },
   "update": {
     "titleAvailable": "Güncelleme mevcut",

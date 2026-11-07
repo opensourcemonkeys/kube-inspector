@@ -25,6 +25,13 @@ func (a *App) GetAppInfo() models.AppInfo {
 	return bussiness.GetAppInfo()
 }
 
+// GetThirdPartyNotices returns the embedded third-party notices (~1 MB of
+// licence text), or "" in a development build. Fetched only when the About
+// dialog's licences view is opened.
+func (a *App) GetThirdPartyNotices() string {
+	return bussiness.ThirdPartyNotices()
+}
+
 func (a *App) CheckForUpdate() models.UpdateInfo {
 	return bussiness.CheckForUpdate()
 }

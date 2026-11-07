@@ -1586,6 +1586,13 @@ html.electron-shell .tb-sidebar-toggle { -webkit-app-region: no-drag; }
 .scale-dialog__ends { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-3); }
 .about-modal.p-dialog { width: min(440px, calc(100vw - 32px)); }
 .about-modal__desc { margin: 0 0 14px; max-width: 52ch; font-size: 13px; line-height: 1.55; color: var(--ink-2); }
+/* Third-party notices: ~1 MB of plain licence text, scrolled inside the dialog. */
+.licenses-dialog.p-dialog { width: min(820px, calc(100vw - 32px)); }
+.licenses-dialog__text {
+  margin: 0; max-height: 60vh; overflow: auto; padding: 10px 12px;
+  font-family: var(--font-family-mono); font-size: 12px; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere;
+  color: var(--ink); background: var(--screen); border: 1px solid var(--line-strong); border-radius: var(--radius-ctl);
+}
 
 /* Two-step indicator */
 

@@ -4,6 +4,7 @@ import { Button } from 'primereact/button';
 import { GetAppInfo } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useT } from '../../i18n/useT';
+import LicensesDialog from './LicensesDialog';
 
 interface Props {
     visible: boolean;
@@ -29,6 +30,7 @@ const DEP_LABELS: Record<string, string> = {
 export default function AboutModal({ visible, onHide, onDiagnostics }: Props) {
     const t = useT();
     const [info, setInfo] = useState<models.AppInfo | null>(null);
+    const [licensesOpen, setLicensesOpen] = useState(false);
 
     useEffect(() => {
         if (visible && !info) {
@@ -38,6 +40,7 @@ export default function AboutModal({ visible, onHide, onDiagnostics }: Props) {
 
     const footer = (
         <div className="dlg-actions">
+            <Button label={t('panels:about.licenses')} text size="small" onClick={() => setLicensesOpen(true)} />
             {onDiagnostics && (
                 <Button label={t('panels:about.diagnostics')} text size="small" onClick={() => { onHide(); onDiagnostics(); }} />
             )}
@@ -84,6 +87,7 @@ export default function AboutModal({ visible, onHide, onDiagnostics }: Props) {
                     </dl>
                 </>
             )}
+            <LicensesDialog visible={licensesOpen} onHide={() => setLicensesOpen(false)} />
         </Dialog>
     );
 }
