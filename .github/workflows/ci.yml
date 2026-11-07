@@ -88,6 +88,17 @@ jobs:
       - name: Test
         run: go test ./...
 
+      # Pinned from the module proxy, like golangci-lint above. govulncheck has
+      # no way to accept a finding, so the script does: it fails on a reachable
+      # vulnerability not reviewed in scripts/vulncheck/accepted.txt (the Ollama
+      # module's server-side advisories are; see .github/SECURITY.md). The
+      # runner's preinstalled Node runs it; it needs nothing from npm.
+      - name: Install govulncheck
+        run: go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+
+      - name: Vulnerabilities (govulncheck)
+        run: node scripts/vulncheck/vulncheck.mjs
+
   frontend:
     name: Frontend (typecheck, lint, test, build)
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository

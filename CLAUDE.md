@@ -570,6 +570,8 @@ Three layers, and `make check` runs the first two exactly as CI does:
 
 **Where the checks run.** `ci.yml` runs on every branch except `main`, and is also a `workflow_call` that `build.yml` invokes as its first job (`checks`) — every build job `needs` it, so a tag cannot package code that fails `make check`. Work committed straight to `main` is therefore first checked when it is tagged; run `make check` before pushing.
 
+**Vulnerability scanning.** The CI Go job runs `govulncheck` (v1.9.0) through `scripts/vulncheck/vulncheck.mjs` (`make vulncheck`; needs network, so not in `make check`), which fails on any *reachable* finding not listed in `scripts/vulncheck/accepted.txt`. The listed ones are the `github.com/ollama/ollama` advisories: all in the Ollama server, but recorded against the whole module with no fixed version, so any call into its `api` client counts. Every accepted entry must be argued in `.github/SECURITY.md` ("Known advisories in dependencies"), which also covers the DOMPurify copy Monaco vendors (`npm audit`). Upgrade instead whenever a fix exists.
+
 There is no end-to-end UI suite any more: the Selenium suite in `e2e_tests/` targeted the Wails dev server, was never in CI and was removed before 1.0.
 
 ## Code Conventions

@@ -1,0 +1,22 @@
+# govulncheck findings that are reachable by govulncheck's reckoning but
+# reviewed and found not to apply. scripts/vulncheck/vulncheck.mjs fails CI on
+# any reachable finding NOT listed here. Every entry needs its reasoning in
+# .github/SECURITY.md ("Known advisories in dependencies") — this file is the
+# list, that section is the argument. Remove an entry when the finding goes away
+# (the script warns about stale ones).
+#
+# Format: <Go vuln ID>  <one-line reason>
+#
+# github.com/ollama/ollama — we import only its api (client) package. Every
+# advisory below concerns the Ollama *server*, but the Go vulnerability
+# database records each against the whole module, introduced at 0 with no fix
+# (Ollama's module versions do not follow its app versions), so any call into
+# the client counts as reachable.
+GO-2025-3557  ollama server: unbounded memory on a crafted GGUF upload (app <=0.3.14)
+GO-2025-3558  ollama server: out-of-bounds read parsing a crafted GGUF (app <=0.3.14)
+GO-2025-3559  ollama server: divide by zero in ggufPadding on a crafted GGUF (app <=0.3.14)
+GO-2025-3582  ollama server: nil dereference on a crafted GGUF (app <=0.3.14)
+GO-2025-3689  ollama server: divide by zero on a crafted GGUF block_count (app 0.3.3)
+GO-2025-3695  ollama server: crash on a spoofed manifest in /api/pull (app 0.5.11)
+GO-2025-3824  ollama server: server.auth.getAuthorizationToken sends a token to a malicious realm (app 0.6.7)
+GO-2025-4251  ollama server: API endpoints without authentication (app <=0.12.3)

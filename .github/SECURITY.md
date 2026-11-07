@@ -103,6 +103,51 @@ target and in no release build.
 - The documentation site (`kubeinspector.com`) content itself, other than the
   release artifacts and checksums it serves.
 
+## Known advisories in dependencies
+
+Scanners — `govulncheck`, `npm audit`, and Trivy pointed at our own binary —
+report the advisories below. Each was reviewed and does not apply to Kube
+Inspector, for the reason given. CI runs `govulncheck` on every check and fails
+on any reachable finding that is not in this list
+(`scripts/vulncheck/accepted.txt` is the machine-readable copy).
+
+### `github.com/ollama/ollama` (Go)
+
+Kube Inspector imports only the module's `api` package: the **client** that
+talks to an Ollama server you run, for the AI assistant. Every advisory below
+is in the Ollama **server** (`ollama serve`). The Go vulnerability database
+records each one against the whole module, from version 0 and with no fixed
+version — Ollama's Go module versions do not follow its app versions — so
+`govulncheck` counts any call into the client as reaching it. Most also name
+app versions years older than the module version we use (v0.40).
+
+| ID | CVE | What it is | Why it does not apply |
+|---|---|---|---|
+| GO-2025-3557 | CVE-2025-0315 | Unbounded memory when a crafted GGUF model is uploaded (app ≤ 0.3.14) | Server-side model processing; the client never parses a model |
+| GO-2025-3558 | CVE-2024-12055 | Out-of-bounds read parsing a crafted GGUF (app ≤ 0.3.14) | Same |
+| GO-2025-3559 | CVE-2025-0317 | Divide by zero in `ggufPadding` (app ≤ 0.3.14) | Same |
+| GO-2025-3582 | CVE-2025-0312 | Nil dereference on a crafted GGUF (app ≤ 0.3.14) | Same |
+| GO-2025-3689 | CVE-2024-8063 | Divide by zero on a crafted `block_count` (app 0.3.3) | Same |
+| GO-2025-3695 | CVE-2025-1975 | Server crash on a spoofed manifest during `/api/pull` (app 0.5.11) | The server fetches the manifest; the client only asks it to |
+| GO-2025-3824 | CVE-2025-51471 | `server.auth.getAuthorizationToken` sends a token to a malicious registry realm (app 0.6.7) | In the server package; the client's pull request goes to your server, which talks to the registry |
+| GO-2025-4251 | CVE-2025-63389 | Server API endpoints without authentication (app ≤ 0.12.3) | A property of the server you run, not of the client |
+
+What *does* matter to you as an Ollama user: keep your Ollama server up to
+date, and keep it bound to `localhost` (its default, and the assistant's default
+host) unless you mean to expose it.
+
+### DOMPurify (npm, vendored by Monaco)
+
+`npm audit` reports DOMPurify ≤ 3.4.16 inside `monaco-editor` 0.57 (GHSA-p98j-92pf-mc4p,
+GHSA-mrv2-3pqr-j5jr, GHSA-6688-9rhm-gjv2, GHSA-cg2g-xh64-v4q7, GHSA-c6gr-qvv4-5v3f).
+Each needs a configuration Monaco never uses: `IN_PLACE` sanitisation (the first
+three), `SAFE_FOR_TEMPLATES` (the fourth) or `PARSER_MEDIA_TYPE:
+'application/xhtml+xml'` (the fifth). Monaco's sanitiser
+(`vs/base/browser/domSanitize.js`) sets none of them — its default configuration
+is an allow-list of tags and attributes — and Kube Inspector does not call
+DOMPurify itself. The fix is to take a Monaco release that vendors a newer
+DOMPurify; `npm audit fix --force` would instead *downgrade* Monaco.
+
 ## What the application sends
 
 No telemetry, no analytics, no crash reporting. The complete outbound list —
