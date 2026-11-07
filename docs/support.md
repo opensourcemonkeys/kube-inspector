@@ -90,8 +90,10 @@ Pull requests are welcome. The
 covers the build prerequisites (including the mandatory `GOEXPERIMENT=jsonv2`),
 the `make check` gate, and the conventions the codebase follows.
 
-## Beta expectations
+## What to expect
 
-This is a beta release. It talks to real clusters and can delete, scale and
-restart real workloads. Bugs are expected, reports are wanted, and nothing here
-is a guarantee of a response time.
+Kube Inspector talks to real clusters and can delete, scale and restart real
+workloads. It is maintained by volunteers: reports are wanted, fixes ship in the
+next release, and nothing here is a guarantee of a response time. Only the
+latest release receives fixes — see
+[Versioning and compatibility](versioning.md#which-version-receives-fixes).

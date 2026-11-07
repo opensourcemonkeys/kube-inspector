@@ -27,7 +27,7 @@
     "openPanel": "Port Yönlendirmeleri panelini aç"
   },
   "about": {
-    "description": "Kubernetes kümelerini görsel bir arayüzle yönetmek için bir masaüstü uygulaması. Go, Wails ve React ile geliştirildi.",
+    "description": "Kubernetes kümelerini görsel bir arayüzle yönetmek için bir masaüstü uygulaması. Go, Electron ve React ile geliştirildi.",
     "author": "Geliştirici",
     "dependencies": "Bağımlılıklar",
     "diagnostics": "Tanılama",

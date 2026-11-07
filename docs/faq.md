@@ -165,9 +165,10 @@ system without them — so you will be asked to authenticate.
 
 ### Stable or beta channel?
 
-**Open ▸ Update channel.** Below 1.0 every release is a prerelease, so the
-default is *beta* — a build on *stable* would be offered nothing. Switching to
-stable never downgrades you.
+**Open ▸ Update channel.** *stable* receives releases with no suffix and is the
+default from 1.0 on; *beta* also receives release candidates and betas, first.
+Switching to stable never downgrades you. See
+[Versioning and compatibility](versioning.md#update-channels).
 
 ### Can I roll back an update?
 

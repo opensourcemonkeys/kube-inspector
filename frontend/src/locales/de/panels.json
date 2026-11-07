@@ -27,7 +27,7 @@
     "openPanel": "Panel „Port-Weiterleitungen“ öffnen"
   },
   "about": {
-    "description": "Eine Desktop-Anwendung zur Verwaltung von Kubernetes-Clustern mit grafischer Oberfläche. Gebaut mit Go, Wails und React.",
+    "description": "Eine Desktop-Anwendung zur Verwaltung von Kubernetes-Clustern mit grafischer Oberfläche. Gebaut mit Go, Electron und React.",
     "author": "Autor",
     "dependencies": "Abhängigkeiten",
     "diagnostics": "Diagnose",

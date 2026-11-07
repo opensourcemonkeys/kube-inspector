@@ -26,7 +26,7 @@
     "openPanel": "ポートフォワードのパネルを開く"
   },
   "about": {
-    "description": "Kubernetes クラスターをビジュアルに管理するデスクトップアプリケーション。Go、Wails、React で構築されています。",
+    "description": "Kubernetes クラスターをビジュアルに管理するデスクトップアプリケーション。Go、Electron、React で構築されています。",
     "author": "作者",
     "dependencies": "依存関係",
     "diagnostics": "診断",

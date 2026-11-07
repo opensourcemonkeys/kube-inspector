@@ -117,7 +117,7 @@ Kube Inspector.
 
 ## A resource list is empty
 
-Since the beta, an empty list and a failed list look different on purpose:
+An empty list and a failed list look different on purpose:
 
 | What you see | What it means |
 |---|---|
@@ -292,10 +292,11 @@ mv "/Applications/Kube Inspector.app.old" "/Applications/Kube Inspector.app"
 successful one. To go back a version, install the older package over the top.
 
 **Nothing is ever offered.** Check **Help ▸ Check for Updates**, and check the
-channel: **Open ▸ Update channel** offers *stable* and *beta*. Below 1.0 every
-release is a prerelease, so a build on the *stable* channel legitimately has
-nothing to offer it. The Diagnostics overview reports whether the manifest is
-reachable at all.
+channel: **Open ▸ Update channel** offers *stable* and *beta*. A build ahead of
+its channel — a release candidate on *stable*, say — is offered nothing until
+the channel catches up
+([Update channels](versioning.md#update-channels)). The Diagnostics overview
+reports whether the manifest is reachable at all.
 
 ---
 

@@ -34,7 +34,9 @@ We will credit you in the release notes unless you ask us not to.
 | Anything older | ❌ Upgrade first |
 
 There is no long-term support branch. Fixes ship in the next release on both the
-`stable` and `beta` channels.
+`stable` and `beta` channels; from 1.0 on, releases follow semantic versioning,
+so a security fix alone is a patch release (1.x.**y+1**) that the in-app updater
+offers. See <https://kubeinspector.com/versioning/>.
 
 ## Threat model
 

@@ -27,7 +27,7 @@
     "openPanel": "Open Port Forwards panel"
   },
   "about": {
-    "description": "A desktop application for managing Kubernetes clusters with a visual interface. Built with Go, Wails and React.",
+    "description": "A desktop application for managing Kubernetes clusters with a visual interface. Built with Go, Electron and React.",
     "author": "Author",
     "dependencies": "Dependencies",
     "diagnostics": "Diagnostics",

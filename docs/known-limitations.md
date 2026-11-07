@@ -1,5 +1,5 @@
 ---
-description: What Kube Inspector deliberately does not do in beta — unsigned builds, Apple Silicon only, no update rollback, machine-translated locales, port-forward and scanner constraints.
+description: What Kube Inspector deliberately does not do — unsigned builds, Apple Silicon only, no update rollback, machine-translated locales, port-forward and scanner constraints.
 ---
 
 # Known limitations

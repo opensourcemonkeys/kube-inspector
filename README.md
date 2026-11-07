@@ -1,7 +1,7 @@
 # Kube Inspector
 
 [![Build](https://github.com/opensourcemonkeys/kube-inspector/actions/workflows/build.yml/badge.svg)](https://github.com/opensourcemonkeys/kube-inspector/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/opensourcemonkeys/kube-inspector?include_prereleases&sort=semver&label=release)](https://github.com/opensourcemonkeys/kube-inspector/releases)
+[![Release](https://img.shields.io/github/v/release/opensourcemonkeys/kube-inspector?sort=semver&label=release)](https://github.com/opensourcemonkeys/kube-inspector/releases)
 [![License: GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/docs-kubeinspector.com-0a7d7d)](https://kubeinspector.com)
 
@@ -11,11 +11,12 @@ Free, open source, and **no telemetry of any kind**.
 > **Documentation:** [kubeinspector.com](https://kubeinspector.com)
 
 > [!IMPORTANT]
-> **Kube Inspector is in beta.** It talks to real clusters and can delete, scale
-> and restart real workloads. Read
+> **Kube Inspector acts on real clusters with your credentials.** It can delete,
+> scale and restart real workloads. Read
 > [Known limitations](https://kubeinspector.com/known-limitations/) before you
-> point it at production, and expect rough edges worth
-> [reporting](https://kubeinspector.com/support/).
+> point it at production, and [report](https://kubeinspector.com/support/) what
+> breaks. Releases follow semantic versioning from 1.0 on — see
+> [Versioning and compatibility](https://kubeinspector.com/versioning/).
 
 ![Kube Inspector workspace](docs/assets/screenshots/split-view.png)
 

@@ -26,7 +26,7 @@
     "openPanel": "打开端口转发面板"
   },
   "about": {
-    "description": "一款以可视化界面管理 Kubernetes 集群的桌面应用。基于 Go、Wails 和 React 构建。",
+    "description": "一款以可视化界面管理 Kubernetes 集群的桌面应用。基于 Go、Electron 和 React 构建。",
     "author": "作者",
     "dependencies": "依赖项",
     "diagnostics": "诊断",
