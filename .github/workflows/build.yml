@@ -550,6 +550,13 @@ jobs:
         if: github.ref_type == 'tag'
         with:
           body_path: /tmp/release_notes.md
+          # The same rule as the update channels (Makefile STABLE_VERSION): a
+          # tag with a prerelease suffix (-beta, -rc.1) is a prerelease, and
+          # only a stable release becomes "Latest" — so the repository page and
+          # the release badge point at what the stable channel offers. Before
+          # this every beta was published as a full release and became Latest.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          make_latest: ${{ !contains(github.ref_name, '-') }}
           # The binaries themselves live on R2 — only SHA256SUMS is attached
           # here, and deliberately so: a checksum file is worth little served
           # from the same host as the artifacts it describes. This copy is the
