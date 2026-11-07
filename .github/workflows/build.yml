@@ -20,11 +20,24 @@ env:
 
 jobs:
   # ==========================================
+  # STAGE 0: GATE
+  # ==========================================
+  # The same checks ci.yml runs on working branches (Go build/vet/lint/test,
+  # frontend typecheck/lint/i18n/test/build, docs --strict). Commits land on
+  # main, where ci.yml's push trigger does not fire, so without this a tag
+  # packaged and published code nothing had checked. Every build job needs it:
+  # a red check means nothing reaches R2, the GitHub Release or the manifests.
+  checks:
+    name: Checks
+    uses: ./.github/workflows/ci.yml
+
+  # ==========================================
   # STAGE 1: BUILD & PACKAGE (DIRECT TO R2)
   # ==========================================
 
   build-linux:
     name: Build & Package (Linux)
+    needs: [checks]
     runs-on: ubuntu-22.04
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -140,6 +153,7 @@ jobs:
 
   build-windows:
     name: Build & Package (Windows)
+    needs: [checks]
     runs-on: windows-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -244,6 +258,7 @@ jobs:
 
   build-macos:
     name: Build & Package (macOS)
+    needs: [checks]
     runs-on: macos-latest
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}

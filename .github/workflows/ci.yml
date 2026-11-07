@@ -20,6 +20,11 @@ on:
   # double every check.
   pull_request:
   workflow_dispatch:
+  # The release gate. build.yml calls this workflow first and every build job
+  # `needs:` it, so a tag can never package code these checks have not passed —
+  # work lands on main, where the push trigger above deliberately does not run.
+  # Called, not copied, so the gate and the branch checks cannot drift apart.
+  workflow_call:
 
 # A force-push or a quick follow-up commit supersedes the previous run.
 concurrency:
