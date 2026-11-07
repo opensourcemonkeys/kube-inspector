@@ -88,6 +88,10 @@ jobs:
             exit 1
           fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          # nfpm writes the deb/rpm under the package version (1.0.0~rc.1 for a
+          # prerelease, so it sorts before 1.0.0); the rename steps below need
+          # it to find them. See PKG_VERSION in the Makefile.
+          echo "PKG_VERSION=$(make -s print-pkg-version VERSION="$VERSION")" >> "$GITHUB_ENV"
 
       - name: Install Linux Dependencies
         run: |
@@ -114,8 +118,8 @@ jobs:
       - name: Rename Packages with Platform
         run: |
           set -euo pipefail
-          mv "dist/kube-inspector_${VERSION}_amd64.deb"    "dist/kube-inspector-${VERSION}-linux-amd64.deb"
-          mv "dist/kube-inspector-${VERSION}-1.x86_64.rpm" "dist/kube-inspector-${VERSION}-linux-x86_64.rpm"
+          mv "dist/kube-inspector_${PKG_VERSION}_amd64.deb"    "dist/kube-inspector-${VERSION}-linux-amd64.deb"
+          mv "dist/kube-inspector-${PKG_VERSION}-1.x86_64.rpm" "dist/kube-inspector-${VERSION}-linux-x86_64.rpm"
 
       # Release smoke test, before anything is uploaded. The deb goes in through
       # apt, exactly as the install docs say, so a malformed Depends fails here.
@@ -171,8 +175,8 @@ jobs:
           # -linux-, not -debian-: the desktop deb is already -linux-amd64.deb and
           # two conventions in one dist/ is how a docs link ends up pointing at
           # a name nothing produces.
-          mv "dist/kube-inspector-cli_${VERSION}_amd64.deb"    "dist/kube-inspector-cli-${VERSION}-linux-amd64.deb"
-          mv "dist/kube-inspector-cli-${VERSION}-1.x86_64.rpm" "dist/kube-inspector-cli-${VERSION}-linux-x86_64.rpm"
+          mv "dist/kube-inspector-cli_${PKG_VERSION}_amd64.deb"    "dist/kube-inspector-cli-${VERSION}-linux-amd64.deb"
+          mv "dist/kube-inspector-cli-${PKG_VERSION}-1.x86_64.rpm" "dist/kube-inspector-cli-${VERSION}-linux-x86_64.rpm"
 
       # The licence texts the MIT/BSD/Apache dependencies require are embedded
       # by `make notices`, which the packaging targets run before compiling. A

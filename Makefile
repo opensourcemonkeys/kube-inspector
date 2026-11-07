@@ -33,6 +33,15 @@ DOWNLOAD_PAGE_URL := https://kubeinspector.com/downloads/
 # empty branch of emit_manifest below.
 STABLE_VERSION := $(shell git tag --list 'v*' | sed '/-/d' | sed 's/^v//' | sort -V | tail -1)
 
+# The version written into the deb/rpm metadata. A prerelease suffix goes after
+# a tilde (1.0.0-rc.1 -> 1.0.0~rc.1), which both dpkg and rpm sort *before* the
+# release. As 1.0.0-rc.1, dpkg reads "rc.1" as a Debian revision and rpm as
+# extra version segments, and both rank it ABOVE 1.0.0 (measured) — so the
+# release looked like a downgrade, which apt-get/dnf -y refuse, and an rc user
+# could not update to it. Only the metadata changes: the published file names
+# keep $(VERSION) (build.yml renames nfpm's output).
+PKG_VERSION := $(shell echo '$(VERSION)' | sed 's/-/~/')
+
 # Optional Wails build tags. On distros that ship webkit2gtk-4.1 instead of
 # 4.0 (Ubuntu 24.04+, Fedora 40+), build with: make build-linux WAILS_TAGS=webkit2_41
 TAGS    := $(if $(WAILS_TAGS),-tags "$(WAILS_TAGS)",)
@@ -152,11 +161,11 @@ electron-app: electron-frontend build-sidecar
 
 pkg-deb: electron-app
 	mkdir -p $(DIST)
-	VERSION=$(VERSION) $(NFPM) pkg --packager deb --config ./build/nfpm.yaml --target $(DIST)/
+	VERSION=$(PKG_VERSION) $(NFPM) pkg --packager deb --config ./build/nfpm.yaml --target $(DIST)/
 
 pkg-rpm: electron-app
 	mkdir -p $(DIST)
-	VERSION=$(VERSION) $(NFPM) pkg --packager rpm --config ./build/nfpm.yaml --target $(DIST)/
+	VERSION=$(PKG_VERSION) $(NFPM) pkg --packager rpm --config ./build/nfpm.yaml --target $(DIST)/
 
 pkg-linux: pkg-deb pkg-rpm
 
@@ -176,11 +185,11 @@ pkg-mac: electron-frontend
 
 pkg-tui-deb: build-tui-linux
 	mkdir -p $(DIST)
-	VERSION=$(VERSION) $(NFPM) pkg --packager deb --config ./build/nfpm-cli.yaml --target $(DIST)/
+	VERSION=$(PKG_VERSION) $(NFPM) pkg --packager deb --config ./build/nfpm-cli.yaml --target $(DIST)/
 
 pkg-tui-rpm: build-tui-linux
 	mkdir -p $(DIST)
-	VERSION=$(VERSION) $(NFPM) pkg --packager rpm --config ./build/nfpm-cli.yaml --target $(DIST)/
+	VERSION=$(PKG_VERSION) $(NFPM) pkg --packager rpm --config ./build/nfpm-cli.yaml --target $(DIST)/
 
 pkg-all: pkg-linux pkg-windows pkg-mac pkg-tui-deb pkg-tui-rpm
 
@@ -263,6 +272,10 @@ check-frontend: bindings
 # checkout yields "", which used to flow silently into LDFLAGS, the nfpm version
 # and the manifest URLs, producing a package called kube-inspector--amd64.deb
 # and asset links that 404.
+# nfpm names its output after PKG_VERSION; build.yml needs it to find the files.
+print-pkg-version:
+	@echo $(PKG_VERSION)
+
 print-version:
 	@test -n "$(VERSION)" || { \
 		echo "make: VERSION is empty - 'git describe --tags' found no v* tag." >&2; \
@@ -331,4 +344,4 @@ docs-serve: docs-downloads
 docs-build: docs-downloads
 	mkdocs build --clean --strict
 
-.PHONY: build build-linux build-windows build-mac dev dev-wails bindings dev-tui build-tui build-tui-linux build-tui-windows build-tui-mac deps build-sidecar electron-frontend electron-app electron-dev-go electron-dev-vite electron-dev pkg-deb pkg-rpm pkg-linux pkg-windows pkg-mac pkg-tui-deb pkg-tui-rpm pkg-all clean check test-go vet lint-go check-frontend print-version smoke notices licenses-check vulncheck docs-downloads docs-serve docs-build
+.PHONY: build build-linux build-windows build-mac dev dev-wails bindings dev-tui build-tui build-tui-linux build-tui-windows build-tui-mac deps build-sidecar electron-frontend electron-app electron-dev-go electron-dev-vite electron-dev pkg-deb pkg-rpm pkg-linux pkg-windows pkg-mac pkg-tui-deb pkg-tui-rpm pkg-all clean check test-go vet lint-go check-frontend print-version print-pkg-version smoke notices licenses-check vulncheck docs-downloads docs-serve docs-build
