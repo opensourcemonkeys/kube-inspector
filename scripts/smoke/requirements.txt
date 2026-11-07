@@ -1,0 +1,2 @@
+# Pinned so a release build cannot pick up a new Selenium between two tags.
+selenium==4.44.0

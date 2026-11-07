@@ -117,6 +117,49 @@ jobs:
           mv "dist/kube-inspector_${VERSION}_amd64.deb"    "dist/kube-inspector-${VERSION}-linux-amd64.deb"
           mv "dist/kube-inspector-${VERSION}-1.x86_64.rpm" "dist/kube-inspector-${VERSION}-linux-x86_64.rpm"
 
+      # Release smoke test, before anything is uploaded. The deb goes in through
+      # apt, exactly as the install docs say, so a malformed Depends fails here.
+      # (The runner is not a clean machine — the step above installed GTK's dev
+      # packages — so it does not prove a minimal install gets every library.)
+      # Then the Go backend *from the package* (the
+      # binary every platform's shell runs, frontend embedded) is started with
+      # --serve against a throwaway kind cluster and driven by headless Chrome:
+      # first-run screen, add the cluster, list its pods. See scripts/smoke/.
+      #
+      # It does not exercise the Electron window itself, and the Windows and
+      # macOS jobs upload on their own — a failure here still stops the
+      # checksums, the GitHub Release and the update manifests.
+      - name: Setup Python (smoke test)
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: '3.12'
+
+      - name: Smoke test (packaged app against kind)
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y "./dist/kube-inspector-${VERSION}-linux-amd64.deb"
+          # From the module proxy at a pinned version, like golangci-lint in
+          # ci.yml: the checksum database verifies it.
+          go install sigs.k8s.io/kind@v0.33.0
+          kind create cluster --name smoke --wait 180s
+          kind get kubeconfig --name smoke > "$RUNNER_TEMP/smoke-kubeconfig"
+          python -m pip install -r scripts/smoke/requirements.txt
+          python scripts/smoke/smoke.py \
+            --binary /opt/kube-inspector/resources/kube-inspector \
+            --kubeconfig "$RUNNER_TEMP/smoke-kubeconfig" \
+            --expect-pod coredns \
+            --out smoke-out
+
+      # Screenshot, step log and the backend's own log. The kubeconfig is not
+      # among them (smoke.py never writes it to --out).
+      - name: Upload smoke-test evidence
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: smoke-test
+          path: smoke-out/
+          if-no-files-found: ignore
+
       - name: Build & Package CLI (kube-inspector-cli)
         run: |
           set -euo pipefail

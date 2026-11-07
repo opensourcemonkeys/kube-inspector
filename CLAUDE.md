@@ -559,15 +559,15 @@ wails generate bindings
 
 ## Testing
 
-Go unit tests exist only for the self-updater (`internal/services/selfUpdateServices_test.go`, `internal/business/selfUpdate_test.go`) — that path downloads a package and hands it to the package manager as root, so the download, checksum-verification, cancellation and asset-resolution logic is covered. Both are hermetic (`httptest`, no network) and never invoke an installer. The rest of the backend is covered by a Selenium + pytest **end-to-end suite** in `e2e_tests/` (`test_main_flow.py`, `test_navigation.py`, `test_panels.py`, `test_yaml_crud.py`). It drives the live Wails dev server via Chrome:
+Three layers, and `make check` runs the first two exactly as CI does:
 
-```bash
-make dev                 # in one terminal (serves http://localhost:34115)
-make test-e2e            # in another: installs deps, runs pytest, emits report.html
-E2E_HEADLESS=1 make test-e2e   # headless (CI uses xvfb)
-```
+- **Go unit tests** (`go test ./...`, ~55 `_test.go` files across `internal/` and `toolbox/`): hermetic — `httptest`, fake clientsets, no cluster, no network. The self-updater is covered most closely because it hands a package to the package manager as root: download/resume/cancel, checksum verification, asset resolution, and `installCommand` (`selfUpdate_linux_test.go` — which installer is chosen, never run). A test that touches the Trivy scanner downloads its vulnerability DB and needs network.
+- **Frontend unit tests** (`npm run test`, Vitest + Testing Library, `*.test.ts(x)` beside the code), plus `npm run typecheck`, `npm run lint` and `npm run i18n:check`.
+- **Release smoke test** (`scripts/smoke/smoke.py`, `make smoke`): the Go backend started with `--serve` — the way the Electron shell starts it, frontend embedded — driven by headless Chrome against a real cluster under a throwaway `HOME`: the first-run dialog appears, a kubeconfig is added and saved to `~/.kube-ins`, the cluster bar shows it, and the Pods list shows an expected pod (`coredns` by default). `build.yml`'s `build-linux` job runs it on the **packaged** binary (`/opt/kube-inspector/resources/kube-inspector`, deb installed through `apt`) against a `kind` cluster, before anything is uploaded; on failure the screenshot, step log and backend log are a workflow artifact — never the kubeconfig. It does not drive the Electron window. Locally: `make build-sidecar && make smoke SMOKE_KUBECONFIG=…` (needs `scripts/smoke/requirements.txt` and Chrome).
 
-The CI `e2e` job spins up an ephemeral `kind` cluster, writes its kubeconfig to `~/.kube-ins/ci.yaml`, sets `.active` to `ci`, then runs the suite. Ad-hoc Go tests still follow conventions (`GOEXPERIMENT=jsonv2 go test ./...`); note any test touching the Trivy scanner downloads the vulnerability DB and needs network.
+**Where the checks run.** `ci.yml` runs on every branch except `main`, and is also a `workflow_call` that `build.yml` invokes as its first job (`checks`) — every build job `needs` it, so a tag cannot package code that fails `make check`. Work committed straight to `main` is therefore first checked when it is tagged; run `make check` before pushing.
+
+There is no end-to-end UI suite any more: the Selenium suite in `e2e_tests/` targeted the Wails dev server, was never in CI and was removed before 1.0.
 
 ## Code Conventions
 

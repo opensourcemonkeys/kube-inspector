@@ -245,10 +245,24 @@ print-version:
 		exit 1; }
 	@echo $(VERSION)
 
-test-e2e:
-	@echo "⚠  Make sure 'make dev-wails' is running in another terminal (http://localhost:34115)."
-	cd e2e_tests && pip install -q -r requirements.txt && \
-		pytest -v --html=../report.html --self-contained-html
+# Release smoke test (scripts/smoke/smoke.py): the Go backend with its embedded
+# frontend, started the way the Electron shell starts it (--serve), driven by
+# headless Chrome against a real cluster — first-run screen, add the cluster,
+# list its pods. build.yml runs it on the *packaged* binary against kind before
+# anything is uploaded; locally it defaults to the sidecar build and your own
+# kubeconfig, under a throwaway HOME (your ~/.kube-ins is never touched).
+#
+#   make build-sidecar && make smoke
+#   make smoke SMOKE_KUBECONFIG=/path/to/kubeconfig SMOKE_EXPECT_POD=nginx
+#
+# Needs python3 with scripts/smoke/requirements.txt and Chrome.
+SMOKE_BIN        ?= build/bin/kube-inspector
+SMOKE_KUBECONFIG ?= $(HOME)/.kube/config
+SMOKE_EXPECT_POD ?= coredns
+
+smoke:
+	python3 scripts/smoke/smoke.py --binary $(SMOKE_BIN) --kubeconfig "$(SMOKE_KUBECONFIG)" \
+		--expect-pod $(SMOKE_EXPECT_POD) --out build/smoke
 
 # ── Documentation (MkDocs Material) ──────────────────────────────
 # Requires mkdocs-material on PATH: pip install mkdocs-material
@@ -292,4 +306,4 @@ docs-serve: docs-downloads
 docs-build: docs-downloads
 	mkdocs build --clean --strict
 
-.PHONY: build build-linux build-windows build-mac dev dev-wails bindings dev-tui build-tui build-tui-linux build-tui-windows build-tui-mac deps build-sidecar electron-frontend electron-app electron-dev-go electron-dev-vite electron-dev pkg-deb pkg-rpm pkg-linux pkg-windows pkg-mac pkg-tui-deb pkg-tui-rpm pkg-all clean check test-go vet lint-go check-frontend print-version test-e2e docs-downloads docs-serve docs-build
+.PHONY: build build-linux build-windows build-mac dev dev-wails bindings dev-tui build-tui build-tui-linux build-tui-windows build-tui-mac deps build-sidecar electron-frontend electron-app electron-dev-go electron-dev-vite electron-dev pkg-deb pkg-rpm pkg-linux pkg-windows pkg-mac pkg-tui-deb pkg-tui-rpm pkg-all clean check test-go vet lint-go check-frontend print-version smoke docs-downloads docs-serve docs-build
