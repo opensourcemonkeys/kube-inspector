@@ -13,7 +13,6 @@ import {createRoot} from 'react-dom/client'
 import './style.css'
 import 'primeflex/primeflex.css'
 import 'primereact/resources/primereact.min.css';
-import 'primeicons/primeicons.css';
 
 import Info from './pages/info/Info'
 

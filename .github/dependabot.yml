@@ -24,6 +24,18 @@ updates:
     groups:
       frontend-minor-and-patch:
         update-types: ["minor", "patch"]
+    # Not routine bumps: licence changes. PrimeTek released PrimeReact 11 and
+    # primeicons 8 (2026-07-15) under the commercial "PrimeUI" licence — a
+    # licence key, revenue and headcount eligibility, no redistribution — which
+    # cannot ship inside this GPL-3.0 app. PrimeReact 10.x stays MIT and still
+    # gets patches, so only the major is ignored. primeicons is not a dependency
+    # any more (the app never used its classes); the rule keeps it from coming
+    # back the way 8.0.2 did. scripts/notices/ fails CI on it as well.
+    ignore:
+      - dependency-name: "primereact"
+        versions: [">=11"]
+      - dependency-name: "primeicons"
+        versions: [">=8"]
     commit-message:
       prefix: "deps(frontend)"
 
