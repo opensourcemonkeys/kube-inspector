@@ -31,6 +31,23 @@ func SetCronJobSuspend(clusterName, name, namespace string, suspend bool) error 
 	return services.SetCronJobSuspend(namespace, name, suspend, client)
 }
 
+// TriggerCronJob runs a CronJob once now and returns the created Job's name.
+func TriggerCronJob(clusterName, name, namespace string) (string, error) {
+	client, err := repository.NewK8sClientForCluster(clusterName)
+	if err != nil {
+		return "", err
+	}
+	job, err := services.TriggerCronJob(namespace, name, client)
+	if err != nil {
+		logging.With("business.workloadActions").Error("trigger cronjob failed",
+			"cluster", clusterName, "namespace", namespace, "name", name, "err", err)
+		return "", err
+	}
+	logging.With("business.workloadActions").Info("cronjob triggered",
+		"cluster", clusterName, "namespace", namespace, "name", name, "job", job)
+	return job, nil
+}
+
 // GetWorkloadAutoscaler reports the HPA governing a workload, or nil when there
 // is none.
 //

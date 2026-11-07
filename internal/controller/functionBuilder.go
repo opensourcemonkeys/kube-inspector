@@ -359,6 +359,12 @@ func (a *App) SetCronJobSuspend(clusterName string, name string, namespace strin
 	return bussiness.SetCronJobSuspend(clusterName, name, namespace, suspend)
 }
 
+// TriggerCronJob runs a CronJob once now (`kubectl create job --from=cronjob/…`)
+// and returns the name of the Job it created.
+func (a *App) TriggerCronJob(clusterName string, name string, namespace string) (string, error) {
+	return bussiness.TriggerCronJob(clusterName, name, namespace)
+}
+
 // GetWorkloadAutoscaler returns nil when no HPA targets the workload *and* when
 // the lookup could not be performed at all — the frontend treats both as "no
 // warning to show". See business.GetWorkloadAutoscaler for why.

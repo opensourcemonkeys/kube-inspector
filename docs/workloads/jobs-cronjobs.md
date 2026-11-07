@@ -44,8 +44,22 @@ CronJobs create Jobs on a schedule defined by a cron expression.
 
 ### Actions
 
-Per-row actions live in the **⋮** menu at the end of the row: Describe, and
-Suspend or Resume.
+Per-row actions live in the **⋮** menu at the end of the row: Describe,
+Suspend or Resume, and Run now.
+
+### Run now
+
+**⋮ → Run now** creates one Job from the CronJob's template and starts it
+immediately — the same Job `kubectl create job --from=cronjob/<name>` makes. It
+is named `<cronjob>-manual-<suffix>`, carries the
+`cronjob.kubernetes.io/instantiate: manual` annotation, and is owned by the
+CronJob, so it appears under it in the Jobs list and counts toward its history
+limits like a scheduled run.
+
+It runs whatever the schedule says, and also when the CronJob is suspended or
+its concurrency policy would forbid a second run. It asks for confirmation
+first, and needs permission to create Jobs in that namespace. In the terminal
+UI the same action is `T` on the CronJobs list.
 
 ### Suspend / Resume
 

@@ -511,7 +511,12 @@
     "suspendMessage": "Приостановить расписание <1>{{target}}</1>?",
     "suspendWarning": "Уже запущенные jobs продолжат работу; новые создаваться не будут.",
     "resumed": "{{target}} возобновлён",
-    "suspended": "{{target}} приостановлен"
+    "suspended": "{{target}} приостановлен",
+    "trigger": "Запустить сейчас",
+    "triggerHeader": "Запустить CronJob сейчас",
+    "triggerMessage": "Создать Job из <1>{{target}}</1> и запустить его сейчас?",
+    "triggerWarning": "Он запустится сразу, независимо от расписания, политики параллельного запуска и того, приостановлен ли CronJob.",
+    "triggered": "Job {{job}} запущен"
   },
   "portForwardDialog": {
     "start": "Запустить",

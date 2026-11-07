@@ -499,7 +499,12 @@
     "suspendMessage": "Suspend the schedule of <1>{{target}}</1>?",
     "suspendWarning": "Already running jobs keep running; no new ones are created.",
     "resumed": "Resumed {{target}}",
-    "suspended": "Suspended {{target}}"
+    "suspended": "Suspended {{target}}",
+    "trigger": "Run now",
+    "triggerHeader": "Run CronJob now",
+    "triggerMessage": "Create a Job from <1>{{target}}</1> and run it now?",
+    "triggerWarning": "It runs right away, whatever the schedule, the concurrency policy or a suspended state says.",
+    "triggered": "Started job {{job}}"
   },
   "portForwardDialog": {
     "start": "Start",

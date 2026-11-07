@@ -499,7 +499,12 @@
     "suspendMessage": "<1>{{target}}</1> zamanlaması askıya alınsın mı?",
     "suspendWarning": "Zaten çalışan job'lar çalışmaya devam eder; yenileri oluşturulmaz.",
     "resumed": "{{target}} sürdürüldü",
-    "suspended": "{{target}} askıya alındı"
+    "suspended": "{{target}} askıya alındı",
+    "trigger": "Şimdi çalıştır",
+    "triggerHeader": "CronJob'ı şimdi çalıştır",
+    "triggerMessage": "<1>{{target}}</1> için bir Job oluşturulup şimdi çalıştırılsın mı?",
+    "triggerWarning": "Zamanlama, eşzamanlılık politikası ya da askıya alınmış olması ne derse desin hemen çalışır.",
+    "triggered": "{{job}} job'ı başlatıldı"
   },
   "portForwardDialog": {
     "start": "Başlat",

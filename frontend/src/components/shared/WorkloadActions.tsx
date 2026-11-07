@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Toast } from 'primereact/toast';
 import type { MenuItem } from 'primereact/menuitem';
-import { VscArrowBoth, VscDebugRestart, VscDebugPause, VscDebugStart } from 'react-icons/vsc';
-import { RestartWorkload, SetCronJobSuspend } from '../../../wailsjs/go/controller_app/App';
+import { VscArrowBoth, VscDebugRestart, VscDebugPause, VscDebugStart, VscRunAll } from 'react-icons/vsc';
+import { RestartWorkload, SetCronJobSuspend, TriggerCronJob } from '../../../wailsjs/go/controller_app/App';
 import ScaleDialog from './ScaleDialog';
 import ConfirmActionDialog from './ConfirmActionDialog';
 import { Trans } from 'react-i18next';
@@ -26,6 +26,8 @@ export interface WorkloadActionSpec {
     restart?: { kind: RestartableKind };
     /** Enables the Pause/Resume toggle for CronJobs. `suspended` picks which way it goes. */
     suspend?: { suspended: boolean };
+    /** Enables "Run now" for CronJobs: one Job from its template, created immediately. */
+    trigger?: true;
 }
 
 export interface WorkloadActionTarget {
@@ -35,7 +37,8 @@ export interface WorkloadActionTarget {
 
 /**
  * Per-row mutating actions for workload lists (scale / rollout restart /
- * cronjob suspend), as **menu items plus one shared set of dialogs**.
+ * cronjob suspend / cronjob run now), as **menu items plus one shared set of
+ * dialogs**.
  *
  * It is a hook rather than a per-row component because the actions now live in
  * the row's ⋮ menu: a DataTable body renderer runs for every visible row, so a
@@ -59,6 +62,7 @@ export function useWorkloadActions({
     const [scaleT, setScaleT] = useState<(WorkloadActionTarget & { kind: ScalableKind; replicas: number }) | null>(null);
     const [restartT, setRestartT] = useState<(WorkloadActionTarget & { kind: RestartableKind }) | null>(null);
     const [suspendT, setSuspendT] = useState<(WorkloadActionTarget & { suspended: boolean }) | null>(null);
+    const [triggerT, setTriggerT] = useState<WorkloadActionTarget | null>(null);
 
     const notify = (detail: string) =>
         toastRef.current?.show({ severity: 'success', summary: t('panels:workload.doneSummary'), detail, life: TOAST_LIFE.success });
@@ -91,6 +95,13 @@ export function useWorkloadActions({
                 label: t(suspended ? 'panels:workload.resume' : 'panels:workload.suspend'),
                 icon: suspended ? <VscDebugStart size={13} /> : <VscDebugPause size={13} />,
                 command: () => setSuspendT({ name: row.name, namespace: row.namespace, suspended }),
+            });
+        }
+        if (spec.trigger) {
+            items.push({
+                label: t('panels:workload.trigger'),
+                icon: <VscRunAll size={13} />,
+                command: () => setTriggerT({ name: row.name, namespace: row.namespace }),
             });
         }
         return items;
@@ -158,6 +169,29 @@ export function useWorkloadActions({
                     onConfirm={async () => {
                         await SetCronJobSuspend(clusterName, suspendT.name, suspendT.namespace, !suspendT.suspended);
                         notify(t(suspendT.suspended ? 'panels:workload.resumed' : 'panels:workload.suspended', { target: target(suspendT) }));
+                        await reload();
+                    }}
+                />
+            )}
+
+            {triggerT && (
+                <ConfirmActionDialog
+                    visible
+                    header={t('panels:workload.triggerHeader')}
+                    message={
+                        <Trans
+                            t={t}
+                            i18nKey="panels:workload.triggerMessage"
+                            values={{ target: target(triggerT) }}
+                            components={{ 1: <strong /> }}
+                        />
+                    }
+                    warning={t('panels:workload.triggerWarning')}
+                    confirmLabel={t('panels:workload.trigger')}
+                    onHide={() => setTriggerT(null)}
+                    onConfirm={async () => {
+                        const job = await TriggerCronJob(clusterName, triggerT.name, triggerT.namespace);
+                        notify(t('panels:workload.triggered', { job: `${triggerT.namespace}/${job}` }));
                         await reload();
                     }}
                 />

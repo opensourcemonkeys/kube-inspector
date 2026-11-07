@@ -264,7 +264,7 @@ func buildRegistry() ([]menuGroup, map[string]*resourceDef) {
 				return rows, nil
 			},
 			getYAML: business.GetCronJobYaml, updateYAML: business.UpdateCronJobYaml, del: business.DeleteCronJob,
-			actions: []rowAction{suspendAction('P', "pause", true), suspendAction('U', "unpause", false)},
+			actions: []rowAction{suspendAction('P', "pause", true), suspendAction('U', "unpause", false), triggerAction()},
 		},
 		{
 			view: "services", title: "Services", namespaced: true,
@@ -778,6 +778,33 @@ func parsePortPair(arg string) (local, remote int, err error) {
 		}
 	}
 	return local, remote, nil
+}
+
+// triggerAction runs a CronJob once, now — the GUI's ⋮ → Run now, and
+// `kubectl create job --from=cronjob/<name>`. custom rather than run/confirm:
+// the generic report only says "<label>: <row>", and the useful answer here is
+// the name of the Job that was created.
+func triggerAction() rowAction {
+	return rowAction{
+		key: 'T', label: "run now",
+		custom: func(a *App, row *rowData, reload func()) {
+			if row == nil {
+				return
+			}
+			name, namespace := row.name, row.namespace
+			msg := fmt.Sprintf("Run CronJob %s/%s now?\n\nA Job is created from its template and starts right away, "+
+				"whatever the schedule, the concurrency policy or a suspended state says.", namespace, name)
+			a.confirm(msg, func() {
+				job, err := business.TriggerCronJob(a.cluster, name, namespace)
+				if err != nil {
+					a.flash("Error", err.Error(), colDanger)
+					return
+				}
+				a.flash("Run now", fmt.Sprintf("Started job %s/%s", namespace, job), colOk)
+				reload()
+			})
+		},
+	}
 }
 
 // suspendAction builds the CronJob pause/resume pair. They are two idempotent

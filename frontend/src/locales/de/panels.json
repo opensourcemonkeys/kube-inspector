@@ -499,7 +499,12 @@
     "suspendMessage": "Zeitplan von <1>{{target}}</1> aussetzen?",
     "suspendWarning": "Bereits laufende Jobs laufen weiter; neue werden nicht erzeugt.",
     "resumed": "{{target}} fortgesetzt",
-    "suspended": "{{target}} ausgesetzt"
+    "suspended": "{{target}} ausgesetzt",
+    "trigger": "Jetzt ausführen",
+    "triggerHeader": "CronJob jetzt ausführen",
+    "triggerMessage": "Einen Job aus <1>{{target}}</1> erzeugen und jetzt ausführen?",
+    "triggerWarning": "Er läuft sofort – unabhängig vom Zeitplan, von der Concurrency-Policy und davon, ob der CronJob ausgesetzt ist.",
+    "triggered": "Job {{job}} gestartet"
   },
   "portForwardDialog": {
     "start": "Starten",

@@ -79,11 +79,11 @@ Some resources add row actions, always shown in the hint bar for the list you ar
 | ReplicaSets | `S` scale · `F` port-forward |
 | Services | `F` port-forward |
 | DaemonSets | `R` rollout restart |
-| CronJobs | `P` pause (suspend) · `U` unpause |
+| CronJobs | `P` pause (suspend) · `U` unpause · `T` run now (creates a Job from the template, with confirmation) |
 | Nodes | `C` cordon · `U` uncordon · `D` drain (with confirmation) |
 | Port Forwards | `X` stop the selected tunnel |
 
-`S`, `R`, `F`, `P`/`U` and the node operations run **synchronously** — the UI waits for the cluster to answer before returning, which for a port forward means waiting until the tunnel is actually up.
+`S`, `R`, `F`, `P`/`U`, `T` and the node operations run **synchronously** — the UI waits for the cluster to answer before returning, which for a port forward means waiting until the tunnel is actually up.
 
 !!! note "Editable resources"
     Resources without a backing update operation (e.g. Pods, Events) are view-only — pressing `e` shows a notice. Editable kinds (Deployments, Services, ConfigMaps, Secrets, RBAC, Nodes, …) open the YAML editor.

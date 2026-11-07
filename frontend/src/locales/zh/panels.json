@@ -493,7 +493,12 @@
     "suspendMessage": "要暂停 <1>{{target}}</1> 的调度吗？",
     "suspendWarning": "已在运行的 Job 会继续运行；不会再创建新的。",
     "resumed": "已恢复 {{target}}",
-    "suspended": "已暂停 {{target}}"
+    "suspended": "已暂停 {{target}}",
+    "trigger": "立即运行",
+    "triggerHeader": "立即运行 CronJob",
+    "triggerMessage": "要从 <1>{{target}}</1> 创建一个 Job 并立即运行吗？",
+    "triggerWarning": "它会立即运行，不受调度、并发策略或暂停状态的限制。",
+    "triggered": "已启动 Job {{job}}"
   },
   "portForwardDialog": {
     "start": "启动",

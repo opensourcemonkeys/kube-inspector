@@ -34,7 +34,7 @@ export default function CronJobListComponent({ clusterName, api }: { clusterName
             deleteLabel="cronjob"
             pollInterval={10000}
             describeResource="cronjobs"
-            workloadActions={(row) => ({ suspend: { suspended: row.suspend } })}
+            workloadActions={(row) => ({ suspend: { suspended: row.suspend }, trigger: true })}
             defaultFilters={defaultFilters}
             emptyMessage={t('resources:cronjob.empty')}
             onRowDoubleClick={(cj) => openYamlPanel({ clusterName, resourceKind: 'cronjob', name: cj.name, namespace: cj.namespace, referencePanel })}

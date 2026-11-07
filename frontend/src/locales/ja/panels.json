@@ -493,7 +493,12 @@
     "suspendMessage": "<1>{{target}}</1> のスケジュールを一時停止しますか？",
     "suspendWarning": "実行中の Job はそのまま続きます。新しい Job は作成されません。",
     "resumed": "{{target}} を再開しました",
-    "suspended": "{{target}} を一時停止しました"
+    "suspended": "{{target}} を一時停止しました",
+    "trigger": "今すぐ実行",
+    "triggerHeader": "CronJob を今すぐ実行",
+    "triggerMessage": "<1>{{target}}</1> から Job を作成して今すぐ実行しますか？",
+    "triggerWarning": "スケジュール、同時実行ポリシー、一時停止状態にかかわらず、すぐに実行されます。",
+    "triggered": "Job {{job}} を開始しました"
   },
   "portForwardDialog": {
     "start": "開始",
