@@ -2,6 +2,49 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v0.21.0-beta] - 2026-11-07
+
+A release about acting with confidence. The **Vulnerability Scan** has been rebuilt around one question — what do I fix first? — with a summary, a fix plan, scan history and a report for three readers. The **AI assistant** now lives in a tab per cluster, is read-only until you allow writes, and shows every change as a dry-run diff before it asks you. ConfigMaps and Secrets get a **real editor**, with a reviewed, dry-run save that can no longer damage values it did not touch.
+
+### Added
+- **A vulnerability scan that tells you what to fix.** A cluster scan now opens on four sections. **Summary**: Critical, High, Fixable and Coverage counters with the change since an earlier scan, a one-sentence verdict on how many critical findings sit in workloads reachable from outside, and the riskiest workloads with the reasons they rank there (exposed, runs as root, privileged, hostPath, host network). **Fix plan**: package upgrades, base-image rebuilds and misconfiguration fixes, ordered by what each one closes. **Findings**: the full misconfiguration, vulnerability and secret tables, with *new* marks and **Only new**. **Coverage**: which images were scanned, which were not, and why.
+- **Scans that run on their own.** The scan runs in the backend, so closing the panel does not stop it; reopening the screen reconnects to it. Each distinct image is scanned once, however many workloads run it, and misconfigurations and secrets are scanned alongside. **Stop** now really stops the queued images.
+- **Scan history and comparison.** The last 20 scans per cluster are kept. Pick an older one, or the scan to compare with; deltas count only what both scans could see, so an image that could not be scanned never shows up as a rise or a fall.
+- **Accepted risks.** Accept a vulnerability (by CVE and image repository) or a misconfiguration (by check and workload) with a reason and an expiry date; accepted findings leave the counts and the fix plan until the exception expires. Secrets cannot be accepted.
+- **A report for three readers.** **Report** exports one HTML file — a summary for management, the fix plan for developers and an audit appendix for compliance — in the app's language. It prints to PDF from any browser.
+- **Private registries.** Images are scanned with the pod's own pull secret, then its ServiceAccount's. Only the one credential that matches the image's registry is used, and it is never stored, logged or sent anywhere else.
+- **Optional "Ask AI" in the fix plan.** Off by default. When on, it opens the cluster's assistant with a question about that item already written; you read it and send it yourself.
+- **An AI assistant tab per cluster.** The floating chat is replaced by a tab per cluster, opened from the cluster bar or **Open ▸ AI Assistant**, each with its own conversation. A tab only ever talks to its own cluster. Replies stream as they are written.
+- **Read-only until you allow writes.** Each cluster's assistant starts read-only, and the model is not even offered a tool that changes anything. When writes are allowed, every delete, scale, restart or apply is first dry-run against the API server and shown as a before/after YAML diff with the cluster's name; a change the API server would refuse goes back to the model without asking you.
+- **An assistant that can look around.** New read tools list any resource, read an object's YAML (Secret values hashed), describe it, read metrics and — when toolbox is installed — recent changes from Cluster History. Objects named in an answer link to their Describe panel.
+- **"Ask AI" everywhere.** List rows, the pod detail, the log viewer, event details and the vulnerability fix plan can pre-fill the assistant with a question and the objects it is about. Nothing is sent until you press Enter.
+- **A ConfigMap and Secret editor.** Keys on the left, the selected value in a full code editor on the right, highlighted by the key's extension (`.yaml`, `.json`, `.conf`/`.properties`/`.ini`, `.sh`, `.xml`), with broken YAML or JSON underlined. Each key is marked new, changed, removed or invalid. Add a key from a file, replace a value from a file, or save one to a file.
+- **A reviewed save.** **Review and save** (Ctrl+S) shows the changes key by key with a diff, and the API server checks the exact write with a dry run first. If someone else changed the object after you opened it, the save is refused instead of overwriting theirs; **Apply mine to the latest** replays your changes onto the current version.
+- **"Used by".** The editor lists the workloads that use the ConfigMap or Secret and how. After a save it offers a rolling restart of the Deployments, StatefulSets and DaemonSets that only read it at start (`env`, `envFrom`, `subPath`).
+- **Secret-aware editing.** Values stay hidden until you show them, and can be copied without being shown. `kubernetes.io/tls` Secrets show the certificate's subject, issuer, names and expiry and whether the key belongs to it; `kubernetes.io/dockerconfigjson` Secrets are edited as a form.
+- **Unsaved changes are kept.** Closing or moving a tab with unsaved edits asks first.
+- **Force delete and grace period 0 for pods.** The pod delete dialog, in the list and the detail panel, offers both options, off by default and with the same meaning as the `kubectl delete pod` flags.
+
+### Changed
+- **AI context handling.** The assistant always tells Ollama its context window and fits the conversation to it, dropping the oldest whole turns, so the instructions at the start of the prompt are never silently cut off. Tool results are shortened and kept for later turns, so the model does not repeat the same calls.
+- **Notifications** stay up for a length that follows their kind — short for a confirmation, longer for a warning or an error — instead of each panel picking its own.
+
+### Fixed
+- **Editing one key of a Secret could destroy the others.** The old key/value editor turned binary values (a keystore, a DER certificate) into text on load and wrote that text back over every key on save. Values now travel unchanged and binary ones are never decoded.
+- **The Kubernetes schema suggestions** no longer appear inside a ConfigMap's `application.yaml`.
+- **Several notifications were in English in every language**: in the cluster dialog, the CRD list, the diagnostics export, the network policy, role and role binding editors.
+- **A scan whose end event was missed** no longer leaves the panel showing a running or stopping scan.
+- **A workload moved to an image that could not be scanned** no longer reports its vulnerabilities as closed.
+
+### Internal
+- Trivy scan records are stored raw with a schema version, and every number the screen and the report show is computed from them (`services/trivyView.go`, `trivyFixPlan.go`), so old scans stay readable as the views change.
+- A credentialed scan refreshes the vulnerability and Java DBs without credentials first and then runs with DB updates off, because Trivy would otherwise hand the pull secret to the DB registries too.
+- The ConfigMap/Secret editor uses one backend path for both kinds (`services/dataObjectServices.go`); values cross as base64 in both directions. `GetConfigMapData`/`UpdateConfigMapData`/`GetSecretData`/`UpdateSecretData` were removed.
+- `lib/toast.ts` holds the one table of notification lifetimes; `lib/unsavedChanges.ts` is the per-panel dirty registry `FloatableTab` consults.
+- Monaco registers the `ini`, `shell` and `xml` grammars; models under `PLAIN_YAML_PATH` skip the Kubernetes intellisense.
+
+---
+
 ## [v0.20.1-beta] - 2026-10-31
 
 A maintenance release: every dependency brought up to date. Nothing in the app looks or works differently; underneath, the window runs on a newer Chromium, image scans use a newer Trivy, and the Kubernetes client libraries follow 1.37.
