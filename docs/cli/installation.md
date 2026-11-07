@@ -19,7 +19,7 @@ Grab the artifact for your platform from the [Downloads](../downloads.md#command
 | Windows | `kube-inspector-cli-<version>-windows-amd64.exe` |
 
 !!! tip "One Linux build for all distros"
-    A single `.deb` / `.rpm` / tarball works on every Linux distribution. The CLI is also much smaller than the desktop app, since it ships no browser engine.
+    A single `.deb` / `.rpm` / tarball works on every x86-64 Linux distribution with glibc 2.34 or newer (Ubuntu 22.04+, Debian 12+, Fedora 35+, RHEL 9+). On macOS the binary is universal — Apple Silicon and Intel, macOS 13 Ventura or newer. The CLI is also much smaller than the desktop app, since it ships no browser engine.
 
 ## Linux
 

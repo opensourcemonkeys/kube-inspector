@@ -53,12 +53,15 @@ each panel stays pinned to the cluster it was opened with.
 
 Download from [kubeinspector.com/downloads](https://kubeinspector.com/downloads/).
 
-| Platform | File |
+| Platform | Requires |
 |---|---|
-| Linux — Debian / Ubuntu | `kube-inspector-<version>-linux-amd64.deb` |
-| Linux — RHEL / Fedora | `kube-inspector-<version>-linux-x86_64.rpm` |
-| macOS (Apple Silicon) | `kube-inspector-<version>-macos-arm64.dmg` |
-| Windows | `kube-inspector-<version>-windows-amd64.exe` |
+| Linux — Debian / Ubuntu | glibc 2.34+ (Ubuntu 22.04+, Debian 12+) — `kube-inspector-<version>-linux-amd64.deb` |
+| Linux — RHEL / Fedora | glibc 2.34+ (RHEL / Rocky / Alma 9+, Fedora 35+) — `kube-inspector-<version>-linux-x86_64.rpm` |
+| macOS (Apple Silicon) | macOS 13 Ventura+ — `kube-inspector-<version>-macos-arm64.dmg` |
+| Windows | Windows 10 / 11, x64 — `kube-inspector-<version>-windows-amd64.exe` |
+
+All x86-64 except the dmg; the terminal UI also runs on Intel Macs. Details:
+[System requirements](https://kubeinspector.com/getting-started/installation/#system-requirements).
 
 The app bundles its own browser engine, so there is no WebKitGTK or WebView2
 runtime to install — on any platform. On Linux the package names the system

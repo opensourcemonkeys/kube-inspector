@@ -50,6 +50,11 @@ sudo dnf install ./kube-inspector-<version>-linux-x86_64.rpm   # RHEL / Fedora
 Installing with `apt install ./…deb` or `dnf install ./…rpm` in the first place
 avoids it.
 
+**Linux: ``version `GLIBC_2.34' not found``.** The distribution is older than
+the app supports — Ubuntu 20.04, Debian 11 and the RHEL 8 family ship an older
+C library. Nothing on the machine can fix it short of a newer release; see
+[System requirements](getting-started/installation.md#system-requirements).
+
 **Nothing happens at all when you launch it.** Start it from a terminal —
 `kube-inspector` on Linux — and read what it prints. Whatever it says, the same
 detail is in today's log file (see [where the logs are](#where-the-logs-are)),

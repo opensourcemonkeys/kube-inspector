@@ -27,7 +27,9 @@ Linux, install the desktop package with `sudo apt install ./<file>.deb` or
 
 ### Linux
 
-One package per family — there is no per-distribution variant to choose.
+One package per family — there is no per-distribution variant to choose. Both
+need glibc 2.34 or newer (Ubuntu 22.04+, Debian 12+, Fedora 35+, RHEL 9+); see
+[System requirements](getting-started/installation.md#system-requirements).
 
 - **Debian / Ubuntu (.deb)** — [Download](/dist/kube-inspector-__VERSION__-linux-amd64.deb)
 - **RHEL / Fedora (.rpm)** — [Download](/dist/kube-inspector-__VERSION__-linux-x86_64.rpm)
@@ -38,7 +40,7 @@ One package per family — there is no per-distribution variant to choose.
 
 ### macOS
 
-- **macOS (Apple Silicon)** — [Download](/dist/kube-inspector-__VERSION__-macos-arm64.dmg)
+- **macOS (Apple Silicon)** — [Download](/dist/kube-inspector-__VERSION__-macos-arm64.dmg) — macOS 13 Ventura or newer
 
 ---
 

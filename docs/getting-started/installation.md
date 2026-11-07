@@ -6,6 +6,22 @@ description: Install Kube Inspector, the free visual desktop client for Kubernet
 
 Kube Inspector ships as a self-contained application for **Linux, macOS and Windows**. It bundles its own browser engine, so there is **no WebView or WebKitGTK runtime to install** and nothing to set up by hand on any platform. On Linux the package names the system libraries it uses, and your package manager installs any that are missing.
 
+## System requirements
+
+| Platform | Desktop app | Terminal UI (`kube-inspector-cli`) |
+|---|---|---|
+| **Linux** | x86-64 with glibc 2.34 or newer: Ubuntu 22.04+, Debian 12+, Fedora 35+, RHEL / Rocky / AlmaLinux 9+ | Same |
+| **macOS** | macOS 13 Ventura or newer, Apple Silicon | macOS 13 Ventura or newer, Apple Silicon **or Intel** |
+| **Windows** | Windows 10 or 11, x64 | Same |
+
+**Not supported:**
+
+- **Older Linux distributions** — Ubuntu 20.04, Debian 11 and RHEL / Rocky / AlmaLinux 8 ship a glibc older than 2.34. The app does not start on them; it reports ``version `GLIBC_2.34' not found``.
+- **Intel Macs** for the desktop app. The terminal UI is a universal binary and runs on them.
+- **ARM Linux and ARM Windows**, and 32-bit systems.
+
+The cluster side has no requirement of its own beyond a reachable API server and a kubeconfig; CPU and memory figures need [metrics-server](https://github.com/kubernetes-sigs/metrics-server).
+
 ## Download
 
 Get the package for your platform from the [Downloads](../downloads.md) page:
@@ -23,7 +39,7 @@ Get the package for your platform from the [Downloads](../downloads.md) page:
     and the builds are unsigned, so it is the one integrity check available.
 
 !!! note "One Linux build"
-    Earlier releases shipped separate packages per distribution because the app used the system WebKitGTK library, whose version differs between distros. It now bundles its own browser engine, so **a single `.deb` and a single `.rpm` work everywhere**.
+    Earlier releases shipped separate packages per distribution because the app used the system WebKitGTK library, whose version differs between distros. It now bundles its own browser engine, so **a single `.deb` and a single `.rpm` work on every distribution** with glibc 2.34 or newer (see [System requirements](#system-requirements)).
 
 ## Linux
 

@@ -21,9 +21,17 @@ prove the file arrived intact — they do not prove who built it. See
 [Unsigned builds](getting-started/unsigned-builds.md). Version 1.0 ships
 unsigned as well; signing is planned for a later release, with no date yet.
 
-**macOS is Apple Silicon only.** Releases up to v0.11.0 shipped a universal
-binary; since then the dmg targets `arm64` alone. A universal build would embed
-two copies of a ~262 MB Go binary. Intel Macs are not supported.
+**The desktop app on macOS is Apple Silicon only.** Releases up to v0.11.0
+shipped a universal binary; since then the dmg targets `arm64` alone. A
+universal build would embed two copies of a ~262 MB Go binary. Intel Macs are
+not supported by the desktop app; the terminal UI (`kube-inspector-cli`) is
+universal and runs on them. Both need macOS 13 Ventura or newer.
+
+**Linux needs glibc 2.34 or newer** — Ubuntu 22.04, Debian 12, Fedora 35,
+RHEL / Rocky / AlmaLinux 9, or later. The backend is built on Ubuntu 22.04 and
+links the system C library, so on Ubuntu 20.04, Debian 11 or the RHEL 8 family
+it does not start (``version `GLIBC_2.34' not found``). The full table is under
+[System requirements](getting-started/installation.md#system-requirements).
 
 **The Windows installer is not cleaned up.** The in-app updater downloads a
 ~190 MB installer into `%TEMP%` and NSIS does not remove it afterwards. Delete
