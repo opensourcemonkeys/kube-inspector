@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { IDockviewPanelProps } from 'dockview';
 import { Button } from 'primereact/button';
-import { VscTools, VscHistory, VscArrowSwap, VscRefresh, VscLinkExternal } from 'react-icons/vsc';
+import { VscTools, VscHistory, VscRefresh, VscLinkExternal } from 'react-icons/vsc';
 import { GetToolboxStatus } from '../../../wailsjs/go/controller_app/App';
 import { models } from '../../../wailsjs/go/models';
 import { useTabContext } from '../../contexts/TabContext';
@@ -20,7 +20,11 @@ const STATE_TONE: Record<string, LampTone> = { ok: 'ok', notInstalled: 'idle', f
  *
  * Cluster history inspection needs toolbox installed and the user's access to
  * reach it, so its row says which of those is missing instead of hiding.
- * Cluster migration is a placeholder that is not built yet.
+ *
+ * A "Cluster migration" row stood here as a disabled "in development"
+ * placeholder until 1.0, which hid it: a stable release does not advertise
+ * what it does not do. Its strings (panels:toolbox.migration.*) are kept for
+ * when the tool exists.
  */
 export default function ToolboxPanel({ params, api }: IDockviewPanelProps<{ clusterName: string }>) {
     const t = useT();
@@ -109,25 +113,6 @@ export default function ToolboxPanel({ params, api }: IDockviewPanelProps<{ clus
                         severity="secondary"
                         disabled={!ready}
                         onClick={() => openClusterHistory(clusterName, api.id)}
-                    />
-                </li>
-
-                <li className="tool-row" aria-disabled>
-                    <span className="tool-row__icon" aria-hidden><VscArrowSwap size={20} /></span>
-                    <div className="tool-row__body">
-                        <div className="tool-row__title">{t('panels:toolbox.migration.title')}</div>
-                        <div className="tool-row__desc">{t('panels:toolbox.migration.desc')}</div>
-                        <div className="tool-row__state">
-                            <StatusLamp label={t('panels:toolbox.migration.dev')} tone="idle" />
-                        </div>
-                    </div>
-                    <Button
-                        className="tool-row__action"
-                        label={t('panels:toolbox.open')}
-                        icon={<VscLinkExternal size={14} />}
-                        size="small"
-                        severity="secondary"
-                        disabled
                     />
                 </li>
             </ul>
