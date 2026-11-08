@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [v1.1.0] - 2026-11-09
+
+Move a namespace to another cluster, its volumes included. **Cluster Migration** is the second tool in the Toolbox tab and the first part of the app that works on two clusters at once. Like the rest of toolbox it is a beta. This release goes with toolbox `1.0.0-beta.2`.
+
+### Added
+- **Cluster Migration (beta).** Copies one or more namespaces and the data on their volumes to another cluster, from the **Cluster migration** row of the Toolbox tab. The application keeps running while the data copies and stops only for the last difference, once you start the final switch. There is nothing to install: the app starts a short-lived worker on each side per volume and removes them at the end. Pods on the two clusters have to be able to reach each other. [Cluster Migration](https://kubeinspector.com/toolbox/cluster-migration/) has the details.
+- **A check before anything changes.** It reads both clusters, writes nothing, and lists what would move, what the target lacks and what stands in the way: missing permissions, a Pod Security level of `restricted`, a volume used by a bare Pod or a DaemonSet, signs of Argo CD or Flux. For each object that already exists on the target you choose to keep it or overwrite it. An existing PersistentVolumeClaim can only be kept.
+- **A final switch that waits for the last writer.** Workloads on the source stop, and the last copy starts only when no pod still has a copied volume mounted. If something keeps starting those pods, the switch stops and names it, with nothing started on the target. A switch that stops part-way can be continued or, until the target has started, abandoned, which starts the source again.
+- **One status page afterwards.** Each workload and whether it is ready, each disk, what was skipped, and the addresses of LoadBalancer Services and Ingresses. Moving traffic stays with you, and the source stays stopped until you choose to start it with its earlier replica counts.
+
+### Changed
+- **The Toolbox tab has one row per tool**, and each row says what its own tool needs. Cluster Migration does not depend on the Helm chart.
+- **Toolbox has its own section in the documentation:** an overview, [installing Cluster History](https://kubeinspector.com/toolbox/history-install/) and Cluster Migration. The install guide in the app links to the new page.
+- **The toolbox chart can turn its tools on and off** with `tools.history.enabled`, on by default. Existing installs keep running as they are, `helm upgrade --reuse-values` included.
+
+### Fixed
+- **The toolbox chart's post-install notes** no longer tell you to open a web UI that toolbox does not have.
+
+### Internal
+- toolbox `1.0.0-beta.2` publishes a second image, `ghcr.io/opensourcemonkeys/kube-inspector-toolbox-migrator` (built from `toolbox/mover`). The app pins that version, so it has to be released first.
+- toolbox's `/api/v1/info` also reports `tool` and `capabilities`, its Services carry `kubeinspector.com/tool`, and the app's discovery skips a Service labelled for another tool.
+- `make -C toolbox e2e-migration` runs a real migration across two kind clusters.
+
+---
+
 ## [v1.0.0] - 2026-11-08
 
 Kube Inspector 1.0, the first stable release. From here on releases follow semantic versioning: a patch release fixes, a minor release adds without breaking what you rely on, and [Versioning and compatibility](https://kubeinspector.com/versioning/) says what an upgrade within 1.x keeps working. The stable update channel is the default from this release on, and only the latest release receives fixes.
