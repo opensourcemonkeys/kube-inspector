@@ -1,3 +1,4 @@
+{{- if include "toolbox.history.enabled" . }}
 {{- if .Values.admissionWebhook.enabled }}
 {{- /*
 toolbox keeps caBundle in sync itself (internal/certs). Re-using the live
@@ -54,4 +55,5 @@ webhooks:
       - name: skip-dry-run
         expression: "!request.dryRun"
     {{- end }}
+{{- end }}
 {{- end }}

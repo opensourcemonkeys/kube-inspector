@@ -6,6 +6,14 @@ nameOverride: ""
 # clusters. Kube Inspector filters by it. Defaults to "default".
 clusterName: ""
 
+# Which of toolbox's in-cluster tools this release runs. Cluster Migration is
+# not listed: it needs no installation, Kube Inspector starts its pods per run.
+tools:
+  history:
+    # -- The change recorder behind Cluster History. Turning it off removes
+    # everything below it, ClickHouse included; ClickHouse's volume is kept.
+    enabled: true
+
 image:
   repository: ghcr.io/opensourcemonkeys/kube-inspector-toolbox
   # -- Defaults to the chart's appVersion.

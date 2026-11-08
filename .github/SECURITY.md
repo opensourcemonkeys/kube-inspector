@@ -105,6 +105,13 @@ target and in no release build.
 - The documentation site (`kubeinspector.com`) content itself, other than the
   release artifacts and checksums it serves.
 
+### What runs inside a cluster
+
+Both are optional and installed or started only when you ask for them.
+
+- **The toolbox Helm chart (Cluster History).** Its ServiceAccount has `get`, `list` and `watch` on every resource, **Secrets included**, because it watches them to record changes; treat it as highly privileged. Secret values are reduced to hashes before anything is stored. Its REST API is read-only and guarded by one shared token in a Secret, so reading that Secret grants read access to the history.
+- **Cluster Migration workers.** Short-lived root pods, one per volume, in the namespaces being migrated, removed when the migration ends. Their SSH keys are generated per migration, live in a namespace Secret while it runs, and are restricted to running rsync. Credentials for one cluster are never stored in the other: the desktop app does all writing with the user's own kubeconfig.
+
 ## Known advisories in dependencies
 
 Scanners — `govulncheck`, `npm audit`, and Trivy pointed at our own binary —

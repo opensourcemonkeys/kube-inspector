@@ -60,6 +60,18 @@ A cluster vulnerability scan reads the `imagePullSecrets` of each pod, then of i
 
 Scan results are kept on your machine under `~/.kube-ins/trivy-history/` (the last 20 scans per cluster) and your accepted risks under `~/.kube-ins/trivy-exceptions/`.
 
+## What toolbox stores in your cluster
+
+[Cluster History](toolbox/index.md) is the one feature that keeps data outside
+your machine, and it keeps it in your own cluster: if you install it, its
+ClickHouse holds every recorded change with the **username, groups, source IP and
+user agent** of whoever made it, for 90 days by default (`retention.changesDays`).
+Secret values are stored only as hashes. Nothing is sent anywhere else.
+
+[Cluster Migration](toolbox/cluster-migration.md) copies your data directly
+between your two clusters. Its saved record, under `~/.kube-ins/migrations/`,
+holds object names only, never Secret values.
+
 ## Local network surfaces
 
 The app runs local servers. All of them are bound to loopback and

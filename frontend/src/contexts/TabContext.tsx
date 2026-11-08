@@ -184,6 +184,7 @@ interface TabContextValue {
     openToolbox: (clusterName: string) => void;
     openAiAssistant: (clusterName: string) => void;
     openClusterHistory: (clusterName: string, referencePanel?: string) => void;
+    openMigration: (clusterName: string, referencePanel?: string) => void;
     openObjectHistory: (def: ObjectHistoryDef) => void;
     openReceivedPanel: (panel: ReceivedPanel) => void;
 }
@@ -696,6 +697,29 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
         api.addPanel(addOptions);
     }, [t]);
 
+    const openMigration = useCallback((clusterName: string, referencePanel?: string) => {
+        const api = apiRef.current;
+        if (!api) return;
+
+        const panelId = `migration:${clusterName}`;
+        const existing = api.getPanel(panelId);
+        if (existing) {
+            existing.focus();
+            return;
+        }
+
+        const titleParams = { titleKey: 'panels:title.migration', titleVars: { suffix: clusterName } };
+        const addOptions: any = {
+            id: panelId,
+            component: 'migration',
+            title: renderPanelTitle(t, titleParams),
+            params: { clusterName, ...titleParams },
+        };
+        const pos = referencePanel ? positionAfter(api, referencePanel) : undefined;
+        if (pos) addOptions.position = pos;
+        api.addPanel(addOptions);
+    }, [t]);
+
     const openYamlPanel = useCallback((def: YamlPanelDef) => {
         const api = apiRef.current;
         if (!api) return;
@@ -836,6 +860,9 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
             case 'clusterHistory':
                 openClusterHistory(cn);
                 break;
+            case 'migration':
+                openMigration(cn);
+                break;
             case 'objectHistory':
                 openObjectHistory({ clusterName: cn, resource: p.resource, group: p.group, name: p.name, namespace: p.namespace });
                 break;
@@ -864,10 +891,10 @@ export function TabProvider({ children }: { children: React.ReactNode }) {
                 openDiagnostics();
                 break;
         }
-    }, [openReceivedSession, openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openToolbox, openAiAssistant, openClusterHistory, openObjectHistory, openApplyYaml, openDiagnostics, openPortForwards]);
+    }, [openReceivedSession, openTab, openYamlPanel, openLogPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openClusterResourceView, openToolbox, openAiAssistant, openClusterHistory, openMigration, openObjectHistory, openApplyYaml, openDiagnostics, openPortForwards]);
 
     return (
-        <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openNodeShellPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openToolbox, openAiAssistant, openClusterHistory, openObjectHistory, openDiagnostics, openPortForwards, openReceivedPanel }}>
+        <TabContext.Provider value={{ registerApi, getApi, openTab, openYamlPanel, openLogPanel, openExecPanel, openNodeShellPanel, openPolicyViewer, openConfigMapEditor, openSecretEditor, openRoleEditor, openRoleBindingEditor, openObjectYaml, openDescribePanel, openTerminal, openApplyYaml, openClusterResourceView, openToolbox, openAiAssistant, openClusterHistory, openMigration, openObjectHistory, openDiagnostics, openPortForwards, openReceivedPanel }}>
             {children}
         </TabContext.Provider>
     );

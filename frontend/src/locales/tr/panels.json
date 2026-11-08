@@ -14,7 +14,8 @@
     "toolbox": "Toolbox",
     "clusterHistory": "Cluster Geçmişi",
     "objectHistory": "Geçmiş {{name}}",
-    "ai": "AI Asistanı"
+    "ai": "AI Asistanı",
+    "migration": "Cluster Taşıma"
   },
   "portForward": {
     "startedSummary": "Port yönlendirme başlatıldı",
@@ -1138,7 +1139,7 @@
   },
   "toolbox": {
     "label": "Toolbox",
-    "intro": "Cluster içinde çalışan, toolbox Helm chart'ı ile kurulan araçlar.",
+    "intro": "Kube Inspector'dan çalıştırdığınız Kubernetes araçları. Her satır, aracının neye ihtiyaç duyduğunu söyler.",
     "refresh": "Yeniden kontrol et",
     "open": "Aç",
     "checking": "Kontrol ediliyor…",
@@ -1147,9 +1148,12 @@
       "desc": "Kim neyi, ne zaman, nereden değiştirdi: toolbox'ın kaydettiği her oluşturma, güncelleme ve silme; YAML farkları ve geri alma ile."
     },
     "migration": {
-      "title": "Cluster migration",
-      "desc": "İş yüklerini ve yapılandırmalarını başka bir cluster'a taşıma.",
-      "dev": "Geliştirme aşamasında"
+      "title": "Cluster taşıma",
+      "desc": "Namespace'leri, yapılandırmalarını ve disk verilerini başka bir cluster'a, sonunda kısa bir kesintiyle taşır.",
+      "ready": "Hazır",
+      "hint": "Kurulum gerekmez: Kube Inspector işçi pod'larını her taşımada başlatır, sonra kaldırır.",
+      "noTargetState": "Başka cluster yok",
+      "noTarget": "Taşınacak ikinci bir cluster ekleyin."
     },
     "state": {
       "ok": "Hazır",
@@ -1204,7 +1208,7 @@
       "guide": "Kurulum rehberinin tamamı"
     },
     "beta": "Beta",
-    "betaNote": "toolbox beta aşamasındadır ve Kube Inspector'dan ayrı sürümlenir. Kaydettikleri ve API'si toolbox sürümleri arasında hâlâ değişebilir; daha yeni bir Kube Inspector, daha eski bir toolbox ile daha az özellikle çalışmaya devam eder."
+    "betaNote": "Toolbox araçları beta aşamasındadır ve Kube Inspector'dan ayrı sürümlenir. Kaydettikleri veriler ve API'leri toolbox sürümleri arasında değişebilir; yeni bir Kube Inspector eski bir toolbox ile daha az özellikle çalışmaya devam eder."
   },
   "clusterHistory": {
     "label": "Cluster geçmişi",
@@ -1523,6 +1527,136 @@
       "add": "Registry ekle",
       "remove": "Registry'yi sil",
       "empty": "Henüz registry yok."
+    }
+  },
+  "migration": {
+    "setup": {
+      "intro": "Seçtiğiniz namespace'leri disk verileriyle başka bir cluster'a kopyalar. Uygulama kopyalama sırasında çalışmaya devam eder, sonunda kısa süre durur.",
+      "source": "Kaynak",
+      "target": "Hedef",
+      "targetPlaceholder": "Cluster seçin",
+      "namespaces": "Namespace'ler",
+      "namespacesPlaceholder": "Namespace seçin",
+      "bandwidth": "Disk başına bant genişliği sınırı, KB/sn (0: sınırsız)",
+      "image": "İşçi imajı (isteğe bağlı)",
+      "imageHint": "Yalnızca cluster'lar genel registry'den imaj çekemiyorsa doldurun.",
+      "check": "Kontrol et",
+      "past": "Önceki taşımalar",
+      "open": "Aç"
+    },
+    "preflight": {
+      "summary": "Nesne: {{objects}} · Disk: {{disks}}",
+      "problems": "Kontroller",
+      "noProblems": "Engel yok",
+      "disks": "Diskler",
+      "colDisk": "Disk",
+      "colSize": "Boyut",
+      "colSourceClass": "Buradaki sınıf",
+      "colTargetClass": "Hedefteki sınıf",
+      "colData": "Veri",
+      "copyYes": "Kopyalanır",
+      "copyFinalOnly": "Son geçişte kopyalanır",
+      "copyNo": "Kopyalanmaz",
+      "conflicts": "Hedefte zaten var",
+      "conflictsIntro": "Her nesne için seçim yapın. Siz söylemedikçe hiçbir şeyin üzerine yazılmaz.",
+      "skip": "Hedeftekini koru",
+      "overwrite": "Üzerine yaz",
+      "diskKept": "Hedefteki disk korunur, üzerine veri kopyalanmaz.",
+      "diff": "Karşılaştır",
+      "missing": "Hedefte eksik",
+      "missingIntro": "Bunlar cluster düzeyi nesnelerdir. Kube Inspector bunları oluşturmaz; hedefe siz kurun.",
+      "usedBy": "{{name}} kullanıyor",
+      "skipped": "Taşınmayanlar: {{count}}",
+      "back": "Geri",
+      "retry": "Yeniden kontrol et",
+      "start": "Taşımayı başlat"
+    },
+    "issue": {
+      "namespaceMissing": "{{namespace}} namespace'i kaynakta yok.",
+      "systemNamespace": "{{namespace}} sistem namespace'i taşınamaz.",
+      "podSecurityRestricted": "{{namespace}} restricted Pod Security düzeyini uyguluyor; işçi pod'lar root olarak çalışamaz. Taşıma için gevşetin.",
+      "unstoppableWriter": "{{namespace}}/{{name}} pod'u kopyalanan bir diski kullanıyor ve ölçeklenerek durdurulamıyor (sahibi: {{detail}}).",
+      "moverPresent": "Başka bir taşımanın işçi pod'ları {{detail}} üzerindeki {{namespace}} içinde duruyor.",
+      "accessDenied": "{{name}} üzerinde {{namespace}} içinde şu yetkiniz yok: {{detail}}.",
+      "storageClassMissing": "Hedefte {{namespace}}/{{name}} diski için storage class yok. Aşağıdan seçin.",
+      "diskNotBound": "{{namespace}}/{{name}} diski bağlı değil ({{detail}}), kopyalanacak verisi yok.",
+      "rwopDisk": "{{namespace}}/{{name}} diskini yalnızca bir pod bağlayabilir. Son geçişte kopyalanır, bu da kesintiyi uzatır.",
+      "gitOps": "{{namespace}} GitOps ile yönetiliyor gibi görünüyor. Son geçişten önce duraklatın, yoksa taşımanın durdurduklarını yeniden başlatır.",
+      "listForbidden": "{{namespace}} içindeki {{name}} okunamadı; bu nesneler taşınmaz.",
+      "discoveryPartial": "Bazı API grupları yanıt vermedi; nesneleri taşınmaz."
+    },
+    "skip": {
+      "generated": "cluster tarafından üretilir",
+      "owned": "sahibi yeniden oluşturur",
+      "standaloneJob": "tek seferlik Job",
+      "serviceAccountToken": "bu cluster'a ait token",
+      "clusterLocal": "yalnızca bu cluster'da anlamlı",
+      "noCrd": "hedefte CRD'si yok",
+      "userChoice": "hedeftekini korudunuz"
+    },
+    "phase": {
+      "preparing": "Hedef hazırlanıyor",
+      "copying": "Kopyalanıyor",
+      "ready": "Son geçişe hazır",
+      "cutover": "Son geçiş",
+      "done": "Tamamlandı",
+      "failed": "Başarısız",
+      "cancelled": "İptal edildi"
+    },
+    "step": {
+      "stop": "Kaynak durduruluyor",
+      "drain": "Disklere yazan kalmaması bekleniyor",
+      "finalSync": "Son değişiklikler kopyalanıyor",
+      "cleanup": "İşçi pod'lar kaldırılıyor",
+      "apply": "Hedefte başlatılıyor"
+    },
+    "progress": {
+      "copyingHint": "Kopyalama sürerken uygulama çalışmaya devam eder. Bu sekmeyi ya da uygulamayı kapatabilirsiniz; süren kopyalama devam eder.",
+      "readyHint": "Uygulama hâlâ {{source}} üzerinde çalışıyor. Bu panel açıkken diskler birkaç dakikada bir yeniden kopyalanır ve son geçiş kısa kalır.",
+      "colCopied": "Kopyalanan",
+      "colState": "Durum",
+      "passes": "Tamamlanan kopya: {{count}}",
+      "unreachable": "Kaynak hedefe ulaşamadı. Cluster'lar arasındaki ağı kontrol edin.",
+      "interrupted": "Son geçiş durdu: {{error}}",
+      "interruptedNoError": "Son geçiş yarıda kaldı. Devam ettirilene kadar kaynak durmuş kalır.",
+      "start": "Son geçişi başlat",
+      "continue": "Devam et",
+      "cancel": "Taşımadan vazgeç",
+      "confirmHeader": "Son geçiş başlatılsın mı?",
+      "confirmBody": "Uygulama şimdi kaynakta durur, son kopyadan sonra hedefte başlar. Ardından trafiği yeni adreslere yönlendirin.",
+      "confirmButton": "Durdur ve geç",
+      "cancelHeader": "Bu taşımadan vazgeçilsin mi?",
+      "cancelBody": "İşçi pod'lar kaldırılır, kaynak çalışmaya devam eder. Hedefte oluşturulanlar yerinde kalır ve yeni bir deneme oradan devam eder.",
+      "cancelButton": "Taşımadan vazgeç",
+      "abandon": "Vazgeç ve kaynağı başlat",
+      "abandonHeader": "Bu geçişten vazgeçilsin mi?",
+      "abandonBody": "Uygulama kaynakta eski replica sayılarıyla yeniden başlar, işçi pod'lar kaldırılır. Hedefte oluşturulanlar çalışmadan yerinde kalır."
+    },
+    "result": {
+      "title": "Taşıma sonucu",
+      "refresh": "Yenile",
+      "summary": "Namespace: {{namespaces}} · Nesne: {{objects}} · {{bytes}} · Kesinti: {{downtime}}",
+      "liveError": "Cluster'lar şu anda okunamadı; buradakilerin bir kısmı kayıttan geliyor.",
+      "notReady": "Hazır olmayan workload: {{count}}",
+      "workload": "Workload",
+      "ready": "Hazır",
+      "state": "Durum",
+      "running": "Çalışıyor",
+      "starting": "Başlıyor",
+      "class": "Sınıf",
+      "copy": "Kopya",
+      "addresses": "Adresler (DNS'i buraya yönlendirin)",
+      "noAddresses": "Bu namespace'lerde LoadBalancer Service ya da Ingress yok.",
+      "addressPending": "bekleniyor",
+      "skipped": "Atlananlar: {{count}}",
+      "source": "Kaynak",
+      "stopped": "Durduruldu",
+      "sourceRunning": "Çalışıyor",
+      "restart": "Eski replica sayılarıyla başlat",
+      "restartHeader": "Kaynak yeniden başlatılsın mı?",
+      "restartBody": "{{source}} üzerindeki workload'lar eski replica sayılarına döner. {{target}} de çalışmaya devam eder, yani ikisi de ortak kullandıkları her şeye yazar.",
+      "restartButton": "Kaynağı başlat",
+      "new": "Yeni taşıma"
     }
   }
 }

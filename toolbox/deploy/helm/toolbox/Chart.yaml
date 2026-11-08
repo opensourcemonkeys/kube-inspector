@@ -1,6 +1,6 @@
 apiVersion: v2
 name: kube-inspector-toolbox
-description: Records every create, update and delete in a Kubernetes cluster — what changed, when, and who did it from where — into ClickHouse, for Kube Inspector.
+description: In-cluster tools for Kube Inspector. Cluster History records every create, update and delete in a cluster — what changed, when, and who did it from where — into ClickHouse.
 type: application
 version: 0.1.0
 appVersion: "0.1.0"

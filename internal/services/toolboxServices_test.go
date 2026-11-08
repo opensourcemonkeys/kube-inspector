@@ -38,6 +38,8 @@ type fakeAPIServer struct {
 	noService        bool
 	missingNamespace bool // ns1 has been deleted
 	noHealth         bool // a toolbox from before /api/v1/health
+	otherTool        bool // another toolbox tool's Service sorts first
+	oldInfo          bool // a toolbox from before /api/v1/info named its tool
 	pagedChanges     int  // > 0: /changes answers that many one-item pages
 	discoveries      atomic.Int32
 	lastProxiedQuery string
@@ -63,6 +65,12 @@ func (f *fakeAPIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				ObjectMeta: metav1.ObjectMeta{Name: "toolbox", Namespace: "toolbox"},
 				Spec:       corev1.ServiceSpec{Ports: []corev1.ServicePort{{Name: "http", Port: 8080}, {Name: "webhook", Port: 443}}},
 			}}
+		}
+		if f.otherTool {
+			list.Items = append([]corev1.Service{{
+				ObjectMeta: metav1.ObjectMeta{Name: "another", Namespace: "toolbox", Labels: map[string]string{"kubeinspector.com/tool": "something-else"}},
+				Spec:       corev1.ServiceSpec{Ports: []corev1.ServicePort{{Name: "http", Port: 8080}}},
+			}}, list.Items...)
 		}
 		_ = json.NewEncoder(w).Encode(list)
 	}
@@ -100,7 +108,11 @@ func (f *fakeAPIServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		f.lastProxiedQuery = r.URL.RawQuery
 		switch strings.TrimPrefix(r.URL.Path, proxy) {
 		case "api/v1/info":
-			_, _ = w.Write([]byte(`{"cluster":"local-k3s","version":"1.2.3"}`))
+			if f.oldInfo {
+				_, _ = w.Write([]byte(`{"cluster":"local-k3s","version":"1.2.3"}`))
+				return
+			}
+			_, _ = w.Write([]byte(`{"cluster":"local-k3s","version":"1.2.3","tool":"history","capabilities":["changes","stream"]}`))
 		case "api/v1/changes":
 			if f.pagedChanges > 0 {
 				// Page n of pagedChanges, one change each, cursors "1", "2", ...
@@ -188,6 +200,27 @@ func TestToolboxStatusThroughServiceProxy(t *testing.T) {
 	GetToolboxStatus(context.Background(), tb)
 	if n := f.discoveries.Load(); n != 1 {
 		t.Fatalf("discoveries = %d", n)
+	}
+}
+
+func TestToolboxStatusNamesTheToolAndCapabilities(t *testing.T) {
+	st := GetToolboxStatus(context.Background(), newToolboxFixture(t, &fakeAPIServer{token: "x", accept: "x"}))
+	if st.Tool != "history" || len(st.Capabilities) != 2 || st.Capabilities[1] != "stream" {
+		t.Fatalf("status = %+v", st)
+	}
+}
+
+func TestToolboxStatusOnOlderToolbox(t *testing.T) {
+	st := GetToolboxStatus(context.Background(), newToolboxFixture(t, &fakeAPIServer{token: "x", accept: "x", oldInfo: true}))
+	if st.State != ToolboxOK || st.Tool != "" || st.Capabilities != nil {
+		t.Fatalf("status = %+v", st)
+	}
+}
+
+func TestDiscoverySkipsAnotherToolsService(t *testing.T) {
+	st := GetToolboxStatus(context.Background(), newToolboxFixture(t, &fakeAPIServer{token: "x", accept: "x", otherTool: true}))
+	if st.State != ToolboxOK || st.Service != "toolbox" {
+		t.Fatalf("status = %+v", st)
 	}
 }
 

@@ -14,7 +14,8 @@
     "toolbox": "Toolbox",
     "clusterHistory": "Cluster-Verlauf",
     "objectHistory": "Verlauf {{name}}",
-    "ai": "KI-Assistent"
+    "ai": "KI-Assistent",
+    "migration": "Cluster-Migration"
   },
   "portForward": {
     "startedSummary": "Port-Weiterleitung gestartet",
@@ -1138,7 +1139,7 @@
   },
   "toolbox": {
     "label": "Toolbox",
-    "intro": "Werkzeuge, die im Cluster laufen und mit dem toolbox-Helm-Chart installiert werden.",
+    "intro": "Kubernetes-Werkzeuge, die Sie aus Kube Inspector heraus ausführen. Jede Zeile nennt, was ihr Werkzeug braucht.",
     "refresh": "Erneut prüfen",
     "open": "Öffnen",
     "checking": "Wird geprüft…",
@@ -1147,9 +1148,12 @@
       "desc": "Wer hat was, wann und von wo geändert: jedes von toolbox erfasste Erstellen, Ändern und Löschen, mit YAML-Diffs und Rollback."
     },
     "migration": {
-      "title": "Cluster migration",
-      "desc": "Workloads und ihre Konfiguration in einen anderen Cluster verschieben.",
-      "dev": "In Entwicklung"
+      "title": "Cluster-Migration",
+      "desc": "Verschiebt Namespaces, ihre Konfiguration und ihre Volume-Daten in einen anderen Cluster, mit einer kurzen Unterbrechung am Ende.",
+      "ready": "Bereit",
+      "hint": "Keine Installation nötig: Kube Inspector startet seine Worker für jede Migration und entfernt sie danach.",
+      "noTargetState": "Kein weiterer Cluster",
+      "noTarget": "Fügen Sie einen zweiten Cluster als Ziel hinzu."
     },
     "state": {
       "ok": "Bereit",
@@ -1204,7 +1208,7 @@
       "guide": "Vollständige Installationsanleitung"
     },
     "beta": "Beta",
-    "betaNote": "toolbox ist in der Beta-Phase und wird unabhängig von Kube Inspector versioniert. Was es aufzeichnet und seine API können sich zwischen toolbox-Versionen noch ändern; ein neueres Kube Inspector funktioniert mit einer älteren toolbox weiter, mit weniger Funktionen."
+    "betaNote": "Die Toolbox-Werkzeuge sind in der Beta-Phase und werden getrennt von Kube Inspector versioniert. Was sie aufzeichnen und ihre APIs können sich zwischen Toolbox-Versionen noch ändern; ein neueres Kube Inspector funktioniert mit einer älteren Toolbox weiter, mit weniger Funktionen."
   },
   "clusterHistory": {
     "label": "Cluster-Verlauf",
@@ -1523,6 +1527,136 @@
       "add": "Registry hinzufügen",
       "remove": "Registry entfernen",
       "empty": "Noch keine Registry."
+    }
+  },
+  "migration": {
+    "setup": {
+      "intro": "Kopiert die gewählten Namespaces samt Volume-Daten in einen anderen Cluster. Die Anwendung läuft während des Kopierens weiter und stoppt am Ende kurz.",
+      "source": "Von",
+      "target": "Nach",
+      "targetPlaceholder": "Cluster wählen",
+      "namespaces": "Namespaces",
+      "namespacesPlaceholder": "Namespaces wählen",
+      "bandwidth": "Bandbreitenlimit pro Volume in KB/s (0 = unbegrenzt)",
+      "image": "Worker-Image (optional)",
+      "imageHint": "Nur setzen, wenn die Cluster nicht aus der öffentlichen Registry ziehen können.",
+      "check": "Prüfen",
+      "past": "Frühere Migrationen",
+      "open": "Öffnen"
+    },
+    "preflight": {
+      "summary": "Objekte: {{objects}} · Volumes: {{disks}}",
+      "problems": "Prüfungen",
+      "noProblems": "Nichts steht im Weg",
+      "disks": "Volumes",
+      "colDisk": "Volume",
+      "colSize": "Größe",
+      "colSourceClass": "Klasse hier",
+      "colTargetClass": "Klasse im Ziel",
+      "colData": "Daten",
+      "copyYes": "Wird kopiert",
+      "copyFinalOnly": "Wird beim letzten Wechsel kopiert",
+      "copyNo": "Wird nicht kopiert",
+      "conflicts": "Bereits im Ziel",
+      "conflictsIntro": "Wählen Sie für jedes Objekt. Nichts wird überschrieben, solange Sie es nicht festlegen.",
+      "skip": "Ziel behalten",
+      "overwrite": "Überschreiben",
+      "diskKept": "Das Volume im Ziel bleibt erhalten, es wird nichts darauf kopiert.",
+      "diff": "Vergleichen",
+      "missing": "Im Ziel fehlend",
+      "missingIntro": "Dies sind Objekte auf Cluster-Ebene. Kube Inspector legt sie nicht an; installieren Sie sie im Ziel.",
+      "usedBy": "verwendet von {{name}}",
+      "skipped": "Nicht übernommen: {{count}}",
+      "back": "Zurück",
+      "retry": "Erneut prüfen",
+      "start": "Migration starten"
+    },
+    "issue": {
+      "namespaceMissing": "Namespace {{namespace}} existiert in der Quelle nicht.",
+      "systemNamespace": "System-Namespace {{namespace}} kann nicht migriert werden.",
+      "podSecurityRestricted": "{{namespace}} erzwingt das Pod-Security-Level restricted, sodass die Worker nicht als root laufen können. Lockern Sie es für die Migration.",
+      "unstoppableWriter": "Pod {{namespace}}/{{name}} nutzt ein zu kopierendes Volume und lässt sich nicht durch Skalieren stoppen (Besitzer: {{detail}}).",
+      "moverPresent": "Worker einer anderen Migration sind noch in {{namespace}} auf {{detail}}.",
+      "accessDenied": "Auf {{name}} fehlt Ihnen in {{namespace}} die Berechtigung: {{detail}}.",
+      "storageClassMissing": "Das Ziel hat keine Storage-Klasse für Volume {{namespace}}/{{name}}. Wählen Sie unten eine aus.",
+      "diskNotBound": "Volume {{namespace}}/{{name}} ist nicht gebunden ({{detail}}) und hat keine Daten zum Kopieren.",
+      "rwopDisk": "Volume {{namespace}}/{{name}} kann nur von einem Pod gemountet werden. Es wird beim letzten Wechsel kopiert, was die Unterbrechung verlängert.",
+      "gitOps": "{{namespace}} scheint per GitOps verwaltet zu werden. Pausieren Sie es vor dem letzten Wechsel, sonst startet es neu, was die Migration stoppt.",
+      "listForbidden": "{{name}} in {{namespace}} konnte nicht gelesen werden; diese Objekte werden nicht übernommen.",
+      "discoveryPartial": "Einige API-Gruppen haben nicht geantwortet; ihre Objekte werden nicht übernommen."
+    },
+    "skip": {
+      "generated": "vom Cluster erzeugt",
+      "owned": "wird vom Besitzer neu erstellt",
+      "standaloneJob": "einmaliger Job",
+      "serviceAccountToken": "Token dieses Clusters",
+      "clusterLocal": "nur in diesem Cluster sinnvoll",
+      "noCrd": "CRD fehlt im Ziel",
+      "userChoice": "Ziel beibehalten"
+    },
+    "phase": {
+      "preparing": "Ziel wird vorbereitet",
+      "copying": "Wird kopiert",
+      "ready": "Bereit für den letzten Wechsel",
+      "cutover": "Letzter Wechsel",
+      "done": "Abgeschlossen",
+      "failed": "Fehlgeschlagen",
+      "cancelled": "Abgebrochen"
+    },
+    "step": {
+      "stop": "Quelle wird gestoppt",
+      "drain": "Warten, bis nichts mehr auf die Volumes schreibt",
+      "finalSync": "Letzte Änderungen werden kopiert",
+      "cleanup": "Worker werden entfernt",
+      "apply": "Wird im Ziel gestartet"
+    },
+    "progress": {
+      "copyingHint": "Die Anwendung läuft während des Kopierens weiter. Sie können diesen Tab oder die App schließen; der laufende Kopiervorgang geht weiter.",
+      "readyHint": "Die Anwendung läuft noch auf {{source}}. Solange dieses Panel offen ist, werden die Volumes alle paar Minuten erneut kopiert, was den letzten Wechsel kurz hält.",
+      "colCopied": "Kopiert",
+      "colState": "Status",
+      "passes": "Abgeschlossene Kopien: {{count}}",
+      "unreachable": "Die Quelle konnte das Ziel nicht erreichen. Prüfen Sie das Netzwerk zwischen den Clustern.",
+      "interrupted": "Der letzte Wechsel wurde angehalten: {{error}}",
+      "interruptedNoError": "Der letzte Wechsel wurde unterbrochen. Die Quelle bleibt gestoppt, bis er fortgesetzt wird.",
+      "start": "Letzten Wechsel starten",
+      "continue": "Fortsetzen",
+      "cancel": "Migration abbrechen",
+      "confirmHeader": "Letzten Wechsel starten?",
+      "confirmBody": "Die Anwendung stoppt jetzt in der Quelle und startet nach der letzten Kopie im Ziel. Leiten Sie danach den Datenverkehr auf die neuen Adressen um.",
+      "confirmButton": "Stoppen und wechseln",
+      "cancelHeader": "Diese Migration abbrechen?",
+      "cancelBody": "Die Worker werden entfernt, die Quelle läuft weiter. Was im Ziel bereits angelegt wurde, bleibt bestehen, und ein neuer Versuch setzt dort an.",
+      "cancelButton": "Migration abbrechen",
+      "abandon": "Abbrechen und Quelle starten",
+      "abandonHeader": "Diesen Wechsel aufgeben?",
+      "abandonBody": "Die Anwendung startet in der Quelle wieder mit ihren früheren Replikazahlen, die Worker werden entfernt. Was im Ziel angelegt wurde, bleibt bestehen und läuft nicht."
+    },
+    "result": {
+      "title": "Migrationsergebnis",
+      "refresh": "Aktualisieren",
+      "summary": "Namespaces: {{namespaces}} · Objekte: {{objects}} · {{bytes}} · Unterbrechung: {{downtime}}",
+      "liveError": "Die Cluster konnten gerade nicht gelesen werden; ein Teil davon stammt aus dem gespeicherten Datensatz.",
+      "notReady": "Nicht bereite Workloads: {{count}}",
+      "workload": "Workload",
+      "ready": "Bereit",
+      "state": "Status",
+      "running": "Läuft",
+      "starting": "Startet",
+      "class": "Klasse",
+      "copy": "Kopie",
+      "addresses": "Adressen (DNS hierhin zeigen lassen)",
+      "noAddresses": "Keine LoadBalancer-Services oder Ingresses in diesen Namespaces.",
+      "addressPending": "ausstehend",
+      "skipped": "Übersprungen: {{count}}",
+      "source": "Quelle",
+      "stopped": "Gestoppt",
+      "sourceRunning": "Läuft",
+      "restart": "Mit früheren Replikazahlen starten",
+      "restartHeader": "Quelle wieder starten?",
+      "restartBody": "Workloads auf {{source}} kehren zu ihren früheren Replikazahlen zurück. {{target}} läuft ebenfalls weiter, beide schreiben also auf alles, was sie gemeinsam nutzen.",
+      "restartButton": "Quelle starten",
+      "new": "Neue Migration"
     }
   }
 }

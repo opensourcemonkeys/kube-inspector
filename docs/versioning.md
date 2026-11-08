@@ -1,5 +1,5 @@
 ---
-description: How Kube Inspector numbers its releases from 1.0 on, what an upgrade within 1.x keeps working, how toolbox fits in, the update channels, and which version receives fixes.
+description: How Kube Inspector numbers its releases from 1.0 on, what an upgrade within 1.x keeps working, how the toolbox tools fit in, the update channels, and which version receives fixes.
 ---
 
 # Versioning and compatibility
@@ -46,15 +46,19 @@ an operating system version. The changelog says so. The current list is under
 
 ## toolbox
 
-[toolbox](toolbox/index.md), the in-cluster recorder behind Cluster History,
-has its own version line and is still a beta (`toolbox-v1.0.0-beta.*`). The
-panels that depend on it are marked **Beta** in the app.
+The [toolbox](toolbox/index.md) tools have their own version line and are still
+in beta (`toolbox-v1.0.0-beta.*`): the Helm chart behind Cluster History and the
+worker image Cluster Migration runs. The panels that depend on them are marked
+**Beta** in the app.
 
 - A newer Kube Inspector keeps working with an older toolbox: what the older
   one cannot provide is hidden or explained, not an error.
 - An older Kube Inspector against a newer toolbox is not promised while toolbox
   is in beta.
-- What toolbox records, and its API, may still change between toolbox releases.
+- What Cluster History records, and its API, may still change between toolbox
+  releases.
+- Each Kube Inspector release uses the Cluster Migration worker version it was
+  built for, so the two ends of a migration always match.
 
 ## Update channels
 

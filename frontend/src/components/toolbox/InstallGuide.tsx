@@ -7,8 +7,8 @@ import RowAction from '../shared/RowAction';
 
 /** Where CI publishes the chart (.github/workflows/toolbox.yml). */
 const CHART = 'oci://ghcr.io/opensourcemonkeys/charts/kube-inspector-toolbox';
-/** The documentation's install page (docs/toolbox/index.md). */
-const GUIDE = 'https://kubeinspector.com/toolbox/';
+/** The documentation's install page (docs/toolbox/history-install.md). */
+const GUIDE = 'https://kubeinspector.com/toolbox/history-install/';
 
 /** Single-quotes a value for a POSIX shell. */
 const shellQuote = (v: string) => `'${v.replace(/'/g, `'\\''`)}'`;

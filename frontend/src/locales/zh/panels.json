@@ -14,7 +14,8 @@
     "toolbox": "Toolbox",
     "clusterHistory": "集群历史",
     "objectHistory": "历史 {{name}}",
-    "ai": "AI 助手"
+    "ai": "AI 助手",
+    "migration": "集群迁移"
   },
   "portForward": {
     "startedSummary": "端口转发已启动",
@@ -1116,7 +1117,7 @@
   },
   "toolbox": {
     "label": "Toolbox",
-    "intro": "在集群内运行、通过 toolbox Helm chart 安装的工具。",
+    "intro": "从 Kube Inspector 运行的 Kubernetes 工具。每一行都说明该工具需要什么。",
     "refresh": "重新检查",
     "open": "打开",
     "checking": "正在检查…",
@@ -1125,9 +1126,12 @@
       "desc": "谁在何时、从何处改了什么:toolbox 记录的每一次创建、更新和删除,附带 YAML 差异和回滚。"
     },
     "migration": {
-      "title": "Cluster migration",
-      "desc": "将工作负载及其配置迁移到另一个集群。",
-      "dev": "开发中"
+      "title": "集群迁移",
+      "desc": "将命名空间及其配置和卷数据迁移到另一个集群,最后仅短暂停机。",
+      "ready": "就绪",
+      "hint": "无需安装:Kube Inspector 会在每次迁移时启动工作 Pod,完成后将其删除。",
+      "noTargetState": "没有其他集群",
+      "noTarget": "请添加第二个集群作为迁移目标。"
     },
     "state": {
       "ok": "可用",
@@ -1180,7 +1184,7 @@
       "guide": "完整安装指南"
     },
     "beta": "测试版",
-    "betaNote": "toolbox 处于测试阶段，版本独立于 Kube Inspector。它记录的内容和 API 在不同 toolbox 版本之间仍可能变化；较新的 Kube Inspector 仍可与较旧的 toolbox 配合使用，但功能会少一些。"
+    "betaNote": "toolbox 工具处于测试阶段,与 Kube Inspector 分开发版。它们记录的内容及其 API 在 toolbox 版本之间仍可能变化;较新的 Kube Inspector 仍可与较旧的 toolbox 配合使用,但功能较少。"
   },
   "clusterHistory": {
     "label": "集群历史",
@@ -1493,6 +1497,136 @@
       "add": "添加仓库",
       "remove": "删除仓库",
       "empty": "还没有仓库。"
+    }
+  },
+  "migration": {
+    "setup": {
+      "intro": "将所选命名空间及其卷数据复制到另一个集群。复制期间应用继续运行,仅在最后短暂停止。",
+      "source": "源集群",
+      "target": "目标集群",
+      "targetPlaceholder": "选择集群",
+      "namespaces": "命名空间",
+      "namespacesPlaceholder": "选择命名空间",
+      "bandwidth": "每个磁盘的带宽限制,单位 KB/s(0 表示不限)",
+      "image": "工作镜像(可选)",
+      "imageHint": "仅当集群无法从公共仓库拉取镜像时才需设置。",
+      "check": "检查",
+      "past": "历史迁移",
+      "open": "打开"
+    },
+    "preflight": {
+      "summary": "对象:{{objects}} · 磁盘:{{disks}}",
+      "problems": "检查结果",
+      "noProblems": "没有任何阻碍",
+      "disks": "磁盘",
+      "colDisk": "磁盘",
+      "colSize": "大小",
+      "colSourceClass": "此处的存储类",
+      "colTargetClass": "目标存储类",
+      "colData": "数据",
+      "copyYes": "将复制",
+      "copyFinalOnly": "在最终切换时复制",
+      "copyNo": "不复制",
+      "conflicts": "目标上已存在",
+      "conflictsIntro": "请为每个对象选择。未经您指定,不会覆盖任何内容。",
+      "skip": "保留目标",
+      "overwrite": "覆盖",
+      "diskKept": "保留目标上的磁盘,不向其复制任何数据。",
+      "diff": "比较",
+      "missing": "目标上缺失",
+      "missingIntro": "这些是集群级对象。Kube Inspector 不会创建它们,请在目标上自行安装。",
+      "usedBy": "被 {{name}} 使用",
+      "skipped": "不迁移:{{count}}",
+      "back": "返回",
+      "retry": "重新检查",
+      "start": "开始迁移"
+    },
+    "issue": {
+      "namespaceMissing": "源集群中不存在命名空间 {{namespace}}。",
+      "systemNamespace": "无法迁移系统命名空间 {{namespace}}。",
+      "podSecurityRestricted": "{{namespace}} 强制使用 restricted Pod Security 级别,工作 Pod 无法以 root 运行。请在迁移期间放宽。",
+      "unstoppableWriter": "Pod {{namespace}}/{{name}} 正在使用待复制的磁盘,且无法通过缩容停止(所有者:{{detail}})。",
+      "moverPresent": "{{detail}} 上的 {{namespace}} 中仍有其他迁移的工作 Pod。",
+      "accessDenied": "在 {{name}} 的 {{namespace}} 中,您没有此权限:{{detail}}。",
+      "storageClassMissing": "目标上没有适用于磁盘 {{namespace}}/{{name}} 的存储类。请在下方选择。",
+      "diskNotBound": "磁盘 {{namespace}}/{{name}} 未绑定({{detail}}),没有可复制的数据。",
+      "rwopDisk": "磁盘 {{namespace}}/{{name}} 只能由一个 Pod 挂载。它将在最终切换时复制,停机时间会更长。",
+      "gitOps": "{{namespace}} 似乎由 GitOps 管理。请在最终切换前暂停它,否则它会重新启动迁移所停止的内容。",
+      "listForbidden": "无法读取 {{namespace}} 中的 {{name}},这些对象不会迁移。",
+      "discoveryPartial": "部分 API 组未响应,其对象不会迁移。"
+    },
+    "skip": {
+      "generated": "由集群生成",
+      "owned": "由其所有者重新创建",
+      "standaloneJob": "一次性 Job",
+      "serviceAccountToken": "此集群的令牌",
+      "clusterLocal": "仅在此集群有意义",
+      "noCrd": "目标上缺少其 CRD",
+      "userChoice": "您选择保留目标"
+    },
+    "phase": {
+      "preparing": "正在准备目标",
+      "copying": "正在复制",
+      "ready": "可进行最终切换",
+      "cutover": "最终切换",
+      "done": "已完成",
+      "failed": "失败",
+      "cancelled": "已取消"
+    },
+    "step": {
+      "stop": "正在停止源",
+      "drain": "等待磁盘不再被写入",
+      "finalSync": "正在复制最后的更改",
+      "cleanup": "正在删除工作 Pod",
+      "apply": "正在目标上启动"
+    },
+    "progress": {
+      "copyingHint": "复制期间应用继续运行。您可以关闭此标签页或应用,正在进行的复制将继续。",
+      "readyHint": "应用仍在 {{source}} 上运行。此面板打开时,磁盘每隔几分钟重新复制一次,以缩短最终切换。",
+      "colCopied": "已复制",
+      "colState": "状态",
+      "passes": "已完成复制:{{count}}",
+      "unreachable": "源无法访问目标。请检查集群之间的网络。",
+      "interrupted": "最终切换已停止:{{error}}",
+      "interruptedNoError": "最终切换已中断。在继续之前,源将保持停止。",
+      "start": "开始最终切换",
+      "continue": "继续",
+      "cancel": "取消迁移",
+      "confirmHeader": "开始最终切换?",
+      "confirmBody": "应用现在将在源上停止,并在最后一次复制后在目标上启动。之后请将流量指向新地址。",
+      "confirmButton": "停止并切换",
+      "cancelHeader": "取消此迁移?",
+      "cancelBody": "工作 Pod 将被删除,源继续运行。已在目标上创建的内容会保留,新的尝试将从此继续。",
+      "cancelButton": "取消迁移",
+      "abandon": "放弃并启动源",
+      "abandonHeader": "放弃此次切换?",
+      "abandonBody": "应用将以之前的副本数在源上重新启动,工作 Pod 将被删除。已在目标上创建的内容会保留,但不会运行。"
+    },
+    "result": {
+      "title": "迁移结果",
+      "refresh": "刷新",
+      "summary": "命名空间:{{namespaces}} · 对象:{{objects}} · {{bytes}} · 停机:{{downtime}}",
+      "liveError": "暂时无法读取集群;部分内容来自已保存的记录。",
+      "notReady": "未就绪的工作负载:{{count}}",
+      "workload": "工作负载",
+      "ready": "就绪",
+      "state": "状态",
+      "running": "运行中",
+      "starting": "正在启动",
+      "class": "存储类",
+      "copy": "副本",
+      "addresses": "地址(将 DNS 指向此处)",
+      "noAddresses": "这些命名空间中没有 LoadBalancer Service 或 Ingress。",
+      "addressPending": "等待中",
+      "skipped": "已跳过:{{count}}",
+      "source": "源",
+      "stopped": "已停止",
+      "sourceRunning": "运行中",
+      "restart": "以之前的副本数启动",
+      "restartHeader": "重新启动源?",
+      "restartBody": "{{source}} 上的工作负载将恢复之前的副本数。{{target}} 也会继续运行,因此两者都会写入它们共享的任何内容。",
+      "restartButton": "启动源",
+      "new": "新建迁移"
     }
   }
 }

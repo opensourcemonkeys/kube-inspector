@@ -8,6 +8,17 @@ rename have objects named toolbox, so renaming the chart must not rename them.
 {{- default "toolbox" .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{/*
+Whether this release runs the change recorder behind Cluster History. Written
+to work with no tools key at all: `helm upgrade --reuse-values` keeps the old
+release's values and does not merge in the new chart's defaults.
+*/}}
+{{- define "toolbox.history.enabled" -}}
+{{- $tools := default dict .Values.tools -}}
+{{- $history := default dict $tools.history -}}
+{{- if or (not (hasKey $history "enabled")) $history.enabled -}}true{{- end -}}
+{{- end -}}
+
 {{- define "toolbox.fullname" -}}
 {{- $name := include "toolbox.name" . -}}
 {{- if contains $name .Release.Name -}}

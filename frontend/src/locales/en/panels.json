@@ -14,7 +14,8 @@
     "toolbox": "Toolbox",
     "clusterHistory": "Cluster History",
     "objectHistory": "History {{name}}",
-    "ai": "AI Assistant"
+    "ai": "AI Assistant",
+    "migration": "Cluster Migration"
   },
   "portForward": {
     "startedSummary": "Port forward started",
@@ -1138,7 +1139,7 @@
   },
   "toolbox": {
     "label": "Toolbox",
-    "intro": "Tools that run inside the cluster, installed with the toolbox Helm chart.",
+    "intro": "Kubernetes tools you run from Kube Inspector. Each row says what its tool needs.",
     "refresh": "Check again",
     "open": "Open",
     "checking": "Checking…",
@@ -1148,8 +1149,11 @@
     },
     "migration": {
       "title": "Cluster migration",
-      "desc": "Move workloads and their configuration to another cluster.",
-      "dev": "In development"
+      "desc": "Move namespaces, their configuration and their volume data to another cluster, with a short stop at the end.",
+      "ready": "Ready",
+      "hint": "Nothing to install: Kube Inspector starts its workers for each migration and removes them afterwards.",
+      "noTargetState": "No other cluster",
+      "noTarget": "Add a second cluster to migrate to."
     },
     "state": {
       "ok": "Ready",
@@ -1204,7 +1208,7 @@
       "guide": "Full installation guide"
     },
     "beta": "Beta",
-    "betaNote": "toolbox is in beta and versioned separately from Kube Inspector. What it records and its API may still change between toolbox releases; a newer Kube Inspector keeps working with an older toolbox, with fewer features."
+    "betaNote": "The toolbox tools are in beta and versioned separately from Kube Inspector. What they record, and their APIs, may still change between toolbox releases; a newer Kube Inspector keeps working with an older toolbox, with fewer features."
   },
   "clusterHistory": {
     "label": "Cluster history",
@@ -1523,6 +1527,136 @@
       "add": "Add registry",
       "remove": "Remove registry",
       "empty": "No registry yet."
+    }
+  },
+  "migration": {
+    "setup": {
+      "intro": "Copies the namespaces you choose, with their volume data, to another cluster. The application keeps running during the copy and stops briefly at the end.",
+      "source": "From",
+      "target": "To",
+      "targetPlaceholder": "Choose a cluster",
+      "namespaces": "Namespaces",
+      "namespacesPlaceholder": "Choose namespaces",
+      "bandwidth": "Bandwidth limit per disk in KB/s (0 for no limit)",
+      "image": "Worker image (optional)",
+      "imageHint": "Set this only if the clusters cannot pull from the public registry.",
+      "check": "Check",
+      "past": "Earlier migrations",
+      "open": "Open"
+    },
+    "preflight": {
+      "summary": "Objects: {{objects}} · Disks: {{disks}}",
+      "problems": "Checks",
+      "noProblems": "Nothing stands in the way",
+      "disks": "Disks",
+      "colDisk": "Disk",
+      "colSize": "Size",
+      "colSourceClass": "Class here",
+      "colTargetClass": "Class on the target",
+      "colData": "Data",
+      "copyYes": "Copied",
+      "copyFinalOnly": "Copied during the final switch",
+      "copyNo": "Not copied",
+      "conflicts": "Already on the target",
+      "conflictsIntro": "Choose for each object. Nothing is overwritten unless you say so.",
+      "skip": "Keep target's",
+      "overwrite": "Overwrite",
+      "diskKept": "The disk on the target is kept and nothing is copied to it.",
+      "diff": "Compare",
+      "missing": "Missing on the target",
+      "missingIntro": "These are cluster-level objects. Kube Inspector does not create them; install them on the target.",
+      "usedBy": "used by {{name}}",
+      "skipped": "Not carried over: {{count}}",
+      "back": "Back",
+      "retry": "Check again",
+      "start": "Start migration"
+    },
+    "issue": {
+      "namespaceMissing": "Namespace {{namespace}} does not exist on the source.",
+      "systemNamespace": "System namespace {{namespace}} cannot be migrated.",
+      "podSecurityRestricted": "{{namespace}} enforces the restricted Pod Security level, which does not let the workers run as root. Relax it for the migration.",
+      "unstoppableWriter": "Pod {{namespace}}/{{name}} uses a disk being copied and cannot be stopped by scaling (owner: {{detail}}).",
+      "moverPresent": "Workers of another migration are still in {{namespace}} on {{detail}}.",
+      "accessDenied": "On {{name}} you may not {{detail}} in {{namespace}}.",
+      "storageClassMissing": "The target has no storage class for disk {{namespace}}/{{name}}. Choose one below.",
+      "diskNotBound": "Disk {{namespace}}/{{name}} is not bound ({{detail}}), so it has no data to copy.",
+      "rwopDisk": "Disk {{namespace}}/{{name}} can be mounted by only one pod. It is copied during the final switch, which makes the stop longer.",
+      "gitOps": "{{namespace}} looks managed by GitOps. Pause it before the final switch, or it will restart what the migration stops.",
+      "listForbidden": "Could not read {{name}} in {{namespace}}; those objects are not carried over.",
+      "discoveryPartial": "Some API groups did not answer; their objects are not carried over."
+    },
+    "skip": {
+      "generated": "generated by the cluster",
+      "owned": "recreated by its owner",
+      "standaloneJob": "a one-off Job",
+      "serviceAccountToken": "a token of this cluster",
+      "clusterLocal": "only means something on this cluster",
+      "noCrd": "its CRD is missing on the target",
+      "userChoice": "you kept the target's"
+    },
+    "phase": {
+      "preparing": "Preparing the target",
+      "copying": "Copying",
+      "ready": "Ready for the final switch",
+      "cutover": "Final switch",
+      "done": "Completed",
+      "failed": "Failed",
+      "cancelled": "Cancelled"
+    },
+    "step": {
+      "stop": "Stopping the source",
+      "drain": "Waiting until nothing writes to the disks",
+      "finalSync": "Copying the last changes",
+      "cleanup": "Removing the workers",
+      "apply": "Starting on the target"
+    },
+    "progress": {
+      "copyingHint": "The application keeps running while this copies. You can close this tab or the app; the copy in progress goes on.",
+      "readyHint": "The application is still running on {{source}}. While this panel is open the disks are copied again every few minutes, which keeps the final switch short.",
+      "colCopied": "Copied",
+      "colState": "State",
+      "passes": "Copies finished: {{count}}",
+      "unreachable": "The source could not reach the target. Check the network between the clusters.",
+      "interrupted": "The final switch stopped: {{error}}",
+      "interruptedNoError": "The final switch was interrupted. The source stays stopped until it is continued.",
+      "start": "Start final switch",
+      "continue": "Continue",
+      "cancel": "Cancel migration",
+      "confirmHeader": "Start the final switch?",
+      "confirmBody": "The application stops on the source now and starts on the target after the last copy. Point your traffic to the new addresses afterwards.",
+      "confirmButton": "Stop and switch",
+      "cancelHeader": "Cancel this migration?",
+      "cancelBody": "The workers are removed and the source keeps running. What was already created on the target stays there, and a new attempt continues from it.",
+      "cancelButton": "Cancel migration",
+      "abandon": "Give up and start the source",
+      "abandonHeader": "Give up on this switch?",
+      "abandonBody": "The application starts again on the source with its earlier replica counts and the workers are removed. What was created on the target stays there, not running."
+    },
+    "result": {
+      "title": "Migration result",
+      "refresh": "Refresh",
+      "summary": "Namespaces: {{namespaces}} · Objects: {{objects}} · {{bytes}} · Stopped for {{downtime}}",
+      "liveError": "The clusters could not be read just now; part of this comes from the saved record.",
+      "notReady": "Workloads not ready: {{count}}",
+      "workload": "Workload",
+      "ready": "Ready",
+      "state": "State",
+      "running": "Running",
+      "starting": "Starting",
+      "class": "Class",
+      "copy": "Copy",
+      "addresses": "Addresses (point DNS here)",
+      "noAddresses": "No LoadBalancer Service or Ingress in these namespaces.",
+      "addressPending": "pending",
+      "skipped": "Skipped: {{count}}",
+      "source": "Source",
+      "stopped": "Stopped",
+      "sourceRunning": "Running",
+      "restart": "Start with its earlier replica counts",
+      "restartHeader": "Start the source again?",
+      "restartBody": "Workloads on {{source}} return to their earlier replica counts. {{target}} keeps running too, so both will write to anything they share.",
+      "restartButton": "Start source",
+      "new": "New migration"
     }
   }
 }

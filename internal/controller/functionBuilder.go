@@ -1599,3 +1599,54 @@ func (a *App) GetForwardablePorts(clusterName, kind, name, namespace string) ([]
 // SuggestLocalPort returns a free local port, preferring the remote one. Zero
 // means "let the kernel choose".
 func (a *App) SuggestLocalPort(preferred int) int { return bussiness.SuggestLocalPort(preferred) }
+
+// ============================================================================
+// Cluster Migration
+// ============================================================================
+//
+// One event, migration:progress:{id} → models.MigrationProgress, carries every
+// change: phase, step, disks and errors alike.
+
+func (a *App) migrationReport(p models.MigrationProgress) {
+	a.emit("migration:progress:"+p.ID, p)
+}
+
+// MigrationPreflight says what a migration would do and what stands in its way.
+func (a *App) MigrationPreflight(req models.MigrationRequest) (models.MigrationPreflight, error) {
+	return bussiness.GetMigrationPreflight(req)
+}
+
+// MigrationStart begins a migration and returns its id.
+func (a *App) MigrationStart(req models.MigrationRequest) (string, error) {
+	return bussiness.StartMigration(req, a.migrationReport)
+}
+
+// MigrationGetRunning returns the source's unfinished migration, or nil.
+func (a *App) MigrationGetRunning(source string) *models.MigrationProgress {
+	return bussiness.GetRunningMigration(source, a.migrationReport)
+}
+
+// MigrationStartCutover begins the final switch, or continues one that stopped.
+func (a *App) MigrationStartCutover(id string) error {
+	return bussiness.StartMigrationCutover(id, a.migrationReport)
+}
+
+// MigrationCancel stops a migration, or abandons a final switch that has stopped.
+func (a *App) MigrationCancel(id string) error {
+	return bussiness.CancelMigration(id, a.migrationReport)
+}
+
+// MigrationGetResult is the status screen of a migration.
+func (a *App) MigrationGetResult(id string) (models.MigrationResult, error) {
+	return bussiness.GetMigrationResult(id)
+}
+
+// MigrationRestartSource starts the stopped source with what it had before.
+func (a *App) MigrationRestartSource(id string) error {
+	return bussiness.RestartMigrationSource(id)
+}
+
+// MigrationList returns a source cluster's migrations, newest first.
+func (a *App) MigrationList(source string) ([]models.MigrationMeta, error) {
+	return bussiness.ListMigrations(source)
+}

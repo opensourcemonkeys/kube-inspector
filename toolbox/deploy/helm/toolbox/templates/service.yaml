@@ -1,9 +1,11 @@
+{{- if include "toolbox.history.enabled" . }}
 apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "toolbox.fullname" . }}
   labels:
     {{- include "toolbox.labels" . | nindent 4 }}
+    kubeinspector.com/tool: history
 spec:
   type: {{ .Values.service.type }}
   selector:
@@ -26,6 +28,7 @@ metadata:
   name: {{ include "toolbox.auditServiceName" . }}
   labels:
     {{- include "toolbox.labels" . | nindent 4 }}
+    kubeinspector.com/tool: history
 spec:
   type: {{ .Values.audit.service.type }}
   {{- with .Values.audit.service.clusterIP }}
@@ -40,4 +43,5 @@ spec:
       {{- if and (eq .Values.audit.service.type "NodePort") .Values.audit.service.nodePort }}
       nodePort: {{ .Values.audit.service.nodePort }}
       {{- end }}
+{{- end }}
 {{- end }}

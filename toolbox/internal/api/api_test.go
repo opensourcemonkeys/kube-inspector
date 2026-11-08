@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -127,6 +128,29 @@ func TestAuth(t *testing.T) {
 	h.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Fatalf("bearer token: %d", rec.Code)
+	}
+}
+
+func TestInfoNamesTheToolAndWhatItServes(t *testing.T) {
+	_, h := setup()
+	rec := get(h, "/api/v1/info", "t0k")
+	if rec.Code != http.StatusOK {
+		t.Fatalf("code = %d", rec.Code)
+	}
+	var info struct {
+		Cluster, Tool string
+		Capabilities  []string
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &info); err != nil {
+		t.Fatal(err)
+	}
+	if info.Cluster != "prod" || info.Tool != "history" {
+		t.Fatalf("info = %+v", info)
+	}
+	for _, want := range []string{"changes", "stream", "health"} {
+		if !slices.Contains(info.Capabilities, want) {
+			t.Errorf("capabilities %v lack %q", info.Capabilities, want)
+		}
 	}
 }
 

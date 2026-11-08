@@ -134,6 +134,23 @@ an end-of-life OS, but Trivy does not report which tag to move to.
 finish. Single-image scans are not saved. There is no `trivy k8s` style scan of
 nodes or cluster infrastructure.
 
+## Cluster Migration
+
+- **It needs network between the clusters.** A pod on the source must reach the
+  target on a pod IP or a NodePort. There is no route through object storage.
+- **The app has to be open for the final switch**, and for the repeat copies that
+  keep the last difference small. A copy already running finishes without it.
+- **A namespace enforcing Pod Security `restricted` cannot be migrated.** The
+  workers run as root to keep file ownership, and the check will not relax the
+  label for you.
+- **A disk used by a DaemonSet, a bare Pod or an operator's workload blocks the
+  migration**, because it could not be stopped before the last copy.
+- **A ReadWriteOncePod disk in use is copied only during the final switch**, so
+  the application is stopped for the whole of that copy.
+- **Namespaces keep their names** on the target.
+- **File systems must support the same features.** A target volume that cannot
+  store ACLs or extended attributes fails the copy.
+
 ## Languages
 
 **Four of the six catalogs are machine-translated.** English is the source of

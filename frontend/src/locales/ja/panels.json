@@ -14,7 +14,8 @@
     "toolbox": "Toolbox",
     "clusterHistory": "クラスター履歴",
     "objectHistory": "履歴 {{name}}",
-    "ai": "AI アシスタント"
+    "ai": "AI アシスタント",
+    "migration": "クラスター移行"
   },
   "portForward": {
     "startedSummary": "ポートフォワードを開始しました",
@@ -1116,7 +1117,7 @@
   },
   "toolbox": {
     "label": "Toolbox",
-    "intro": "toolbox Helm チャートでインストールされ、クラスター内で動作するツール。",
+    "intro": "Kube Inspector から実行する Kubernetes ツールです。各行にツールの要件を示します。",
     "refresh": "再確認",
     "open": "開く",
     "checking": "確認中…",
@@ -1125,9 +1126,12 @@
       "desc": "誰が、何を、いつ、どこから変更したか。toolbox が記録したすべての作成・更新・削除を YAML の差分とロールバック付きで表示します。"
     },
     "migration": {
-      "title": "Cluster migration",
-      "desc": "ワークロードとその設定を別のクラスターへ移行します。",
-      "dev": "開発中"
+      "title": "クラスター移行",
+      "desc": "Namespace とその構成、ボリュームのデータを別のクラスターへ移します。最後に短時間停止します。",
+      "ready": "準備完了",
+      "hint": "インストールは不要です。Kube Inspector は移行のたびにワーカーを起動し、終了後に削除します。",
+      "noTargetState": "他のクラスターなし",
+      "noTarget": "移行先となる 2 つ目のクラスターを追加してください。"
     },
     "state": {
       "ok": "利用可能",
@@ -1180,7 +1184,7 @@
       "guide": "インストールガイド全文"
     },
     "beta": "ベータ",
-    "betaNote": "toolbox はベータ版で、Kube Inspector とは別にバージョン管理されています。記録する内容と API は toolbox のリリース間で変わる可能性があります。新しい Kube Inspector は古い toolbox でも動作し続けますが、使える機能は少なくなります。"
+    "betaNote": "toolbox のツールはベータ版で、Kube Inspector とは別にバージョン管理されています。記録内容や API は toolbox のリリース間で変わる可能性があります。新しい Kube Inspector は古い toolbox でも、機能を減らして動作します。"
   },
   "clusterHistory": {
     "label": "クラスター履歴",
@@ -1493,6 +1497,136 @@
       "add": "レジストリを追加",
       "remove": "レジストリを削除",
       "empty": "レジストリはまだありません。"
+    }
+  },
+  "migration": {
+    "setup": {
+      "intro": "選択した Namespace をボリュームのデータごと別のクラスターへコピーします。コピー中もアプリは動作し続け、最後に短時間停止します。",
+      "source": "移行元",
+      "target": "移行先",
+      "targetPlaceholder": "クラスターを選択",
+      "namespaces": "Namespace",
+      "namespacesPlaceholder": "Namespace を選択",
+      "bandwidth": "ディスクごとの帯域制限 KB/s(0 は無制限)",
+      "image": "ワーカーイメージ(任意)",
+      "imageHint": "クラスターが公開レジストリから取得できない場合のみ設定してください。",
+      "check": "確認",
+      "past": "過去の移行",
+      "open": "開く"
+    },
+    "preflight": {
+      "summary": "オブジェクト: {{objects}} · ディスク: {{disks}}",
+      "problems": "チェック",
+      "noProblems": "問題はありません",
+      "disks": "ディスク",
+      "colDisk": "ディスク",
+      "colSize": "サイズ",
+      "colSourceClass": "移行元のクラス",
+      "colTargetClass": "移行先のクラス",
+      "colData": "データ",
+      "copyYes": "コピーされます",
+      "copyFinalOnly": "最終切り替え時にコピーされます",
+      "copyNo": "コピーされません",
+      "conflicts": "移行先に既に存在",
+      "conflictsIntro": "オブジェクトごとに選択してください。指定しない限り上書きされません。",
+      "skip": "移行先を維持",
+      "overwrite": "上書き",
+      "diskKept": "移行先のディスクは保持され、データはコピーされません。",
+      "diff": "比較",
+      "missing": "移行先に不足",
+      "missingIntro": "これらはクラスターレベルのオブジェクトです。Kube Inspector は作成しないため、移行先にインストールしてください。",
+      "usedBy": "{{name}} が使用",
+      "skipped": "移行しないもの: {{count}}",
+      "back": "戻る",
+      "retry": "再確認",
+      "start": "移行を開始"
+    },
+    "issue": {
+      "namespaceMissing": "移行元に Namespace {{namespace}} がありません。",
+      "systemNamespace": "システム Namespace {{namespace}} は移行できません。",
+      "podSecurityRestricted": "{{namespace}} は Pod Security の restricted を強制しており、ワーカーを root で実行できません。移行の間は緩和してください。",
+      "unstoppableWriter": "Pod {{namespace}}/{{name}} はコピー対象のディスクを使用しており、スケールでは停止できません(所有者: {{detail}})。",
+      "moverPresent": "{{detail}} の {{namespace}} に別の移行のワーカーが残っています。",
+      "accessDenied": "{{name}} の {{namespace}} で次の権限がありません: {{detail}}",
+      "storageClassMissing": "移行先にディスク {{namespace}}/{{name}} 用の StorageClass がありません。下で選択してください。",
+      "diskNotBound": "ディスク {{namespace}}/{{name}} はバインドされておらず({{detail}})、コピーするデータがありません。",
+      "rwopDisk": "ディスク {{namespace}}/{{name}} は 1 つの Pod しかマウントできません。最終切り替え時にコピーするため、停止時間が長くなります。",
+      "gitOps": "{{namespace}} は GitOps で管理されているようです。最終切り替えの前に一時停止してください。そうしないと移行が停止したものを再起動します。",
+      "listForbidden": "{{namespace}} の {{name}} を読み取れませんでした。これらは移行されません。",
+      "discoveryPartial": "一部の API グループが応答しませんでした。それらのオブジェクトは移行されません。"
+    },
+    "skip": {
+      "generated": "クラスターが生成",
+      "owned": "所有者が再作成",
+      "standaloneJob": "単発の Job",
+      "serviceAccountToken": "このクラスターのトークン",
+      "clusterLocal": "このクラスターでのみ有効",
+      "noCrd": "移行先に CRD がありません",
+      "userChoice": "移行先を維持"
+    },
+    "phase": {
+      "preparing": "移行先を準備中",
+      "copying": "コピー中",
+      "ready": "最終切り替えの準備完了",
+      "cutover": "最終切り替え",
+      "done": "完了",
+      "failed": "失敗",
+      "cancelled": "キャンセル済み"
+    },
+    "step": {
+      "stop": "移行元を停止中",
+      "drain": "ディスクへの書き込みが止まるのを待機中",
+      "finalSync": "最後の変更をコピー中",
+      "cleanup": "ワーカーを削除中",
+      "apply": "移行先で起動中"
+    },
+    "progress": {
+      "copyingHint": "コピー中もアプリは動作し続けます。このタブやアプリを閉じても、実行中のコピーは続きます。",
+      "readyHint": "アプリはまだ {{source}} で動作しています。このパネルを開いている間、数分ごとにディスクを再コピーし、最終切り替えを短く保ちます。",
+      "colCopied": "コピー済み",
+      "colState": "状態",
+      "passes": "完了したコピー: {{count}}",
+      "unreachable": "移行元から移行先に接続できませんでした。クラスター間のネットワークを確認してください。",
+      "interrupted": "最終切り替えが停止しました: {{error}}",
+      "interruptedNoError": "最終切り替えが中断されました。再開するまで移行元は停止したままです。",
+      "start": "最終切り替えを開始",
+      "continue": "続行",
+      "cancel": "移行をキャンセル",
+      "confirmHeader": "最終切り替えを開始しますか?",
+      "confirmBody": "アプリは移行元で今すぐ停止し、最後のコピーの後に移行先で起動します。その後、トラフィックを新しいアドレスへ向けてください。",
+      "confirmButton": "停止して切り替え",
+      "cancelHeader": "この移行をキャンセルしますか?",
+      "cancelBody": "ワーカーは削除され、移行元は動作し続けます。移行先に作成済みのものは残り、次の試行はそこから続行します。",
+      "cancelButton": "移行をキャンセル",
+      "abandon": "中止して移行元を起動",
+      "abandonHeader": "この切り替えを中止しますか?",
+      "abandonBody": "アプリは以前のレプリカ数で移行元で再起動し、ワーカーは削除されます。移行先に作成したものは残りますが、実行はされません。"
+    },
+    "result": {
+      "title": "移行結果",
+      "refresh": "更新",
+      "summary": "Namespace: {{namespaces}} · オブジェクト: {{objects}} · {{bytes}} · 停止時間: {{downtime}}",
+      "liveError": "現在クラスターを読み取れません。一部は保存された記録の内容です。",
+      "notReady": "準備ができていないワークロード: {{count}}",
+      "workload": "ワークロード",
+      "ready": "準備完了",
+      "state": "状態",
+      "running": "実行中",
+      "starting": "起動中",
+      "class": "クラス",
+      "copy": "コピー",
+      "addresses": "アドレス(DNS をここに向けてください)",
+      "noAddresses": "これらの Namespace に LoadBalancer Service や Ingress はありません。",
+      "addressPending": "保留中",
+      "skipped": "スキップ: {{count}}",
+      "source": "移行元",
+      "stopped": "停止済み",
+      "sourceRunning": "実行中",
+      "restart": "以前のレプリカ数で起動",
+      "restartHeader": "移行元を再起動しますか?",
+      "restartBody": "{{source}} のワークロードは以前のレプリカ数に戻ります。{{target}} も動作し続けるため、共有しているものには両方が書き込みます。",
+      "restartButton": "移行元を起動",
+      "new": "新しい移行"
     }
   }
 }

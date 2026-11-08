@@ -3,7 +3,7 @@ IMAGE   ?= ghcr.io/opensourcemonkeys/kube-inspector-toolbox
 CHART   := deploy/helm/toolbox
 CH_TEST_PORT ?= 19000
 
-.PHONY: build test test-store bench-store vet lint docker helm-lint helm-template e2e clean
+.PHONY: build test test-store bench-store vet lint docker helm-lint helm-template e2e e2e-migration clean
 
 build:
 	CGO_ENABLED=0 go build -trimpath -ldflags "-s -w -X main.version=$(VERSION)" -o bin/toolbox ./cmd/toolbox
@@ -38,6 +38,8 @@ docker:
 helm-lint:
 	helm lint $(CHART)
 	helm lint $(CHART) --set clickhouse.enabled=false --set 'externalClickhouse.addr[0]=ch:9000'
+	helm lint $(CHART) --set tools.history.enabled=false
+	helm lint $(CHART) --set tools=null
 
 helm-template:
 	helm template toolbox $(CHART) --namespace toolbox
@@ -46,6 +48,10 @@ helm-template:
 # real writes. KEEP=1 leaves the cluster up.
 e2e:
 	./hack/kind/e2e.sh
+
+# Two kind clusters, a real backend and mover image: a migration end to end.
+e2e-migration:
+	./hack/kind/migration-e2e.sh
 
 clean:
 	rm -rf bin hack/kind/.work

@@ -128,7 +128,9 @@ manager does not remove:
 - `~/.kube/config` and anything else under `~/.kube/`. Kube Inspector reads it
   when you import a cluster and never writes to it.
 - Anything in your clusters. Uninstalling the client changes nothing on the
-  Kubernetes side.
+  Kubernetes side. If you installed toolbox for Cluster History, remove it from
+  each cluster yourself:
+  [Turning it off and removing it](toolbox/history-install.md#turning-it-off-and-removing-it).
 
 ## Reinstalling later
 

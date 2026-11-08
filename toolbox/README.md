@@ -1,5 +1,14 @@
 # toolbox
 
+In-cluster tools for Kube Inspector, managed from the desktop app.
+
+- **Cluster History** (this README): the controller below, installed with Helm.
+- **Cluster Migration**: needs no installation. `mover/` is the worker image
+  Kube Inspector starts per volume, published with the same tags
+  (`make e2e-migration` tests it on two kind clusters).
+
+## Cluster History
+
 A Kubernetes controller that records every create, update and delete in a
 cluster — **what** changed (a JSON patch with old and new values), **when**,
 and **who** did it **from where** (user, groups, impersonation, source IP,

@@ -10,6 +10,10 @@ type ToolboxStatus struct {
 	Namespace string `json:"namespace,omitempty"`
 	Service   string `json:"service,omitempty"`
 	Version   string `json:"version,omitempty"`
+	// Tool and Capabilities are what the release says it serves; both are empty
+	// on a toolbox from before /api/v1/info reported them.
+	Tool         string   `json:"tool,omitempty"`
+	Capabilities []string `json:"capabilities,omitempty"`
 	// Cluster is the name toolbox tags its rows with, not the kube-ins one.
 	Cluster string `json:"cluster,omitempty"`
 	Detail  string `json:"detail,omitempty"`

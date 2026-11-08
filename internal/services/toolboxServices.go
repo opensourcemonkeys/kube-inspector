@@ -39,6 +39,11 @@ const (
 	toolboxPortName    = "http"
 	toolboxTokenKey    = "api-token"
 	toolboxTokenHeader = "X-Toolbox-Token"
+	// toolboxToolLabel names which of toolbox's tools a Service belongs to. The
+	// change recorder is the one this file talks to; a Service without the
+	// label comes from a release older than the label, which only had it.
+	toolboxToolLabel   = "kubeinspector.com/tool"
+	toolboxHistoryTool = "history"
 	// Discovery is three API calls; the history list polls.
 	toolboxCacheTTL = time.Minute
 )
@@ -146,6 +151,9 @@ func discoverToolbox(ctx context.Context, client kubernetes.Interface) (toolboxE
 		return svcs[i].Name < svcs[j].Name
 	})
 	for _, svc := range svcs {
+		if tool := svc.Labels[toolboxToolLabel]; tool != "" && tool != toolboxHistoryTool {
+			continue
+		}
 		hasPort := false
 		for _, p := range svc.Spec.Ports {
 			hasPort = hasPort || p.Name == toolboxPortName
@@ -245,12 +253,16 @@ func GetToolboxStatus(ctx context.Context, t Toolbox) models.ToolboxStatus {
 		st.State, st.Detail = ToolboxStateOf(err), err.Error()
 		return st
 	}
-	var info struct{ Cluster, Version string }
+	var info struct {
+		Cluster, Version, Tool string
+		Capabilities           []string
+	}
 	if err := json.Unmarshal(body, &info); err != nil {
 		st.State, st.Detail = ToolboxUnreachable, "unexpected answer from toolbox: "+err.Error()
 		return st
 	}
 	st.State, st.Cluster, st.Version = ToolboxOK, info.Cluster, info.Version
+	st.Tool, st.Capabilities = info.Tool, info.Capabilities
 	return st
 }
 

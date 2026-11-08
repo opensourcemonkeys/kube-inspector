@@ -1,11 +1,12 @@
+{{- if not (include "toolbox.history.enabled" .) }}
+No tool is enabled in this release (tools.history.enabled is false), so it runs
+nothing. Cluster Migration needs no installation.
+{{- else }}
 toolbox is recording changes for cluster "{{ default "default" .Values.clusterName }}".
+Open it from the tools button in Kube Inspector's cluster bar.
 
 API token:
   kubectl -n {{ .Release.Namespace }} get secret {{ include "toolbox.fullname" . }} -o jsonpath='{.data.api-token}' | base64 -d
-
-Open the UI:
-  kubectl -n {{ .Release.Namespace }} port-forward svc/{{ include "toolbox.fullname" . }} {{ .Values.service.httpPort }}:{{ .Values.service.httpPort }}
-  # then http://localhost:{{ .Values.service.httpPort }} and paste the token
 
 Kube Inspector reaches the same API without a port-forward, through the API
 server's service proxy:
@@ -48,5 +49,6 @@ server is pointed at it. On each control-plane node:
 
 Tip: set audit.service.clusterIP to a free address in the service CIDR so the
 server URL above stays stable across reinstalls.
+{{- end }}
 {{- end }}
 {{- end }}

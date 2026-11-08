@@ -2836,6 +2836,30 @@ button.ai-chip { padding: 2px 8px; cursor: pointer; }
 .tool-health__note { color: var(--ink-2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
 .tool-health__msg { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); }
 /* The install guide, in place of a tool that is not on the cluster. */
+/* Cluster Migration */
+.mig-body { display: flex; flex-direction: column; gap: 6px; padding-bottom: 16px; }
+.mig-form { padding: 8px 16px; max-width: 520px; }
+.mig-route { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 12px 16px 0; color: var(--ink); }
+.mig-cluster { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-family-mono); font-size: 12.5px; color: var(--ink); }
+.mig-cluster__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot, var(--ink-3)); }
+.mig-section { margin: 10px 16px 0; }
+.mig-section__title { margin: 0 0 6px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.mig-section__note { margin: 0 0 6px; color: var(--ink-2); line-height: 1.5; font-size: 12.5px; max-width: 72ch; }
+summary.mig-section__title { cursor: pointer; }
+.mig-issues { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.mig-error { margin: 4px 16px; }
+.mig-warning { margin: 4px 16px; }
+.mig-actions { margin: 14px 16px 0; }
+.mig-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.mig-table th { text-align: left; font-weight: 500; color: var(--ink-3); padding: 4px 12px 4px 0; border-bottom: 1px solid var(--line); }
+.mig-table td { color: var(--ink); padding: 5px 12px 5px 0; border-bottom: 1px solid var(--line); vertical-align: middle; overflow-wrap: anywhere; }
+.mig-table__end { text-align: right; }
+.mig-table__wide { width: 40%; }
+.mig-progress { height: 6px; margin-bottom: 3px; }
+.mig-disk-note { display: block; color: var(--ink-2); }
+.mig-diff-dialog { width: min(1100px, calc(100vw - 32px)); }
+.mig-diff { height: min(560px, 60vh); }
+
 .tool-install { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; max-width: 760px; }
 .tool-install__step { margin: 0; color: var(--ink); line-height: 1.5; }
 .tool-install__note { margin: 0; color: var(--ink-2); line-height: 1.5; font-size: 12.5px; }

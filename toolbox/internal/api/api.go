@@ -1,6 +1,5 @@
-// Package api serves the REST API Kube Inspector (and the bundled UI) reads
-// change history from. Every endpoint is a GET over the store; nothing here
-// writes.
+// Package api serves the REST API Kube Inspector reads change history from.
+// Every endpoint is a GET over the store; nothing here writes.
 package api
 
 import (
@@ -24,6 +23,12 @@ import (
 // the API through the API server's service proxy with the user's own
 // credentials, and the proxy consumes Authorization for itself.
 const TokenHeader = "X-Toolbox-Token"
+
+// toolName says which of toolbox's tools this server is, and toolCapabilities
+// what it serves, so a client need not probe for endpoints.
+const toolName = "history"
+
+var toolCapabilities = []string{"changes", "stream", "objectHistory", "attempts", "stats", "users", "gaps", "health"}
 
 // Store is what the API reads; *store.Store implements it.
 type Store interface {
@@ -126,7 +131,9 @@ func (s *Server) now() time.Time {
 }
 
 func (s *Server) info(w http.ResponseWriter, _ *http.Request) error {
-	writeJSON(w, http.StatusOK, map[string]string{"cluster": s.Cluster, "version": s.Version})
+	writeJSON(w, http.StatusOK, map[string]any{
+		"cluster": s.Cluster, "version": s.Version, "tool": toolName, "capabilities": toolCapabilities,
+	})
 	return nil
 }
 

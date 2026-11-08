@@ -1,3 +1,4 @@
+{{- if include "toolbox.history.enabled" . }}
 {{- $auditSANs := list (include "toolbox.auditServiceName" .) (printf "%s.%s.svc" (include "toolbox.auditServiceName" .) .Release.Namespace) -}}
 {{- if .Values.audit.service.clusterIP -}}
 {{- $auditSANs = append $auditSANs .Values.audit.service.clusterIP -}}
@@ -51,3 +52,4 @@ data:
     leaderElection:
       enabled: true
       leaseName: {{ printf "%s-leader" (include "toolbox.fullname" .) | quote }}
+{{- end }}

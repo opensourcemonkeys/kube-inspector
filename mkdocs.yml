@@ -88,10 +88,13 @@ nav:
     - Installation: cli/installation.md
     - Usage & Shortcuts: cli/usage.md
   - Toolbox:
-    - Overview & Installation: toolbox/index.md
-    - Cluster History: toolbox/cluster-history.md
-    - Object History & Rollback: toolbox/object-history.md
-    - Recording Health: toolbox/recording-health.md
+    - Overview: toolbox/index.md
+    - Cluster History:
+      - Install: toolbox/history-install.md
+      - Cluster History: toolbox/cluster-history.md
+      - Object History & Rollback: toolbox/object-history.md
+      - Recording Health: toolbox/recording-health.md
+    - Cluster Migration: toolbox/cluster-migration.md
   - Changelog: changelog.md
   - Docs:
     - Workloads:

@@ -59,7 +59,7 @@ Click a change to open it beside the list:
 Writes the API server refused — a `403 Forbidden`, a `422 Invalid` from
 validation or a webhook — with who sent them and from where. Click one for the
 full request line, the user agent, the groups and the server's whole message.
-This view needs the [audit webhook](index.md#wiring-the-audit-webhook).
+This view needs the [audit webhook](history-install.md#wiring-the-audit-webhook).
 
 ## Users
 

@@ -66,6 +66,7 @@ function getComponentType(panelId: string): string {
     if (panelId.startsWith('toolbox:')) return 'toolbox';
     if (panelId.startsWith('ai:')) return 'aiAssistant';
     if (panelId.startsWith('cluster-history:')) return 'clusterHistory';
+    if (panelId.startsWith('migration:')) return 'migration';
     if (panelId.startsWith('object-history:')) return 'objectHistory';
     return 'view';
 }

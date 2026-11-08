@@ -45,6 +45,7 @@ const rawComponents = {
     toolbox: lazy(() => import('../toolbox/ToolboxPanel')),
     aiAssistant: lazy(() => import('../ai/AiAssistantPanel')),
     clusterHistory: lazy(() => import('../toolbox/history/ClusterHistoryPanel')),
+    migration: lazy(() => import('../toolbox/migration/MigrationPanel')),
     objectHistory: lazy(() => import('../toolbox/history/ObjectHistoryPanel')),
     configMapEditor: lazy(() => import('../configmap/ConfigMapEditorPanel')),
     secretEditor: lazy(() => import('../secret/SecretEditorPanel')),

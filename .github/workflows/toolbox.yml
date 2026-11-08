@@ -26,6 +26,7 @@ concurrency:
 
 env:
   IMAGE: ghcr.io/opensourcemonkeys/kube-inspector-toolbox
+  MOVER_IMAGE: ghcr.io/opensourcemonkeys/kube-inspector-toolbox-migrator
   CHART_REPO: oci://ghcr.io/opensourcemonkeys/charts
   HELM_IMAGE: alpine/helm:3.16.4@sha256:9b25e60ae264940b276e32866d37e3088e70c4e2d1784b964dc3f90346281a74
   BUILDKIT_IMAGE: moby/buildkit:v0.18.2@sha256:86c0ad9d1137c186e9d455912167df20e530bdf7f7c19de802e892bb8ca16552
@@ -66,6 +67,10 @@ jobs:
           docker run --rm -v "$PWD":/w -w /w "$HELM_IMAGE" lint deploy/helm/toolbox
           docker run --rm -v "$PWD":/w -w /w "$HELM_IMAGE" lint deploy/helm/toolbox \
             --set clickhouse.enabled=false --set 'externalClickhouse.addr[0]=ch:9000'
+          docker run --rm -v "$PWD":/w -w /w "$HELM_IMAGE" lint deploy/helm/toolbox \
+            --set tools.history.enabled=false
+          # What `helm upgrade --reuse-values` from an older chart renders.
+          docker run --rm -v "$PWD":/w -w /w "$HELM_IMAGE" lint deploy/helm/toolbox --set tools=null
 
   release:
     name: Publish image and chart
@@ -116,6 +121,17 @@ jobs:
             --label org.opencontainers.image.source="https://github.com/${GITHUB_REPOSITORY}" \
             --label org.opencontainers.image.version="$VERSION" \
             --tag "$IMAGE:$VERSION" \
+            --push
+
+      # The Cluster Migration worker. Kube Inspector pins this version, so it
+      # has to be published before the app release that refers to it.
+      - name: Build and push mover image
+        run: |
+          docker buildx build mover \
+            --platform linux/amd64,linux/arm64 \
+            --label org.opencontainers.image.source="https://github.com/${GITHUB_REPOSITORY}" \
+            --label org.opencontainers.image.version="$VERSION" \
+            --tag "$MOVER_IMAGE:$VERSION" \
             --push
 
       - name: Package and push chart
